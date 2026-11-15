@@ -1,0 +1,154 @@
+warning: associated function `try_from_locally_built_block` is never used
+  --> /Users/ember/dev/parano1d-break/experiments/dex-economics/pinned/noid_chain/src/accepted_block_bundle.rs:73:19
+   |
+65 | impl AcceptedBlockBundle {
+   | ------------------------ associated function in this implementation
+...
+73 |     pub(crate) fn try_from_locally_built_block(
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `encode_body` is never used
+   --> /Users/ember/dev/parano1d-break/experiments/dex-economics/pinned/noid_chain/src/block/payload.rs:297:15
+    |
+297 | pub(crate) fn encode_body<'a>(block_bytes: &'a [u8], openings: &[NativeOpening]) -> Cow<'a, [u8]> {
+    |               ^^^^^^^^^^^
+
+warning: `noid_chain` (lib) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.15s
+     Running `target/release/dex-games-audit`
+tail_snipe_prize: complete
+tail_snipe_race: complete
+cross_batch_priority: complete
+graduation_timing: complete
+launch_head: complete
+{
+  "cross_batch_priority": {
+    "anchor_rule": "largest principal claim; ties by creation id then slot",
+    "digest_inputs": [
+      "parent_id",
+      "asset",
+      "anchor creation_id",
+      "anchor slot_index"
+    ],
+    "equal_utxo_first_win_rate_across_parents": 0.509765625,
+    "invariant_to": [
+      "gross_input",
+      "minimum_output",
+      "fee_limit",
+      "recipient",
+      "validity window",
+      "owner"
+    ],
+    "lottery": [
+      {
+        "competitor_utxos": 16,
+        "empirical_win_rate": 0.055419921875,
+        "my_utxos": 1,
+        "predicted_n_over_n_plus_m": 0.058823529411764705
+      },
+      {
+        "competitor_utxos": 16,
+        "empirical_win_rate": 0.18994140625,
+        "my_utxos": 4,
+        "predicted_n_over_n_plus_m": 0.2
+      },
+      {
+        "competitor_utxos": 16,
+        "empirical_win_rate": 0.494384765625,
+        "my_utxos": 16,
+        "predicted_n_over_n_plus_m": 0.5
+      },
+      {
+        "competitor_utxos": 16,
+        "empirical_win_rate": 0.78955078125,
+        "my_utxos": 64,
+        "predicted_n_over_n_plus_m": 0.8
+      }
+    ]
+  },
+  "graduation_timing": {
+    "fair_pregrad_roundtrip_pnl_micronoid": -12,
+    "free_tail_standalone_sale_dust_rejected": true,
+    "opening_pool_base_micronoid": 400000000,
+    "opening_pool_quote_units": 40000000000,
+    "opening_price_equals_terminal_marginal": true,
+    "winner_remainder_leg_fee_micronoid": 30000,
+    "winner_remainder_leg_pool_units": 972754103
+  },
+  "launch_head": {
+    "creator_bundle_options": {
+      "entire_curve_cost_micronoid": 400000000,
+      "entire_curve_graduates_at_creation": true,
+      "flat_prefix_cost_micronoid": 1,
+      "flat_prefix_units": 299,
+      "skip": "state at sold=0"
+    },
+    "creator_minimum_backing_micronoid": 100000000,
+    "exact_prefix_value_micronoid": 0.9966666716333888,
+    "first_block_order_decided_by": "funding-priority digest (identical lottery)",
+    "first_buy_units_for_one_noid": 299,
+    "prefix_is_overcharge_not_discount": true,
+    "second_buy_units_for_one_noid": 300
+  },
+  "source_commit": "52938433a30b185ab007afaa15166a632cf2e82e",
+  "tail_snipe_prize": {
+    "supplies": [
+      {
+        "below_window_spent_micronoid": 1,
+        "exact_tail_value_micronoid": 1,
+        "flat_tail_units": 100,
+        "graduation_cash_micronoid": 400000000,
+        "min_lot_sale_gross_micronoid": 1,
+        "min_sellable_lot_units": 102,
+        "standalone_pool_sale_dust_rejected": true,
+        "supply": "minimum",
+        "supply_units": 100000000000,
+        "sweep_output_units": 100,
+        "sweep_spent_micronoid": 0
+      },
+      {
+        "below_window_spent_micronoid": 1,
+        "exact_tail_value_micronoid": 1,
+        "flat_tail_units": 100,
+        "graduation_cash_micronoid": 20496582304000,
+        "min_lot_sale_gross_micronoid": 1,
+        "min_sellable_lot_units": 102,
+        "standalone_pool_sale_dust_rejected": true,
+        "supply": "mid",
+        "supply_units": 5124145576000000,
+        "sweep_output_units": 100,
+        "sweep_spent_micronoid": 0
+      },
+      {
+        "below_window_spent_micronoid": 1,
+        "exact_tail_value_micronoid": 1,
+        "flat_tail_units": 100,
+        "graduation_cash_micronoid": 40992764608000,
+        "min_lot_sale_gross_micronoid": 1,
+        "min_sellable_lot_units": 102,
+        "standalone_pool_sale_dust_rejected": true,
+        "supply": "maximum",
+        "supply_units": 10248191152000000,
+        "sweep_output_units": 100,
+        "sweep_spent_micronoid": 0
+      }
+    ]
+  },
+  "tail_snipe_race": {
+    "authorization_key_order_decides_execution": false,
+    "big_loser_outcome": "filled against the opening pool at pool prices in the same batch",
+    "fee_inflation_changes_outcome": false,
+    "flat_tail_units": 100,
+    "graduated": true,
+    "loser_outcome": "declined (unfilled), retried next block, charged nothing",
+    "tail_prize_micronoid": 1,
+    "winner_by": "lowest funding_priority digest (anchor UTXO + parent id)",
+    "winner_fee_floor_micronoid": 9800,
+    "winner_output_units": 100,
+    "winner_spent_micronoid": 0
+  },
+  "units_note": "all NOID amounts are base units; 1 NOID = 1e6 base units (consensus/params.rs MIN_FEE_BASE)"
+}
+ALL ASSERTIONS PASSED

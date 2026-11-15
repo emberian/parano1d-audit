@@ -1,0 +1,21 @@
+[package]
+name = "dex-games-audit"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+noid_chain = { path = "../dex-economics/pinned/noid_chain" }
+noid_core = { path = "../dex-economics/pinned/noid_core" }
+noid_poseidon2b = { path = "../dex-economics/pinned/noid_poseidon2b" }
+noid_tx = { path = "../dex-economics/pinned/noid_tx" }
+serde_json = "1"
+
+[profile.dev]
+opt-level = 2
+
+[profile.release]
+opt-level = 2
+codegen-units = 16
