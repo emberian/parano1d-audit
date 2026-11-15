@@ -1,0 +1,12 @@
+[package]
+name = "nft-marketplace-audit"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+noid_core = { path = "../source/noid_core" }
+noid_poseidon2b = { path = "../source/noid_poseidon2b" }
+noid_tx = { path = "../source/noid_tx" }
+noid_chain = { path = "../source/noid_chain" }
+noid_recursive = { path = "../source/noid_recursive" }
+noid-ivc-core = { path = "../source/noid_ivc_core" }

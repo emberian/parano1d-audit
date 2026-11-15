@@ -1,0 +1,122 @@
+warning: associated function `try_from_locally_built_block` is never used
+  --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_chain/src/accepted_block_bundle.rs:73:19
+   |
+65 | impl AcceptedBlockBundle {
+   | ------------------------ associated function in this implementation
+...
+73 |     pub(crate) fn try_from_locally_built_block(
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `encode_body` is never used
+   --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_chain/src/block/payload.rs:297:15
+    |
+297 | pub(crate) fn encode_body<'a>(block_bytes: &'a [u8], openings: &[NativeOpening]) -> Cow<'a, [u8]> {
+    |               ^^^^^^^^^^^
+
+warning: `noid_chain` (lib) generated 2 warnings
+warning: unused import: `FsChannelOps`
+ --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/acceptance/history_step/v2/capacity_banked/shared_parent.rs:9:36
+  |
+9 | use noid_ivc_core::field_circuit::{FsChannelOps, RecordedChannel};
+  |                                    ^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `pin_eq`
+ --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/acceptance/trace/native_assets/financial_inventory_scan.rs:7:25
+  |
+7 | use super::super::{mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128};
+  |                         ^^^^^^
+
+warning: unused import: `flat_const`
+ --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/acceptance/trace/native_assets/financial_launch_context.rs:7:18
+  |
+7 |     alloc_block, flat_const, mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128,
+  |                  ^^^^^^^^^^
+
+warning: unused import: `F128`
+ --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/acceptance/trace/native_assets/financial_launch_effects_shared.rs:8:32
+  |
+8 |     FieldR1csBuilder, LinExpr, F128,
+  |                                ^^^^
+
+warning: unused import: `flat_const`
+ --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/acceptance/trace/native_assets/financial_nft_funding.rs:6:20
+  |
+6 | use super::super::{flat_const, mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128};
+  |                    ^^^^^^^^^^
+
+warning: unused import: `duplex_substitution_terms_selected`
+  --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/region_sidecar/recording_duplex.rs:36:5
+   |
+36 |     duplex_substitution_terms_selected, duplex_substitution_terms_selected_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `prove_c1_duplex_walk_suffix_selected`, `verify_c1_duplex_walk_suffix_selected_trace`, and `verify_c1_duplex_walk_suffix_selected`
+  --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/region_sidecar/recording_duplex.rs:40:63
+   |
+40 |     prove_c1_duplex_walk_prefix, prove_c1_duplex_walk_suffix, prove_c1_duplex_walk_suffix_selected,
+   |                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+43 |     verify_c1_duplex_walk_suffix_selected, verify_c1_duplex_walk_suffix_selected_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+44 |     verify_c1_duplex_walk_suffix_selected_trace, verify_c1_duplex_walk_suffix_selected_trace_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `prove_c1_duplex_walk_suffix_selected` is never used
+    --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/acceptance/trace/region_source_binding_c1.rs:1587:15
+     |
+1587 | pub(crate) fn prove_c1_duplex_walk_suffix_selected<C: Challenger>(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `verify_c1_duplex_walk_suffix_selected` is never used
+    --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/acceptance/trace/region_source_binding_c1.rs:1728:15
+     |
+1728 | pub(crate) fn verify_c1_duplex_walk_suffix_selected<C: Challenger>(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `verify_c1_duplex_walk_suffix_selected_trace` is never used
+   --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/acceptance/trace/region_source_binding_c1/trace_impl.rs:346:15
+    |
+346 | pub(crate) fn verify_c1_duplex_walk_suffix_selected_trace<C: FsChannelOps>(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `noid_recursive` (lib) generated 10 warnings (run `cargo fix --lib -p noid_recursive` to apply 7 suggestions)
+warning: unused imports: `apply_owned_offer_acceptance` and `apply_owned_offer_cancellation`
+  --> src/lib.rs:9:69
+   |
+ 9 |         apply_owned_listing_creation, apply_owned_listing_purchase, apply_owned_offer_acceptance,
+   |                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+10 |         apply_owned_offer_cancellation, apply_owned_offer_funding, apply_owned_purchase_funding,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `nft-marketplace-audit` (lib test) generated 1 warning (run `cargo fix --lib -p nft-marketplace-audit --tests` to apply 1 suggestion)
+    Finished `release` profile [optimized] target(s) in 0.09s
+     Running unittests src/lib.rs (/Users/ember/dev/parano1d-break/experiments/nft-marketplace/target/release/deps/nft_marketplace_audit-cef913d6fadeeaaf)
+
+running 10 tests
+test tests::identity_codec_and_external_bytes_are_strict ... ok
+test tests::worst_case_fees_stay_within_settlement_and_refund_bounds ... ok
+test tests::accepted_collection_mint_transfer_list_buy_cancel_burn_and_stale_replay ... ok
+test tests::round_settlement_exact_accounting_and_stale_rejections ... ok
+test tests::timeout_refund_reset_and_expired_recovery_paths ... ok
+test tests::owner_price_expiry_metadata_and_duplicate_controls_reject ... ok
+test tests::time_locked_items_reject_transfer_and_listing_paths ... ok
+test tests::activation_profile_gates_round_and_offer_surface ... ok
+test tests::recursive_transfer_matches_native_and_binds_metadata ... ok
+test tests::recursive_genesis_kernel_binds_funding_anchor_and_accepts_native_genesis ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+   Doc-tests nft_marketplace_audit
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
