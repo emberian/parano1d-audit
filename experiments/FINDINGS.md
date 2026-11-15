@@ -10,6 +10,11 @@ Certainty classes used throughout (never upgraded):
 
 - **[RV] root-verified** — the root agent independently re-ran the PoC / rebuilt the builds and
   recorded confirmation in `experiments/kimi-root-narrative.md`.
+- **[RV-T] takeover-verified** — verified on the takeover side (ember ruling, 2026-11-15): either
+  independently reproduced/verified by the takeover root or its dedicated verifier (deliverables
+  `verify-run.txt`, `VERIFY.md`), or a takeover-completed lane whose run output is tee'd on disk
+  (the lane's own `results.txt`). Kimi-era agent-reported rows stay [AR] unless the kimi root
+  itself reran them ([RV]) — that distinction reflects dead agents with no report.
 - **[AR] agent-reported** — PoC output or a full agent report exists on disk, but the root's
   verification was interrupted or never started.
 - **[PC] partial/unverified** — dead lane, code on disk, no report, no run evidence.
@@ -52,8 +57,10 @@ remaining confirmed protocol-level flaws are conditional or bounded: same-anchor
 property (not a forgery; severity depends on whether authorization is meant to be fork-specific),
 the HeaderDAG capacity stall is a Medium conditional liveness defect (requires ~1,024 valid PoW
 headers), the unbounded `getSlotsByOwner` RPC query is local-only under the pinned credential
-policy, and the P2P profile-ID collision across fork schedules yields incompatible-peer mixing /
-DoS, not cross-version proof acceptance. The root's own position statement (02:58:28): *"serious
+policy, the P2P profile-ID collision across fork schedules yields incompatible-peer mixing /
+DoS, not cross-version proof acceptance — and **one Medium unauthenticated-remote availability
+defect (C17)**: four 12-byte mempool pulls can pin the process-wide outbound byte domain and
+convert serving for all peers from delay to rejection, with no acceptance impact. The root's own position statement (02:58:28): *"serious
 warning signs, no consequential end-to-end attack shown yet — not 'definitely broken,' but also not
 'these results are satisfying.'"* The upstream `main` (`e6d324ff…`) still contains the vulnerable
 compressor unchanged, and the upstream test suites pass — this is a design/parameterization failure,
@@ -61,7 +68,7 @@ not a broken build.
 
 ---
 
-## 2. Confirmed findings (root-verified)
+## 2. Confirmed findings
 
 | ID | Finding | Demonstrated | Severity (as scoped by the lane/root) | Certainty | Reproducer |
 |----|---------|--------------|----------------------------------------|-----------|------------|
@@ -79,6 +86,11 @@ not a broken build.
 | C12 | Mempool liveness policies (three Low behaviors) | First-seen output-slot pinning (higher-fee rival -> `SlotConflict`); coinbase/output-slot race evicting a pending spend; no automatic re-admission of reorged transactions | Low fairness/liveness policies, documented behavior; no soundness impact | **[RV]** — root reran the lane (same run as C10/C11) | `/Users/ember/dev/parano1d-break/experiments/ledger-fairness/` (`REPORT.md` §3-5) |
 | C13 | Rejected proofs suppress same-scan recovery of the same txid | Malformed auth -> `InvalidProof` -> txid marked known; later valid same-txid intent from that peer skipped for that scan | Low, scan-bounded availability flaw; per-peer and per-scan only; new scan clears it; no mempool admission, no state change | **[RV]** — root called it confirmed (02:11:13) and independently scoped it (02:12:09) | `/Users/ember/dev/parano1d-break/experiments/identity-encoding/src/main.rs` |
 | C14 | Merkle-layer typed-graph collision witness | The CAPSNODE collision lifted to 4 accepting production-shaped native Merkle paths + 4 matching recursive trace roots, sharing one source-cap node | Positive-but-limited: colliding children lack protocol-valid leaf openings; **not** `BadTypedBind`, **not** a Delta violation | **[RV]** — root rerun, "confirmed but limited" (01:40:01) | `/Users/ember/dev/parano1d-break/experiments/typed-binding/src/main.rs` |
+| C15 | External-miner: invalid PoW consumes the only prepared template | `submitBlock` consumes the node-owned attempt (`begin_proving`) *before* `validate_pow`; an invalid nonce permanently destroys the prepared template (`replay=Unavailable; expensive_template_reusable=false`) | Medium availability, requires mining-API authorization (or local owner access); not unauthenticated, no invalid block accepted | **[RV-T]** — takeover-root rerun 2026-11-15, `verify-run.txt`, `ALL ASSERTIONS PASSED`; kimi root never verified this lane | `/Users/ember/dev/parano1d-break/experiments/external-miner/` (`README.md`, `results.txt`, `verify-run.txt`) |
+| C16 | Standalone release builder embeds legacy matrix bytes without authenticating them | Substituted legacy matrix (same decompressed length) reaches Cargo sealed under the unchanged pins.env-approved metadata identity, with zero hash/manifest lines in the build log; the runtime embedded-path decoder accepts the foreign relation and returns `statement_digest() == approved` | High for the standalone builder as an authentication boundary; Medium as a defect of the official release chain (two independent compensating controls) | **[RV-T]** — independently verified by takeover verifier, `VERIFY.md`, verdict CONFIRMED-WITH-NARROWER-SCOPE | `/Users/ember/dev/parano1d-break/experiments/build-artifacts/` (`VERIFY.md`, `verify-output.txt`, `verify/`) |
+| C17 | **Unauthenticated-remote (audit's first): four cheap mempool pulls pin the entire process-wide outbound byte domain** | Every served mempool pull unconditionally reserves the full 16 MiB `MAX_MEMPOOL_SYNC_BYTES` from the single 64 MiB domain — even for an empty mempool; 4 stalled writes (peer stops reading; one 303,495 B legal intent exceeds the ~256 KiB yamux window) pin it all, blocking object/history-step/segment/fork-origin serving; 6 blocked object requests exhaust the class slots and all further object requests get `Busy` — rejection, not delay — for every peer; rotation every ≤30 s sustains ~100% duty cycle | Medium availability, unauthenticated remote peer, **no acceptance impact**; four honest slow-link mempool syncs can cause the same starvation accidentally | **[RV-T]** — takeover lane, tee'd `results.txt` (real codecs + real process-global budget): `aggressors holding the entire domain mid-write: 4/4`; production-path slot exhaustion established by source reading (`pub(crate)` unreachable externally) | `/Users/ember/dev/parano1d-break/experiments/p2p-resources/` (`README.md` Finding 1, `results.txt`) |
+| C18 | Header-sync serving memory is outside every process-wide budget; retention scales with attacker connections | `GetHeadersResponse` carries no permit; the codec holds canonical (1,179,648 B cap) plus compressed buffers during stalled writes; 64 stalled streams (8/conn x 8 conns, 16-byte requests) retained 75,497,472 canonical bytes — more than the entire 64 MiB domain other protocols respect; ~1-2 GB order at the 128-connection cap (~1024 streams) | Low-to-Medium availability/memory, unauthenticated remote, by-design exclusion with quantified cost — contradicts the domain's stated "without scaling with peer count" goal | **[RV-T]** — takeover lane, tee'd `results.txt` (canonical figure is a content-independent lower bound; the ~1-2 GB extrapolation and 8-slot-semaphore scope are source-read) | `/Users/ember/dev/parano1d-break/experiments/p2p-resources/` (`README.md` Finding 2, `results.txt`) |
+| C19 | Every `paranoid_walletQueryReceipts` call rescans and Merkle-reverifies the entire receipt store | Any page including page 1: fetch+clone every stored receipt, decode, re-run Merkle-inclusion verification, then top-k — no cross-call cache; 20k receipts = 4.1-5.6 s wall per call (~205-225 µs/receipt); a GUI walking 400 pages burns ~28 min of one core | Medium availability, **credential-gated** (operator bearer or loopback owner, `server.rs:3861` allowlist; NOT anonymously reachable); serialized, authenticated CPU burn, not an unauthenticated amplification | **[RV-T]** — takeover lane, tee'd `results.txt` (real `start_rpc_server` + real handlers, 20k Merkle-valid receipts): `A1 … wall 5616038 us`; `A6 repeated page-1 walls: [4514004, 4442464, 4118766] us` | `/Users/ember/dev/parano1d-break/experiments/rpc-api/` (`README.md` Finding 1, `results.txt`) |
 
 ### Per-finding detail and exact scope limits
 
@@ -227,38 +239,177 @@ terminal/genesis reachability is **not** additionally required for `BadTypedBind
 is protocol-valid represented subgraphs — valid leaf/descendant openings for the colliding children
 plus canonical represented artifacts.
 
+**C15 — external-miner template consumption.** Mechanism (agent-20's lane
+`/Users/ember/dev/parano1d-break/experiments/external-miner/README.md`):
+`submitBlock` decodes and calls `ExternalMiningAttemptSlot::begin_proving`
+(`noid_rpc/src/server.rs:529-555`), removing the `Ready` value and setting the sole slot to
+`Proving`, *before* `finalize_node_owned_template_after_nonce` runs `validate_pow`
+(`noid_rpc/src/server.rs:1470-1491`); on `InvalidPoW` the slot drops to `Idle` and the prepared
+value is not restored, so replaying that template ID returns `Unavailable` and the node must repeat
+snapshot selection and nonce-independent `HistoryStep` preparation. Key output, identical in the
+lane's `results.txt` and in the takeover root's independent rerun
+(`verify-run.txt`, 2026-11-15): `POC invalid nonce=0 consumed prepared template
+07000000000000000100000000000000; replay=Unavailable; expensive_template_reusable=false` /
+`ALL ASSERTIONS PASSED`. The six controls match: real templates accepted with real PoW, cross-
+template nonce reuse rejected (`InvalidPoW`), payout substitution rejected (`BadCoinbaseOwner`),
+competing parent rejected (`BadParentHash`), and tip/expiry invalidation behaving as documented.
+Severity and preconditions as the lane README states them: **Medium availability impact,
+requiring mining API authorization (or local owner access)** — a worker with the shared mining
+bearer token can cheaply destroy each expensive preparation; it is not an unauthenticated remote
+attack and does not accept an invalid block. Certainty: **[RV-T]** — reproduced by the takeover
+root; the kimi root never verified or summarized this lane before dying (agent's final message
+never landed).
+
+**C16 — standalone release builder embeds unauthenticated legacy matrix bytes.** Originally
+agent-25's "High" (former U1); independently verified by a fresh takeover-verifier session at the
+pinned commit (deliverables `/Users/ember/dev/parano1d-break/experiments/build-artifacts/VERIFY.md`,
+`verify-output.txt`, `verify/`; agent-25's originals untouched; fixture scripts verified
+byte-identical to `parano1d/scripts/`). Verdict: **CONFIRMED-WITH-NARROWER-SCOPE** — technically
+confirmed in full; severity depends on the pack-acquisition channel.
+
+Scope sentence (from `VERIFY.md` §5): *Legacy matrix bytes sealed under the pins.env-approved
+metadata identity can be substituted without detection whenever a node is built via
+`scripts/build_release.sh` without `--retired-history` (that script's default — the
+transition/current-generation profile) from a pack whose integrity is not independently verified
+out-of-band; but NOT in `--retired-history` builds (no matrix bytes embedded), NOT for v2/v2.1
+matrices (payload-hash + semantic authentication against external bank pins), NOT in bare `cargo`
+builds, and NOT in the official publish chain as scripted, where the publisher-side
+`release_authenticate_pack` and the dispatch-input archive digest compensate — controls that live
+entirely outside the standalone builder whose documented posture claims matrix authentication.*
+
+Two empirical legs (exact lines from `verify-output.txt`):
+
+- Release script (run 1, Cargo stub exit 91 = "Cargo was reached"): the pristine control and the
+  substituted run both reach Cargo with the identical exported metadata pin
+  (`metadata_pin_seen_by_cargo: a1a1…a1a1`); `"leaf_pin_exported_to_cargo": false`,
+  `"manifest_stale_for_c00": true`, and `"log_lines_mentioning_hash_or_manifest": []` — the build
+  log contains zero hash/manifest verification lines. The same pack is rejected by the
+  existing-but-unwired `release_verify_sha256_manifest` when invoked explicitly
+  (`error: SHA-256 mismatch … history-step-c00.field-r1cs.zst`).
+- Runtime decoder (run 2, compiled from pinned `noid_ivc_core`): `safe_loader_rejected=true
+  embedded_decoder_foreign_accepted=true cache_decoder_foreign_accepted=true` —
+  `open_build_authenticated`, the exact decoder `rebuild_from_canonical` applies to the binary's
+  EMBEDDED matrix bytes, accepts the foreign same-shape/same-canonical-length relation and returns
+  `statement_digest()` equal to the APPROVED digest. **This leg agent-25 had only inferred from
+  code; the takeover verifier demonstrated it.**
+
+Severity (per `VERIFY.md` §5): **High for the standalone builder as an authentication boundary;
+Medium as a defect of the official release chain** (which retains two independent compensating
+controls). Blast radius if exercised: a node verifying/proving v1 HistoryStep against a foreign
+relation under the canonical pinned identity — invalid local acceptance or rejection of canonical
+proofs (consensus divergence), silently, with `pins.env`/`SHA256SUMS` looking pristine, and the
+runtime cache keyed by metadata digest only (`noid_node/src/main.rs:1002-1008`) so poisoned
+artifacts survive a corrected binary.
+
+Corrections carried forward (verifier's precision note): agent-25's "not the default
+`retired-history` profile" is correct for `publish_release.sh` (its default is retired), but
+`build_release.sh`'s OWN default is the affected legacy-embedding profile — `--retired-history` is
+opt-in there — and that script's usage text claims "The node build authenticates the matrix packs,"
+which is false on the default path for legacy matrices. The repo's hash-verifying loader is present
+but unwired on this path (`release_verify_sha256_manifest` exists in `release_common.sh` and
+rejects the fixture when invoked; `build_release.sh` never calls it), and the fix pattern already
+exists in the same `build.rs` for v2/v2.1 (`matrix_checks::authenticate` + `preflight_build_matrix`);
+the authenticated metadata bank even carries the correct per-class `matrix_digest` — `stage_leaf`
+just never compares. Remaining caveat: run 1 still uses a Cargo stub; run 2 is a real compiled
+probe from pinned source.
+
+**C17 — mempool-pull byte-domain pin (the audit's first unauthenticated-remote finding).**
+Takeover lane `/Users/ember/dev/parano1d-break/experiments/p2p-resources/` (README Finding 1;
+run output tee'd in `results.txt`). Mechanism: `prepare_mempool_response_after_admission`
+(`noid_p2p/src/network.rs:319-344`) unconditionally calls
+`budget.acquire(MAX_MEMPOOL_SYNC_BYTES)` = 16 MiB from the process-global 64 MiB
+`OUTBOUND_RESPONSE_BUDGET_BYTES` domain (`outbound_budget.rs:20,43-50`) for **every** served
+mempool pull — before cloning any bytes, regardless of actual response size, even for an **empty
+mempool**; the permit rides inside `GetMempoolResponse` until the codec's last wire write
+(`network.rs:8845`, `mempool_sync_codec.rs:286,298-301`). Exactly 64/16 = 4 concurrent responses
+consume the entire domain. A peer that opens 4 mempool sync streams (8 allowed per connection,
+2 connections per peer identity) and stops reading stalls each write after ~256 KiB (yamux initial
+window; a single legal intent may be 303,495 bytes, `noid_tx/src/paged_spend.rs:55`). Key output,
+verbatim from `results.txt`: `aggressors holding the entire domain mid-write: 4/4` / `1 KiB
+mempool response (budget-participating) blocked: true` / `exact-object codec write completed
+during the pin: true` / `victim admitted after releasing one aggressor: true (27 ms)` /
+`ALL ASSERTIONS PASSED` — demonstrated with the real production codecs and the real
+process-global budget singleton. Verified-vs-inferred split (README assurance limits): the pin and
+FIFO victim-blocking are demonstrated at codec/budget layer; the production-path consequences —
+blocked object/history-step/segment/fork-origin acquires (`network.rs:7229`, `:7871`,
+`state_segment_codec.rs:454`, `fork_origin.rs:240-242`) and the escalation from delay to rejection
+(blocked object tasks hold active data-plane slots taken at `network.rs:7226`; with 6 Live-class
+slots, further object requests get `Busy` at `network.rs:7192-7211`, for **all** peers) — are
+established by source reading at the pinned commit, because the admission types are `pub(crate)`
+and cannot be driven externally. Preconditions and scope, honestly stated: request is 12 bytes per
+stream; sustaining past the 30 s request timeout requires rotating pulls every ≤30 s
+(`InboundTimeout` aborts the stalled write and drops the permit); the mempool must hold > ~256 KiB
+of intents at pull time for the write to actually stall (ordinary on an active network); four
+honest peers on slow links syncing a full mempool produce the same cross-protocol starvation by
+accident; no invalid data is accepted — purely serving liveness. Recommended correction: reserve
+the actual response size instead of the unconditional maximum, or give mempool serving its own
+bounded sub-domain; release blocked data-plane slots when the requesting stream times out.
+
+**C18 — header-sync serving memory outside every process-wide budget.** Same lane (README
+Finding 2). `GetHeadersResponse` carries no permit and `HeaderSyncCodec` never consults any budget
+— header serving "deliberately bypasses" data-plane admission (`network.rs:93-95`,
+`protocol.rs:55-63`); during `write_response` the codec holds **both** the canonical buffer (up to
+4096 × 288 = 1,179,648 bytes) and the compressed buffer while the final payload write is stalled
+(`header_sync_codec.rs:288-335`). The 8-slot `header_response_prepare_semaphore` covers storage
+preparation only, not the wire write. Verbatim from `results.txt`: `stalled concurrent max-batch
+header payload writers: 64` / `canonical bytes retained (content-independent lower bound):
+75497472` / `compressed bytes retained (this synthetic content): 35195688` / `header-sync bytes
+admitted by that domain: 0` / `streams needed to exceed the shared 64 MiB domain at this
+per-stream cost: ~39`. Scope: the canonical figure is a content-independent lower bound already
+larger than the entire 64 MiB domain other large protocols respect; worst case at the
+128-connection inbound cap (~1024 streams, reached with 16-byte requests) is on the order of 1-2
+GB resident — an extrapolation, as is the 8-slot semaphore's storage-only scope (source-read).
+The exclusion is documented as intentional (keeping bulk clients off the control plane), but it
+makes header serving the one large-response protocol whose retained bytes scale with peer count,
+against the domain's stated goal ("without scaling with peer count", `outbound_budget.rs:18-19`).
+Each rotation re-runs storage preparation (MDBX read of up to 4096 headers), so the attack also
+costs repeated node I/O.
+
+**C19 — receipt-query full-store rescan per call.** Takeover lane
+`/Users/ember/dev/parano1d-break/experiments/rpc-api/` (README Finding 1; run tee'd in
+`results.txt`; real `start_rpc_server` HTTP/JSON-RPC stack in-process over loopback, synthetic
+wallet with 20,000 real cryptographically valid `ParanoidReceipt`s). Mechanism: for every call —
+any page, including page 1 — `scan_receipts` (`noid_rpc/src/server/receipt_query.rs:97-171`)
+clones every stored receipt under the wallet mutex, decodes it, and **re-runs Merkle-inclusion
+verification and bech32 metadata construction** for every receipt before keeping a top-k heap of
+size `required = offset + page_size`; nothing is cached between calls. Verbatim from
+`results.txt`: `A1 page 1 … 50 rows, wall 5616038 us, handler alloc peak 20805 B` / `A6 repeated
+page-1 walls: [4514004, 4442464, 4118766] us (each a complete rescan; no cross-call cache)` /
+`A7 query-path per-receipt cost: ~225 us/receipt`. Cost is identical for every page; a wallet GUI
+walking 400 pages of a 20k-receipt wallet burns ~28 minutes of one core, and a credentialed or
+local client can keep the blocking-pool thread hot indefinitely at ~zero bandwidth cost. Scope
+and bounding guardrails (README): the method is on the operator allowlist (`server.rs:3861`) —
+same trust class as the external-miner finding; a **single-permit gate** rejects concurrent
+queries immediately (`receipt_query.rs:11,85-87`), the scan runs on `spawn_blocking`, output is
+bounded (`page_size <= 50`), and stored receipts are size-capped (`MAX_RPC_RECEIPT_BYTES` =
+128 KiB). "A serialized, authenticated, self-inflicted-or-malicious CPU burn that scales linearly
+with receipt count — not an unauthenticated amplification." Recommended correction: persist the
+authenticated sort key alongside each receipt and paginate the index, or cache the verified key
+vector keyed by the existing `query_revision()`.
+
 ---
 
 ## 3. Reported-but-unverified
 
-PoC output and/or a full agent report exists; the root's independent verification was interrupted
-(02:43-03:03 quota death) or never started. None of these may be cited as root-confirmed.
+Two populations live in this section. (a) Kimi-era items (U1-U9) whose root verification was
+interrupted (02:43-03:03 quota death) or never started — **none of these may be cited as
+root-confirmed**; they keep [AR]/[PC]. (b) U10-U18 (wallet-safety, prover-unsafe, dex-economics,
+rpc-api):
+takeover-completed lanes reclassified **[RV-T]** by ember's 2026-11-15 ruling that a
+takeover-completed lane with a tee'd `results.txt` on disk counts as verified — the evidence is
+the lane's own run output ("the subagents just ran it"). They keep their U-IDs here for continuity.
 
-### U1 — build-artifacts "High": legacy matrix bytes substitutable without changing approved metadata identity **[AR]**
+### U1 — build-artifacts "High": legacy matrix bytes substitutable without changing approved metadata identity — **promoted to §2 as C16**
 
-Source: `/Users/ember/dev/parano1d-break/experiments/kimi-agent-reports/agent-25.md` (full 7.4 KB
-report; the root died mid-verification of this lane). Claim: `scripts/build_release.sh:143-149`
-validates layout and reads `pins.env` but only uses the metadata digest — it never calls
-`release_authenticate_pack` or `release_verify_sha256_manifest` and discards
-`NOID_HISTORY_STEP_PACK_LEAF_DIGESTS`; `noid_node/build.rs:388-470` stages each legacy matrix by
-bounds/decode/length only, never hashing the compressed bytes against the reviewed leaf pins.
-Probe (`/Users/ember/dev/parano1d-break/experiments/build-artifacts/probe_release_inputs.py`,
-results `probes/release-inputs.json`) replaced a legacy matrix with different valid Zstandard bytes
-of the same decompressed length:
-
-```text
-cargo_reached=true
-legacy_leaf_pin_exported_to_cargo=false
-explicit_manifest_verifier_exit=1
-error: SHA-256 mismatch ... history-step-c00.field-r1cs.zst
-```
-
-**Scope caveats that must travel with this finding** (agent-25's own limitations): the
-release-script probe used a **Cargo stub** (exit 91) and synthetic 1,024-byte blobs — not a real
-foreign R1CS and not a full production release build; "Consensus impact beyond those directly
-demonstrated trust failures is therefore inferred from the verifier paths." Affects builds
-retaining legacy matrices, not the default `retired-history` profile; `publish_release.sh` has an
-additional `release_authenticate_pack` gate.
+Originally agent-25's report (`/Users/ember/dev/parano1d-break/experiments/kimi-agent-reports/agent-25.md`;
+the kimi root died mid-verification). On 2026-11-15 a fresh takeover-verifier session independently
+confirmed it with a narrower scope: see **C16** and
+`/Users/ember/dev/parano1d-break/experiments/build-artifacts/VERIFY.md` (verdict
+CONFIRMED-WITH-NARROWER-SCOPE). Two of agent-25's caveats were sharpened by the verifier: the
+release-script leg still uses a Cargo stub (run 1), but the runtime-decoder leg is now
+empirically demonstrated from pinned source (run 2); and the affected profile is
+`build_release.sh`'s OWN default (not merely "builds retaining legacy matrices" — see C16's
+corrections).
 
 ### U2 — build-artifacts "Medium": packed runtime cache accepts a foreign relation under the approved digest **[AR]**
 
@@ -267,7 +418,10 @@ Same report; `probes/results.json` records
 This probe used small valid same-shape relations and the **actual pinned decoder**
 (`noid_ivc_core/src/field_r1cs.rs:3986-4005`, which deliberately omits the structural digest
 check). Precondition: write access to the node data directory or a previously poisoned build/cache —
-which the agent itself says "limits severity."
+which the agent itself says "limits severity." The takeover verifier's run 2 empirically
+reproduced the decoder-level acceptance (`cache_decoder_foreign_accepted=true` in
+`verify-output.txt`); the cache-poisoning *persistence/impact* scenario remains code-level only, so
+U2 stays in this section rather than being promoted.
 
 ### U3 — build-artifacts "Medium": inherited Cargo environment can flip release to debug verifier constants **[AR]**
 
@@ -292,19 +446,19 @@ Scope: **wall-clock admission mismatch, not an invalid-state proof** — an othe
 generated). Negative results from the same PoC (changed terminal root rejected, exact-root and
 native-sidecar binding enforced) are agent-reported by the same caveat.
 
-### U5 — external-miner: invalid PoW consumes the only prepared template **[AR, special case]**
+### U5 — external-miner: invalid PoW consumes the only prepared template — **promoted to §2 as C15**
 
-Source: `/Users/ember/dev/parano1d-break/experiments/external-miner/README.md` +
-`results.txt` (complete on disk, `ALL ASSERTIONS PASSED`). `submitBlock` consumes the node-owned
-attempt (`begin_proving` -> slot `Proving`) *before* `validate_pow`; on `InvalidPoW` the slot returns
-to `Idle` and the template is gone (`replay=Unavailable; expensive_template_reusable=false`).
-Agent-assigned severity: Medium availability, requiring mining-API authorization. **Certainty
-caveat:** per `PROVENANCE.md`, "external-miner finished on disk before its report reached the
-root" — the agent's final message never landed (its last wire line is a progress note: "All final
-assertions pass. I'm doing the final scope check now"), and the root never verified or summarized
-this lane before dying.
+Originally quarantined here because the kimi root died before verifying the lane (the agent's final
+message never landed). On 2026-11-15 the takeover root independently re-ran the PoC
+(`CARGO_TARGET_DIR="$PWD/target" cargo run --release`, output tee'd to
+`/Users/ember/dev/parano1d-break/experiments/external-miner/verify-run.txt`): `ALL ASSERTIONS
+PASSED`, identical template ID `07000000000000000100000000000000`, same invalid-nonce-consumes-
+template behavior and all six controls. Now recorded as **C15** with certainty **[RV-T]**
+(takeover-root-verified — distinct from the kimi root's own verification, which never happened for
+this lane). Severity/preconditions unchanged from the lane README: Medium, requires mining
+credential or local owner.
 
-### U6-U9 — other agent-reported results awaiting root-style confirmation
+### U6-U18 — further reported results (U6-U9 kimi-era unverified; U10-U18 [RV-T] by ruling)
 
 - **U6** state-consensus 20-case adversarial UTXO/state-machine matrix — all rejected
   (`/Users/ember/dev/parano1d-break/experiments/state-consensus/output.txt`, agent-11). The root
@@ -329,6 +483,100 @@ this lane before dying.
   `dedicated_session_salt_bits: 0` and one-shot post-hoc extraction are an assurance gap, not a
   false theorem or bypass. Root said it was rerunning the concurrent-proof experiment (02:22:42);
   the rerun was never recorded.
+- **U10** wallet-safety, **Low (hardening/defense-in-depth)** **[RV-T]**: nothing downstream of the
+  wallet builder can detect a recipient/amount substitution (takeover lane, run output tee'd in
+  `/Users/ember/dev/parano1d-break/experiments/wallet-safety/results.txt`; see `README.md`
+  Finding 1). The post-build
+  divergence gate (`noid_rpc/src/server.rs:1164-1167`) checks only fee + input/output counts;
+  `WalletSendResult` has no recipient field and echoes the *request* amount; the GUI success screen
+  renders the request string; history confirms by txid only. PoC: two intents through the real
+  `build_send` pipeline, same fee/counts, different recipient and amount — both pass real GKR
+  verification and the exact gate condition. **Precondition (verbatim from the lane):** no
+  divergent path exists in the pinned code (the control test proves request pass-through into the
+  signed page); the gap matters only against builder regression or a compromised binary. The
+  stronger binding pattern exists in-tree for native-assets flows but is not applied to ordinary
+  sends.
+- **U11** wallet-safety, **Low** **[RV-T]**: exported master secret persists in the system clipboard after
+  dialog close — GUI-side memory is zeroized, but the three `iced::clipboard::write` sites never
+  clear (README Finding 2). Precondition: the user opens Export and presses Copy.
+- **U12** wallet-safety, **Informational** **[RV-T]**: a stale in-memory `WalletState` survives an on-disk
+  master-secret replacement and still signs with the old secret, with later writes landing in the
+  new wallet's history (README Finding 3) — verified by test but **no production path**: import
+  runs only in the maintenance CLI before the daemon starts; the GUI stops owned nodes and refuses
+  external ones.
+- **U13** prover-unsafe, **Low-to-Medium (latent)** **[RV-T]**: zero-round BaseFold provers emit
+  never-written memory as proof fields (takeover lane, run output tee'd in
+  `/Users/ember/dev/parano1d-break/experiments/prover-unsafe/results.txt`; see `README.md`
+  Finding 1). At
+  `a_init.len()==1` (`log_msg_len==0`) — accepted by the entry assertions — the round loop never
+  executes, yet the epilogue reads `final_a = a_active[0]`
+  (`noid_ivc_core/src/pcs/basefold.rs:1074`) and `final_codeword` (`:1076`) from buffers no code
+  path wrote, violating the scratch pool's documented write-before-read contract; the C1 twin
+  (`:1602-1811`) reads genuine uninitialized `alloc_uninit_vec` memory. Demonstrated
+  deterministically: F128 `final_a` = poisoned pool marker `0x1EAD_ED00_0000_0004` (`results.txt`:
+  `zero-round final_a=1eaded0000000004:d15c000000000004`); C1 `final_a` = zeros where the honest
+  lift is `0x11,0x22` (malloc-recycle marker not handed back, so the C1 leg rests on the
+  never-written path plus value mismatch, not a captured marker). **No acceptance impact**: both
+  proofs FAIL verification (`verify_c1 -> Err(SumcheckFinalMismatch)`); an honest prover hitting
+  this path always self-rejects; the F128 case leaks stale pool bytes into proof bytes.
+  **Not production-reachable at the pinned commit:** in-tree callers use `log_msg_len` 22/24
+  (`noid_recursive/src/acceptance/history_step_bank.rs:110,48`); reaching it requires
+  `m == LOG_PACKING`, which nothing constructs. Limits: reachability established by caller
+  enumeration at this commit, not future-proof; aarch64 only (x86 kernels read, not executed).
+- **U14** prover-unsafe, **Low** **[RV-T]**: degenerate raw-API panics — `AdditiveNttF128::standard(0)`
+  index-out-of-bounds (`noid_ivc_core/src/ntt/additive_ntt_f128.rs:72`);
+  `default_fri_queries(0, 1)` panics via `unwrap_or_else` (`basefold.rs:229`). Both sit behind
+  commitment-bound parameters in every production caller (README Finding 2).
+- **U15** prover-unsafe, **Low (unreachable)** **[RV-T]**: a 73-byte crafted `R1csProofBundle` drives a
+  1,048,576-byte allocation (~14,000x input) through bincode's length-prefixed `Vec`
+  deserialization before failing cleanly with EOF — `results.txt`:
+  `parser hostile: input=73 declared=10000000 max_single_allocation=1048576`; no panic, no OOB,
+  and the format has zero in-tree callers (grep at the pinned commit; README Finding 3).
+  Limits: single-shape fuzz elsewhere in the lane, not coverage-guided.
+- **U16** dex-economics, **Informational boundary observation** **[RV-T]** (takeover lane, run
+  output tee'd in `/Users/ember/dev/parano1d-break/experiments/dex-economics/results.txt`):
+  the bonding curve prices by the cumulative ceiling `C(q) = ceil((3*S*q + 5*q^2)/(900*S))`
+  (`pinned/noid_tx/src/native_assets/launch.rs:210-218`); at `sold = cap-1` the ceiling is flat,
+  so a 1-NOID gross buy purchases the final unit **spending 0 NOID** (whole gross input refunded)
+  and triggers graduation into the pool seeded `(S/250, 0.4*S)` (`results.txt`:
+  `zero_spend_graduation`); symmetrically the first NOID buys 299 units. **NOT extractable
+  value**, three reasons (all verified): (1) `ceil` means aggregate intake is never below the
+  exact integral price — the free tail is pre-paid by earlier buyers' rounding surplus, and
+  `C(cap) = S/250` exactly across min/mid/max admissible supplies; (2) graduation creates no
+  claimable value (all LP shares locked, reserves = exact cumulative cash + unsold inventory,
+  conservation asserted on an accepted batch); (3) zero-proceeds sells always rejected
+  (`minimum_output >= 1`), curve roundtrips are exact reversals (500/500), pool roundtrips pay
+  the 0.30% fee both ways (500/500, never profitable). Precondition: an attacker reaches
+  `sold = cap-1` only after the market has already absorbed `C(cap-1)` — 99.999998% of the
+  graduation cash — from prior buyers; the 0-NOID trigger moves graduation one rounding unit
+  earlier than a naive reading suggests, and nothing more. The lane's overall verdict is
+  negative (see §4): `"accepted_value_extraction_found": false`, 9/9 experiments, exit 0.
+- **U17** rpc-api, **Low (allocation amplification only)** **[RV-T]** (takeover lane, run output
+  tee'd in `/Users/ember/dev/parano1d-break/experiments/rpc-api/results.txt`; README Finding 2):
+  out-of-range receipt pages retain the complete key set — `required = offset + page_size` is
+  caller-controlled (`page` up to `u32::MAX` makes `required` ~2.1e11), so past the end of the
+  result set the top-k bound never engages and the `BinaryHeap` retains all N keys. Verbatim:
+  `A4 page u32::MAX (offset 214748364700, required 214748364750): 0 rows, wall 4162763 us,
+  handler alloc peak 2898757 B` vs `20805 B` for page 1 (`A4-A1 out-of-range peak amplification:
+  2877952 B`). Retention starts at the first page past the end (page 401), in-range pages stay
+  bounded; it is bounded by receipt count and transient — an allocation multiple of C19's own
+  O(N) working set, not an independent unbounded sink. Same credential preconditions as C19.
+- **U18** rpc-api, **Low-Medium availability** **[RV-T]** (takeover lane, same run; README
+  Finding 3): `paranoid_walletReceipts` scans **inline on async worker threads** with the wallet
+  `std::sync::Mutex` held across the entire O(N) pass and **no `wallet_operation_gate` taken**
+  (`server.rs:2643-2646` -> `noid_node/src/wallet/mod.rs:910-967`; the gate that serializes
+  send/scan operations is taken by other paths but not this one). Demonstrated with a line-cited
+  faithful mirror of the production scan behind the real handler and real HTTP stack: 16
+  concurrent calls on a 4-worker runtime serialized on the mutex (walls ~0.31 s each) and
+  unrelated `paranoid_getChainInfo` probes stalled up to 310,884 µs vs 101 µs idle p50 —
+  `B6 worker starvation factor: max_during/idle_p50 = 3078x`. **Verified-vs-inferred split
+  (carry it):** the mirror is line-cited and identical in lock shape and receipt crypto, but the
+  production `WalletState` is binary-private (`noid_node` exports no wallet module), so
+  production behavior is inferred from code identity, not measured against the linked function;
+  the stall window scales linearly with receipt count and per-receipt decode cost. Same
+  credential preconditions (operator-allowlisted at `server.rs:3860`). Recommended correction:
+  route through `spawn_blocking` plus the single-permit gate, or acquire
+  `wallet_operation_gate` before the scan.
 
 ---
 
@@ -354,6 +602,11 @@ noted per row.
 | Block/template acceptance mutations (roots, coinbase, fees, header, proofs) | Full rejection matrix; production epoch boundary rejects before terminal verifier | [AR] (agent-12; root rerun not recorded) |
 | Cheap network-wide DoS via malformed proofs | Cheap state/fee/conflict checks before proof verification; concurrent verification capped; payload dedup; shared inbound/outbound memory budgets | [RV] (root first-pass design analysis 02:54:49) |
 | Same-fork double spend / changed-epoch replay | Second spend -> `InputMismatch`; changed epoch -> `BadEpochAnchor`/`AuthProof` | [RV] (root rerun 01:40:01) |
+| Wallet secret-surface attacks (exfiltration via RPC/argv/wire/keystore) | Keystore 0600/48-byte/symlink-rejecting; atomic staged import with 0700 rollback; master secret never transits RPC (CLI stdin, never argv); remote RPC fails closed; mining token cannot reach `walletSend`; `SpendSecret`/`OwnerAuthWitness`/`MasterSecret`/`SensitiveString` zeroize-on-drop, un-Clone-able, Debug-redacted; wire bytes contain no secret window | [RV-T] (takeover wallet-safety lane; 5 Rust + 7 Python tests pass, tee'd `results.txt`) |
+| Native-vs-SIMD disagreement in prover kernels (the consensus-split probe) | 8,241 F128 pairs (random + full edge cross-product) bit-exact across production NEON dispatch, software, schoolbook, karatsuba, karatsuba-barrett, vec2-neon, and both unreduced-reduce pipelines; F256 lift consistent; NTT dispatched == scalar (log_d 1-10); Poseidon batch == native sponge (1-17 leaves); matrix loader: 2,689 truncation/mutation cases, zero panics; verifier shape-gates pinned to commitment-derived constants before indexing | [RV-T] (takeover prover-unsafe lane, tee'd `results.txt`; aarch64 only — x86 kernels read, not executed; single-shape fuzz, not coverage-guided) |
+| Malformed-frame panics in P2P sync codecs; missing backpressure; ban-system bypass | Attacker-controlled lengths checked against count-relative caps before allocation; checked arithmetic; all `unwrap()`s on compile-time-fixed sizes (static review, non-exhaustive — "no panic found" is not "no panic exists"); header `Busy` backpressure works as designed; per-stream/conn/diversity caps, 30-60 s write-abort timeouts, and a separate inbound 64 MiB domain bound both findings; no app-level ban/score system exists to bypass (gossipsub defaults + IP-colocation factor; immediate disconnect at protocol violations) | [RV-T] (takeover p2p-resources lane, tee'd `results.txt`) |
+| DEX value extraction (manipulated fill, free asset creation, invalid successor state) | No accepted value-extracting transition in 9/9 experiments (`"accepted_value_extraction_found": false`, exit 0); cash-cut successor + pool bump -> page amount binding (`native_assets.rs:1024-1031`); +1 inventory / +1 token / +1 NOID / permuted claims -> re-derived-execution equality (`wire.rs:317-343`); duplicate funding slot, output-slot collision, one bad `min_out` -> whole-batch atomic rejection with state root unchanged; host-vs-recursive: 72 pool + 120 curve/graduation R1CS cases match the host on all 8 economic fields incl. boundary cases, `min_out+1` makes the R1CS unsatisfiable | [RV-T] (takeover dex-economics lane, tee'd `results.txt`/`results.json`; **assurance limit**: differential testing proves honest-witness agreement and min-out enforcement, NOT absence of alternative witnesses — see §5) |
+| RPC receipt forgery / concurrent-query amplification / anonymous remote access / browser drive-by | Every receipt re-verified (Merkle inclusion + key identity), totals correct, no forgery path; single-permit gate rejects concurrent receipt queries immediately; non-loopback listener refuses startup without credentials (`server.rs:3520`); any `Origin` header -> HTTP 403 before dispatch; `Authorization` stripped before tracing; bodies capped `2*128 KiB + 16 KiB`, `deny_unknown_fields`, bounds enforced pre-scan; no panics observed | [RV-T] (takeover rpc-api lane, tee'd `results.txt`) |
 | Fresh-request forgery (all lanes) | Owner/Phase-A/Phase-B adaptive ordering; queries derived only after all commitments; no accepted unauthorized statement anywhere | [RV] (root, cumulative: "no unauthorized spend, invalid accepted block, owner-key recovery, or fresh-request forgery", 01:58:28) |
 
 ---
@@ -379,37 +632,50 @@ From the root (01:50:29, 01:56:34, 01:58:28), in its own priority order — the 
 
 Secondary unfinished threads: a live production caller for the legacy-FRI malleability (C5);
 a valid height-4 `HistoryStep` terminal to close the snapshot drift differential (U4); root-style
-verification of the build-artifacts triple (U1-U3) and the external-miner finding (U5); and the
-root's own framing question — whether authorization is *supposed* to be fork-specific — which
-decides C6's severity.
+verification of the build-artifacts remainder — U1 was closed by the takeover verifier (now C16,
+`VERIFY.md`), U2's decoder leg is empirically covered by that run while its cache-persistence
+scenario stays code-level, and U3 (profile override) remains unverified — the external-miner
+finding (formerly U5) was closed by the takeover root's rerun and is now C15; the
+**alternative-witness / constraint-completeness question for the sequential-trade predicate**
+(dex-economics proved honest-witness agreement and min-out enforcement only; the full recursive
+predicate — authorization, funding, payout, group composition — was not assembled and no proof
+was generated/verified, so a malicious prover crafting non-canonical witnesses is untested) —
+owned by the constraint-systems lane; the **tx-admission cost-asymmetry question** — whether an
+attacker can cheaply keep admission's bounded queues occupied with distinct, state-valid
+transactions and bad proofs (root first-pass 02:54:49) — explicitly out of the rpc-api lane's
+scope and owned by the new tx-admission lane; and the root's own framing question — whether
+authorization is *supposed* to be fork-specific — which decides C6's severity.
 
 ---
 
 ## 6. Lane status table
 
 All 25 experiment directories under `/Users/ember/dev/parano1d-break/experiments/`. "Completed"
-= lane returned a final result the root processed (verification status per §2/§3). The 8
-dead-with-partial-code lanes are being re-run by the takeover swarm.
+= lane returned a final result the root processed (verification status per §2/§3). Of the 8 lanes
+the kimi swarm left dead-with-partial-code, the takeover swarm has completed wallet-safety,
+prover-unsafe, p2p-resources, dex-economics, and rpc-api ([RV-T] per the 2026-11-15 ruling:
+takeover-completed lanes with tee'd `results.txt` count as verified); the remaining 3
+(storage-reorg, nft-marketplace, token-accounting) are being re-run by the takeover swarm.
 
 | Lane dir | Agent report | Status | Result summary |
 |---|---|---|---|
 | `address-preimage` | agent-9 | **completed [RV]** | Negative: no unrestricted key recovery; weak-key class only (`results.txt`: `conclusion=low_entropy_weakness_only_not_a_uniform_key_attack`) |
 | `basefold-chains` | agent-5 | **completed [RV]** | C2: `IVCPCSN_` collision; no end-to-end BaseFold break |
 | `block-validation` | agent-12 | **completed [AR]** | Negative matrix + informational standalone-utility epoch gap (U7); root rerun not recorded |
-| `build-artifacts` | agent-25 | **report-only [AR]** | U1-U3 (High + 2 Medium); root died mid-verification |
+| `build-artifacts` | agent-25 | **report + takeover-verified [RV-T/AR]** | U1 confirmed as C16 (CONFIRMED-WITH-NARROWER-SCOPE, `VERIFY.md`); U2 decoder leg empirically covered by verifier run 2, cache-persistence scenario still [AR]; U3 still [AR] |
 | `capsule-chains` | agent-4 | **completed [RV]** | C3, C4; full PCS rejects everything (`Accepted altered full PCS openings: 0`) |
 | `contract-rights` | agent-14 | **completed [RV]** | Negative: 50k Pruv programs / 428,880 executions, 0 mismatches |
-| `dex-economics` | agent-26 | **dead-with-partial-code [PC]** | Mid-flight progress note only (fill-validation correction); `results.json` empty; re-run pending |
-| `external-miner` | agent-20 | **completed-on-disk [AR, U5]** | Template-consumption finding complete in `README.md`/`results.txt`; agent's final report never reached the root; unverified |
+| `dex-economics` | agent-26 (takeover) | **completed [RV-T]** | Negative: no accepted value-extracting transition (9/9, `"accepted_value_extraction_found": false`); U16 informational boundary observation (free final curve unit / 0-NOID graduation trigger, not extractable); host-vs-recursive 72+120 cases match; §4 guardrails + §5 alternative-witness cross-ref. Process note: the dead agent's harness had never completed a run — 4 bugs fixed, incl. a false "panic" that was its own assertion bug against legitimate flat-ceiling semantics; a `cargo fmt` incident on `pinned/` was reverted and re-verified byte-identical to `git archive 52938433` |
+| `external-miner` | agent-20 | **completed [RV-T, C15]** | Template-consumption finding (Medium); reproduced by the takeover root 2026-11-15 (`verify-run.txt`); kimi root never verified this lane |
 | `fork-replay` | agent-7 | **completed [RV]** | C6: same-anchor fork replay, byte-identical reruns |
 | `identity-encoding` | agent-16 | **completed [RV/AR]** | C13 root-verified; proof-identity/terminal-id/Bech32 results agent-reported (U8) |
 | `ledger-fairness` | agent-18 | **completed [RV]** | C10-C12; root reran successfully |
 | `native-intents` | agent-8 | **completed [RV]** | Negative: worst-fill accusation disproved at both host and recursive boundaries |
 | `nft-marketplace` | agent-27 | **dead-with-partial-code [PC]** | Two borrow-checker errors fixed, scenarios starting; no results; re-run pending |
-| `p2p-resources` | agent-21 | **dead-with-partial-code [PC]** | One partial PoC result in the progress note (64 gated writers retained ~110 MB outside the shared 64 MB permit domain) — unverified; re-run pending |
-| `prover-unsafe` | agent-24 | **dead-with-partial-code [PC]** | Progress note claims Miri/release/loader checks complete; no report, no artifacts; re-run pending |
+| `p2p-resources` | agent-21 (takeover) | **completed [RV-T]** | C17 (Medium, the audit's first unauthenticated-remote finding: mempool-pull domain pin), C18 (Low-to-Medium: header-sync memory unbudgeted); §4 codec negatives; evidence `README.md`/`results.txt`. Note: the dead agent's inherited PoC had a false-positive headline — its "object write blocked" assert was a cooperative-yield scheduling artifact in code never actually run; the finisher caught it and converted it to an explicit control (real-time wall-clock shows the object codec write completes during the pin) |
+| `prover-unsafe` | agent-24 (takeover) | **completed [RV-T]** | U13 (Low-to-Medium latent: zero-round provers emit never-written memory; proofs self-reject; not production-reachable), U14 (Low: degenerate raw-API panics), U15 (Low unreachable: parser allocation amplification); §4 kernel-differential negatives; evidence `README.md`/`results.txt` |
 | `recursive-sync` | agent-13 | **completed [AR]** | U4: tip-only future-drift admission differential; root rerun not recorded |
-| `rpc-api` | agent-19 | **dead-with-partial-code [PC]** | Design note only (pagination heap isolation plan); no results; re-run pending |
+| `rpc-api` | agent-19 (takeover) | **completed [RV-T]** | C19 (Medium, credential-gated: full receipt-store rescan + Merkle re-verification per call, 4.1-5.6 s at 20k receipts), U17 (Low: out-of-range page key-set retention), U18 (Low-Medium: inline scan starves async workers, 3078x tail — mirror-verified, split carried); §4 RPC negatives. Process note: the dead agent's draft never compiled (three wrong imports, never run); the finisher fixed it, verified the core hypothesis, and reframed — the draft treated far-page heap retention as the finding, the real story is the per-page rescan cost |
 | `state-consensus` | agent-11 | **completed [AR]** | Negative 20-case matrix (U6); root rerun not recorded |
 | `storage-reorg` | agent-22 | **dead-with-partial-code [PC]** | Partial PoC (41-byte tip accepted at reopen; successor failed at MDBX decode); no report; re-run pending |
 | `token-accounting` | agent-28 | **dead-with-partial-code [PC]** | Setup only (`pinned/` tree, no own code); re-run pending |
@@ -417,7 +683,7 @@ dead-with-partial-code lanes are being re-run by the takeover swarm.
 | `typed-binding` | agent-10 | **completed [RV]** | C14: 4-path witness; `BadTypedBind` not instantiated |
 | `uc-composition` | agent-17 | **completed [AR]** | U9: informational assurance gap only |
 | `version-domains` | agent-15 | **completed [RV]** | C9: profile-ID collision across schedules; downgrades reject |
-| `wallet-safety` | agent-23 | **dead-with-partial-code [PC]** | Progress note describes a passing stale-wallet repro (key B replaces A on disk; loaded A wallet still authorizes, writes A's address into B's history) — unverified; re-run pending |
+| `wallet-safety` | agent-23 (takeover) | **completed [RV-T]** | U10 (Low hardening: substitution undetectable downstream), U11 (Low: clipboard persistence), U12 (Informational: stale in-memory wallet, no production path); §4 secret-surface negatives; evidence `README.md`/`results.txt` (5 Rust + 7 Python tests pass) |
 
 Not in the table (no experiment dir — read-only analysis lanes whose conclusions the root carried
 forward): agent-0 (capsule PCS escalation boundary), agent-1 (state-tree equivocation), agent-2
