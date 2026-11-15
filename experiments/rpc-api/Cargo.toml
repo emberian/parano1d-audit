@@ -1,0 +1,20 @@
+[package]
+name = "rpc-api-receipt-pagination-poc"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+noid_rpc = { path = "../../parano1d/noid_rpc" }
+noid_chain = { path = "../../parano1d/noid_chain" }
+noid_mempool = { path = "../../parano1d/noid_mempool" }
+noid_p2p = { path = "../../parano1d/noid_p2p" }
+noid_poseidon2b = { path = "../../parano1d/noid_poseidon2b" }
+noid_tx = { path = "../../parano1d/noid_tx" }
+hex = "0.4"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde_json = "1"
+tempfile = "3"
+tokio = { version = "1", features = ["full"] }
+
+[workspace]
