@@ -1,0 +1,18 @@
+# Harness-only workspace root. It exists so the verbatim GUI-crate copy in
+# gui-noid_gui/ (plus the symlinked pinned noid_tx/_core/_poseidon2b it path-
+# depends on) can build outside the read-only parano1d workspace. The
+# [workspace.package]/[workspace.dependencies] tables mirror the pinned root
+# /Users/ember/dev/parano1d-break/parano1d/Cargo.toml verbatim.
+[workspace]
+members = ["gui-noid_gui", "harness"]
+resolver = "2"
+
+[workspace.package]
+version = "2.1.0"
+edition = "2021"
+license = "Apache-2.0"
+
+[workspace.dependencies]
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

@@ -1,0 +1,30 @@
+   Compiling wallet-vs-node-harness v0.1.0 (/Users/ember/dev/parano1d-break/experiments/wallet-vs-node/harness)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.21s
+warning: the following packages contain code that will be rejected by a future version of Rust: block v0.1.6
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running tests/deceive.rs (target/debug/deps/deceive-a25504af4d6b1a49)
+
+running 1 test
+PASS [S0-control] real backend consumes impostor wire format and displays node answers verbatim
+INFO [S0-control] snapshot() consumed 12 distinct RPC methods: ["getBlockHeader", "getChainInfo", "getMempoolStats", "getMiningInfo", "getNodeStatus", "getPeerCount", "getStateInfo", "getStateMap", "walletActiveAddress", "walletGetBalance", "walletListAddresses", "walletUtxoSnapshot"]
+PASS [S1-phantom-payment] GUI shows INCOMING 12.500000 NOID that never existed
+PASS [S1-phantom-payment] phantom funds are spendable-candidate (send form FROM line, present.rs:1853-1855/1974-1980)
+PASS [S1-phantom-payment] explorer 'corroboration' of the phantom payment is served by the same impostor
+PASS [S1-phantom-payment] fabricated txid resolves as an included block transaction (explorer detail)
+PASS [S2-phantom-receipt] receipts page shows attacker-authored payment row (proofs.rs receipt_row)
+PASS [S2-phantom-receipt] garbage bytes verify as AUTHENTICATED + CONFIRMED with attacker-chosen outputs
+PASS [S3-send-blindness] send 'succeeds' against impostor; GUI success shows request recipient + fabricated txid
+PASS [S3-send-blindness] node-chosen fee (2 NOID on a 5 NOID payment) flows to the success screen uncapped
+PASS [S3-send-blindness] impostor received the plaintext payment request (recipient, amount, auto-fee)
+PASS [S4-suppression] healthy chain + zero balance renders as an empty-but-successful wallet (no alarm)
+PASS [S5-status-spoof] GUI reports SYNCED + TERMINAL VERIFIED + attacker state root at a fabricated tip
+PASS [S6-impostor-adoption] (a) pre-bound impostor satisfies ensure_running with no node spawned
+INFO [S6-impostor-adoption] phase (b) probes: blockCount calls=2 marker=true node-log=true
+PASS [S6-impostor-adoption] (b) GUI spawns its node, node dies (marker + exit), GUI still goes ONLINE via impostor
+PASS [S7-address-poisoning] lookalike counterparty renders identically to the trusted one in receipt rows
+INFO impostor served 77 requests across 22 distinct methods: ["blockCount", "getBlockDetails", "getBlockHeader", "getChainInfo", "getMempoolStats", "getMiningInfo", "getNodeStatus", "getPeerCount", "getRecentTransactions", "getSlotsByOwner", "getStateInfo", "getStateMap", "getTx", "validateAddress", "verifyReceipt", "walletActiveAddress", "walletExportReceipt", "walletGetBalance", "walletListAddresses", "walletReceipts", "walletSend", "walletUtxoSnapshot"]
+ALL 15 CHECKS PASSED
+test malicious_node_deceives_real_gui_backend ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
