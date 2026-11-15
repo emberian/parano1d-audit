@@ -1,0 +1,47 @@
+=== PHASE 1: creation-cost inventory (real fee model + real transitions) ===
+constants: MIN_FEE_BASE=5000 FEE_PER_INPUT=100 FEE_PER_OUTPUT=700 STATE_GROWTH_FEE_BASE=2500 (burned)
+fee_shape create_collection_min (1 in / 1 out, funding == fee): required=5800 burned=0 (base 5000 + in 100 + out 700 + growth 0)
+fee_shape mint_batch_248 (2 in / 250 out incl change): required=800200 burned=620000 (base 5000 + in 200 + out 175000 + growth 620000)
+fee_shape burn_1_item (2 in / 1 out change) victim cleanup: required=5900 burned=0 (base 5000 + in 200 + out 700 + growth 0)
+fee_shape burn_253_items (254 in / 1 out): required=31100 burned=0 (base 5000 + in 25400 + out 700 + growth 0)
+fee_shape plain_dust_output (1 in / 2 out): required=9000 burned=2500 (base 5000 + in 100 + out 1400 + growth 2500)
+pressure 10% (multiplier 1): mint_batch_248 required=800200 burned=620000
+pressure 49%: mint_batch_248 required=800200 burned=620000
+pressure 50% (multiplier 2): mint_batch_248 required=1420200 burned=1240000
+pressure 75% (multiplier 4): mint_batch_248 required=2660200 burned=2480000
+pressure 90% (multiplier 8): mint_batch_248 required=5140200 burned=4960000
+pressure 37.5% (immediately after expansion: multiplier 1 again): mint_batch_248 required=800200 burned=620000
+CONTROL collection maximum_items=u64::MAX accepted at minimum fee 5800 with ZERO burn; permanent slot 9699331, active_slot_count unchanged
+CONTROL mint of 3 items owned by non-signing VICTIM accepted (fee 16200 burned 7500); tx authority was CREATOR, item owners are VICTIM
+launch_minimum_backing supply=1 min_backing=1 uNOID
+launch_minimum_backing supply=1000 min_backing=1 uNOID
+launch_minimum_backing supply=1000000 min_backing=1000 uNOID
+launch_minimum_backing supply=1000000000 min_backing=1000000 uNOID
+
+=== PHASE 2: attacker-cost vs network-cost ratio (real ChainState, real apply) ===
+batch 0: items=248 construction=26506us apply=4308us wire=76218B fee=800200 burned=620000
+batch 1: items=248 construction=26406us apply=16809us wire=76218B fee=800200 burned=620000
+batch 2: items=248 construction=26587us apply=16854us wire=76218B fee=800200 burned=620000
+batch 3: items=248 construction=26130us apply=16426us wire=76218B fee=800200 burned=620000
+batch 4: items=248 construction=26036us apply=17343us wire=76218B fee=800200 burned=620000
+batch 5: items=248 construction=25759us apply=16704us wire=76218B fee=800200 burned=620000
+TOTALS items=1488 construction=157424us apply=88444us fees=4801200uNOID burned=3720000 wire=457308B
+PER_ITEM construction=105.8us apply=59.4us fee=3226.6uNOID (burned 2500.0) wire=307.3B
+CARRIAGE live_slots=1490 sparse_segment_bytes=74509 (50.0B/slot) + per-native-object MDBX records (phase 3)
+SATURATION items_per_block~496 (BLOCK_MAX_USER_OUTPUTS=510, 30s blocks): items/day=1428480 attacker_cost=4609 NOID/day
+SATURATION growth/day: consensus-state ~71.4 MB + node-local MDBX ~701.4 MB on EVERY full node; ~3571 NOID/day burned
+RATIO per item: attacker ~106us construction + ~3227uNOID (2500 burned) buys ~491B permanent MDBX + 50B consensus state + ~192B cold-sync payload
+
+=== PHASE 3: real MDBX growth through the node-owned template + commit path ===
+CONTROL 24 empty coinbase blocks accepted (miner = attacker); tip height 24
+CONTROL attacker coinbase funding: slot=9699328 amount=45000000 creation_id=9223372036854775809
+CONTROL collection block committed at height 25; collection slot=9699353
+MEASURE mint block (248 victim-owned items): intent_construction=17202us template_build+materialize=119233us
+MEASURE MDBX dir bytes unchanged at 4210688 (logical writes 441 B/object absorbed by MDBX preallocated pages; row existence proven by the index queries below)
+MEASURE encoded_state_bytes (T_SEGMENTS sparse) 1309 -> 13759 (+12450: 49.8 B/slot)
+MEASURE victim native_owner_roots page: 248 roots in 1804us (owner index proves forced carriage)
+MEASURE asset index resolves serial 7 to a live root: true (11us)
+MEASURE victim get_verified_owner_page(limit 32): 0 utxos in 23us
+MEASURE victim get_verified_utxos_by_owner (unbounded): 0 utxos in 17us
+
+ALL PHASES COMPLETED
