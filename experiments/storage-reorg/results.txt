@@ -1,0 +1,14 @@
+VULN compact-restart: clean_supply=45000000 corrupted_supply=168456789 tip=c3327fd08f6c36bfd35ace36face6e9a1aa617bcab715374ee93cf688d9e4350 state_roots_equal=true
+VULN propagated-by-valid-commit: height=2 clean_supply=90000000 persisted_corrupt_supply=213456789 tip=0c58fad70ca05de1161c171753ab28e08af4187941d1d93a2223dec1657bdbc2
+CONTROL dense-restart-recomputes: cleared segment_summaries; recovered_supply=90000000 at_height=2
+CONTROL clean context accepted the two-input spend of tagged coinbase UTXOs 45000000+45000000 micronoid at height 4 (supply=180000000)
+VULN zeroed-supply restart: supply=0 accepted silently at height 3, state root still header-authenticated
+VULN spend-admission stall: valid block rejected twice with `corrupt: uncommitted block supply rollback failed`; tip pinned at height 3, no header 4 written
+LIMIT zeroed supply still admits coinbase-only blocks (supply=45000000 at height 4, clean chain had 180000000); the stall binds any block whose spent total exceeds the corrupted base plus its own coinbase
+VULN noncanonical-tip: 41-byte chain_tip accepted by open_or_create at height=0
+LIMIT noncanonical-tip: next valid commit rejected with `store: mdbx: 41`; no partial tip mutation
+CONTROL reorg: old canonical hash/tx/body removed; replacement tip=dd1b1bbd34324882e89fc7dd1ff75452df50937b1b2c6bd79116a690e1cef172 old_body_remains_content_addressed_only=true
+CONTROL rejected-reorg: post-apply failure restored hot/durable tip, root, supply; reopen and historical rollback to h0/h1 matched
+CONTROL crash-recovery: SIGABRT after 3 durable commits; reopen resumed at height 3 with header-matched root and supply=135000000; block 4 accepted after restart
+CONTROL retention: h2 fully pruned; h3 terminal-only; h4 body/tx retained; undo h9 pruned and h10 retained
+CONTROL historical/snapshot: exact state at oldest retained h9 matched header; h8 rejected; boundary generation reopened and authenticated 1 live segment(s) ids=[148]
