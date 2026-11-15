@@ -1,0 +1,14 @@
+[package]
+name = "prover-unsafe-audit"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+noid-ivc-core = { path = "../../parano1d/noid_ivc_core" }
+noid-ivc-prover = { path = "../../parano1d/noid_ivc_prover" }
+noid_core = { path = "../../parano1d/noid_core" }
+noid_poseidon2b = { path = "../../parano1d/noid_poseidon2b" }
+
+[profile.release]
+debug-assertions = true
+overflow-checks = true

@@ -1,0 +1,22 @@
+    Finished `release` profile [optimized] target(s) in 0.05s
+     Running `target/release/prover-unsafe-audit`
+zero-round final_a=1eaded0000000004:d15c000000000004
+zero-round final_codeword[0]=0000000000000000:0000000000000000
+zero-round final_codeword[1]=0000000000000000:0000000000000000
+c1 zero-round final_a=(0000000000000000:0000000000000000,0000000000000000:0000000000000000) expected_honest=(0000000000000022:0000000000000011)
+c1 zero-round malloc-recycle marker observed: false
+c1 zero-round verify verdict: Err(SumcheckFinalMismatch)
+parser small: input=73 declared=64 max_single_allocation=1024 result=IVC proof bundle bincode error: io error: unexpected end of file
+parser hostile: input=73 declared=10000000 max_single_allocation=1048576 result=IVC proof bundle bincode error: io error: unexpected end of file
+
+thread 'main' (24392420) panicked at /Users/ember/dev/parano1d-break/parano1d/noid_ivc_core/src/ntt/additive_ntt_f128.rs:72:22:
+index out of bounds: the len is 0 but the index is 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+small input: AdditiveNttF128::standard(0) panicked at empty eval row
+
+thread 'main' (24392420) panicked at /Users/ember/dev/parano1d-break/parano1d/noid_ivc_core/src/pcs/basefold.rs:229:13:
+unsupported BaseFold UDR configuration: log_msg_cols=0, log_inv_rate=1, error=FiniteLengthTheoremPrecondition
+small input: basefold::default_fri_queries(0, 1) panicked (finite-length precondition -> unwrap_or_else(panic))
+differential: NTT, inverse-table, and Poseidon native/batch checks passed
+mul kernels: 8241 F128 pairs agree across dispatch/unreduced-reduce/schoolbook/karatsuba/barrett/binius/vec2; F256 lift consistent; F8 vec16 == scalar
+matrix loader: 2689 truncation/mutation cases returned without panic
