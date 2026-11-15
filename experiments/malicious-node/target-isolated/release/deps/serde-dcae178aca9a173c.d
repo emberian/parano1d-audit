@@ -1,0 +1,14 @@
+/Users/ember/dev/parano1d-break/experiments/malicious-node/target-isolated/release/deps/serde-dcae178aca9a173c.d: /Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/lib.rs /Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/integer128.rs /Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/mod.rs /Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/de.rs /Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/ser.rs /Users/ember/dev/parano1d-break/experiments/malicious-node/target-isolated/release/build/serde-233ef5f8e09db166/out/private.rs
+
+/Users/ember/dev/parano1d-break/experiments/malicious-node/target-isolated/release/deps/libserde-dcae178aca9a173c.rlib: /Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/lib.rs /Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/integer128.rs /Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/mod.rs /Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/de.rs /Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/ser.rs /Users/ember/dev/parano1d-break/experiments/malicious-node/target-isolated/release/build/serde-233ef5f8e09db166/out/private.rs
+
+/Users/ember/dev/parano1d-break/experiments/malicious-node/target-isolated/release/deps/libserde-dcae178aca9a173c.rmeta: /Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/lib.rs /Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/integer128.rs /Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/mod.rs /Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/de.rs /Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/ser.rs /Users/ember/dev/parano1d-break/experiments/malicious-node/target-isolated/release/build/serde-233ef5f8e09db166/out/private.rs
+
+/Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/lib.rs:
+/Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/integer128.rs:
+/Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/mod.rs:
+/Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/de.rs:
+/Users/ember/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.229/src/private/ser.rs:
+/Users/ember/dev/parano1d-break/experiments/malicious-node/target-isolated/release/build/serde-233ef5f8e09db166/out/private.rs:
+
+# env-dep:OUT_DIR=/Users/ember/dev/parano1d-break/experiments/malicious-node/target-isolated/release/build/serde-233ef5f8e09db166/out

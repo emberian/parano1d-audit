@@ -1,0 +1,164 @@
+warning: associated function `try_from_locally_built_block` is never used
+  --> pinned/noid_chain/src/accepted_block_bundle.rs:73:19
+   |
+65 | impl AcceptedBlockBundle {
+   | ------------------------ associated function in this implementation
+...
+73 |     pub(crate) fn try_from_locally_built_block(
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `encode_body` is never used
+   --> pinned/noid_chain/src/block/payload.rs:297:15
+    |
+297 | pub(crate) fn encode_body<'a>(block_bytes: &'a [u8], openings: &[NativeOpening]) -> Cow<'a, [u8]> {
+    |               ^^^^^^^^^^^
+
+warning: `noid_chain` (lib) generated 2 warnings
+warning: fields `blocks`, `tip_state_root`, and `alloc_counter` are never read
+   --> src/main.rs:162:5
+    |
+160 | struct ChainFixture {
+    |        ------------ fields in this struct
+161 |     headers: Vec<BlockHeader>,
+162 |     blocks: Vec<Block>,
+    |     ^^^^^^
+163 |     tip_state_root: [u8; 32],
+    |     ^^^^^^^^^^^^^^
+...
+166 |     alloc_counter: u64,
+    |     ^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `segment_descriptor` is never used
+   --> src/main.rs:575:4
+    |
+575 | fn segment_descriptor(fixture: &ChainFixture) -> Result<SnapshotSegmentDescriptor, Box<dyn Error>> {
+    |    ^^^^^^^^^^^^^^^^^^
+
+warning: function `full_tree_root` is never used
+   --> src/main.rs:592:4
+    |
+592 | fn full_tree_root(
+    |    ^^^^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> src/snapshot_header_staging.rs:318:12
+    |
+294 | impl SnapshotHeaderStaging {
+    | -------------------------- associated items in this implementation
+...
+318 |     pub fn create_at_canonical_boundary(
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+332 |     pub fn create_at_nonfinal_rebase_boundary(
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+365 |     pub fn open(path: &Path, store: &MdbxStore) -> Result<Self> {
+    |            ^^^^
+...
+408 |     pub fn base(&self) -> CanonicalHeaderBoundary {
+    |            ^^^^
+...
+412 |     pub fn path(&self) -> &Path {
+    |            ^^^^
+...
+416 |     pub fn staged_len(&self) -> u64 {
+    |            ^^^^^^^^^^
+...
+537 |     pub fn matches_exact_point(
+    |            ^^^^^^^^^^^^^^^^^^^
+...
+690 |     pub fn discard(self) -> Result<()> {
+    |            ^^^^^^^
+...
+739 |     fn revalidate_complete_file(&mut self, store: &MdbxStore) -> Result<()> {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+810 |     fn load_canonical_window(&self, store: &MdbxStore) -> Result<VecDeque<BlockHeader>> {
+    |        ^^^^^^^^^^^^^^^^^^^^^
+
+warning: method `discard` is never used
+   --> src/snapshot_header_staging.rs:854:12
+    |
+849 | impl ValidatedSnapshotHeaderStaging {
+    | ----------------------------------- method in this implementation
+...
+854 |     pub fn discard(self) -> Result<()> {
+    |            ^^^^^^^
+
+warning: function `validate_bounded_header_extension` is never used
+   --> src/snapshot_header_staging.rs:999:8
+    |
+999 | pub fn validate_bounded_header_extension(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `EncodedBase` is never constructed
+    --> src/snapshot_header_staging.rs:1147:8
+     |
+1147 | struct EncodedBase {
+     |        ^^^^^^^^^^^
+
+warning: function `read_file_header` is never used
+    --> src/snapshot_header_staging.rs:1154:4
+     |
+1154 | fn read_file_header(file: &mut File) -> Result<EncodedBase> {
+     |    ^^^^^^^^^^^^^^^^
+
+warning: function `secure_open_existing` is never used
+    --> src/snapshot_header_staging.rs:1252:4
+     |
+1252 | fn secure_open_existing(path: &Path) -> io::Result<File> {
+     |    ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `remove_staging_file_if_same` is never used
+    --> src/snapshot_header_staging.rs:1274:4
+     |
+1274 | fn remove_staging_file_if_same(path: &Path, expected: StagingFileIdentity) -> Result<()> {
+     |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `malicious-node-audit` (bin "malicious-node-audit") generated 10 warnings
+    Finished `release` profile [optimized] target(s) in 0.52s
+     Running `target/release/malicious-node-audit`
+pinned_commit=52938433a30b185ab007afaa15166a632cf2e82e
+local_time=1794786175
+[dialect-facts]
+build_profile=isolated_v2_1=false
+schedule v2_1_active(24)=false
+owner_auth_version(24)=V3 owner_auth_version(279506)=V4
+dialect_expected_target_h24_parent_ts=0000000000000000000000000000000000000000000000000000008051060000
+dialect_expected_target_h24_candidate_ts=0000000000000000000000000000000000000000000000000000001864050000
+dialect_targets_diverge=true
+p2p_profile_note=shared identity per experiments/version-domains results/network-comparison.json
+[difficulty-collapse]
+child_target_sane_parent=0800000000000000000000000000000000000000000000000000000000000000
+child_target_plus120s_parent=0e00000000000000000000000000000000000000000000000000000000000000
+child_target_10y_parent=0000000000000000000000000000000000000000000000000000000000400000
+floor_target=0000000000000000000000000000000000000000000000000000000000400000
+far_future_parent_floors_child=true
+[snapshot-poisoning]
+attacker_chain: tip_h=24 tip_ts=1794786235 poison_h=12 poison_ts_delta_years≈10 tip_drift_ok=true
+honest_path_rejects_poison_header=BadTimestamp(h=12)
+snapshot_path_stages_poison_chain=ok sealed_height=24 staged_headers=24
+snapshot_segments=1 live_entries=24
+snapshot_boundary_checks=manifest_ok tip_future_drift_ok=ok
+snapshot_terminal_boundary=accepted binding=(height,tip_semantic_id)
+control_changed_tip_root=rejected_before_recursive_verifier
+snapshot_install=committed
+committed_history: poison_h12_canonical=true finalized_height=24
+honest_chain_native_admission=all_ok(h1..h25)
+honest_inventory_classification=FinalizedDivergence(best_common_ancestor_above_finalized=false finalized=24)
+honest_snapshot_restage=rejected(base_is_not_first_missing_height)
+victim_serves_poison=snapshot_readback_available(header_h12_ts=+10y)
+[replay-publication]
+admission_fee_floor=5800
+replayed_tx: page_bytes=323 txid=c4f1bbac67b2625aa88dd0cc0fcedd413993ef194ebe432e75f179965dce3ebd
+proving one paged-spend owner authorization with the legitimate wallet witness
+parent_A=5598d94d69cec7ce6ec15e759db23b3f8a72b7f0145432134cf7830fc33be095 
+parent_B=b8358b91a60e3a419e1be3db61c0764a1c578ad0f43dee13d51039c4058cc02a
+both_forks_admitted=ok same_tx=true same_txid=true tx_roots_differ=true
+same_fork_second_spend=refused_by_template_builder(StateApplyError("UnknownOrSpentInput"))
+replay_scope=designed fork tolerance; single linear state refuses the respend
+all_local_assertions=passed

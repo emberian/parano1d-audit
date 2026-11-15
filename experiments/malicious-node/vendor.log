@@ -1,0 +1,10 @@
+noid_core/
+noid_poseidon2b/
+noid_fri/
+noid_fri_binius/
+noid_tx/
+noid_chain/
+noid_gkr/
+noid_mempool/
+noid_p2p/
+vendored from git archive 52938433a30b185ab007afaa15166a632cf2e82e on 2026-11-15T11:58:59Z
