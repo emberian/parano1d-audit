@@ -1,0 +1,18 @@
+[package]
+name = "capsule-chains"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+noid_core = { path = "../../parano1d/noid_core" }
+noid_fri = { path = "../../parano1d/noid_fri" }
+noid_fri_binius = { path = "../../parano1d/noid_fri_binius" }
+noid_poseidon2b = { path = "../../parano1d/noid_poseidon2b" }
+hex = "0.4"
+rand = "0.8"
+rayon = "1.10"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+opt-level = 3

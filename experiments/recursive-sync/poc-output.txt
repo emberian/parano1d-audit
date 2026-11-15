@@ -1,0 +1,21 @@
+pinned_commit=52938433a30b185ab007afaa15166a632cf2e82e
+[terminal-and-accumulator]
+changed_state_root_terminal= rejected_before_recursive_verifier verifier_called=false
+same_height_wrong_epoch= EpochAnchorId
+accumulator_state_root_mismatch= StateRoot
+[snapshot-exact-roots]
+root_matching_snapshot= finalized segments=1 state_root=6aa81a306b3f8e5b4c62167351ecc9932396427e22e816856463af07c0528888
+changed_leaf_old_segment_root= snapshot segment 0 exact root mismatch
+matching_segment_wrong_global_root= snapshot exact root mismatch: expected 6ba81a306b3f8e5b4c62167351ecc9932396427e22e816856463af07c0528888, got 6aa81a306b3f8e5b4c62167351ecc9932396427e22e816856463af07c0528888
+[snapshot-native-sidecar]
+root_bound_native_opening= finalized amount_micronoid=0
+root_matching_raw_with_wrong_native_amount= snapshot segment 0 native amount binding
+native_sidecar_assumption= opening root is collision-resistant; raw slot root alone does not commit sidecar bytes
+[snapshot-vs-native-future-drift]
+native_block height=1 timestamp=1787328940 result=accepted
+native_block height=2 timestamp=1787328960 result=accepted
+native_block height=3 timestamp=1787330120 result=BadTimestamp
+native_block height=4 timestamp=1787329000 result=accepted
+snapshot_timeless_header_stage= sealed height=4 tip_future_drift=pass intermediate_height_3_native=BadTimestamp
+snapshot_gap_scope= real PoW-valid headers and real snapshot staging; a valid h4 HistoryStep terminal is assumed, not generated
+all_local_assertions=passed

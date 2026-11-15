@@ -1,0 +1,19 @@
+[package]
+name = "uc-composition"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+noid_gkr = { path = "pinned/noid_gkr" }
+noid_poseidon2b = { path = "pinned/noid_poseidon2b" }
+noid_tx = { path = "pinned/noid_tx" }
+
+[workspace]
+
+[workspace.package]
+version = "2.1.0"
+
+[profile.release]
+opt-level = 3
+codegen-units = 4

@@ -1,0 +1,17 @@
+{
+  "bundle_prefix_v3": "4e4f4944575a4b31785f0100",
+  "bundle_prefix_v4": "4e4f4944575a4b31185c0100",
+  "check": "owner-authorization-version-separation",
+  "decoded_v3_as_v4": false,
+  "decoded_v4_as_v3": false,
+  "v3_as_v3": true,
+  "v3_as_v4": false,
+  "v3_as_v4_error": "AuthProof",
+  "v3_bytes": 89988,
+  "v3_default_v4_api": false,
+  "v4_as_v3": false,
+  "v4_as_v3_error": "AuthProof",
+  "v4_as_v4": true,
+  "v4_bytes": 89124,
+  "v4_default_v4_api": true
+}

@@ -1,0 +1,15 @@
+[package]
+name = "external-miner-audit"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+noid_chain = { path = "../../parano1d/noid_chain" }
+noid_poseidon2b = { path = "../../parano1d/noid_poseidon2b" }
+hex = "0.4"
+
+[profile.release]
+opt-level = 3

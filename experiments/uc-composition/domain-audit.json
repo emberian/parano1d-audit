@@ -1,0 +1,102 @@
+{
+  "distinct_tags": 71,
+  "duplicate_tag_uses": {
+    "CNTCODE_": [
+      "bench_prover/src/lib.rs:479",
+      "noid_ivc_core/src/deep_chain/spine.rs:57",
+      "noid_tx/src/experimental_object.rs:97",
+      "research/v2_feasibility/src/bin/contract_abi_binding.rs:28",
+      "research/v2_feasibility/src/bin/contract_meta_wrap.rs:46"
+    ],
+    "CNTOBJ__": [
+      "bench_prover/src/lib.rs:481",
+      "noid_ivc_core/src/deep_chain/spine.rs:59",
+      "noid_tx/src/experimental_object.rs:125",
+      "research/v2_feasibility/src/bin/contract_abi_binding.rs:29",
+      "research/v2_feasibility/src/bin/contract_meta_wrap.rs:47"
+    ],
+    "CNTPOL__": [
+      "bench_prover/src/lib.rs:480",
+      "noid_ivc_core/src/deep_chain/spine.rs:58",
+      "noid_tx/src/experimental_object.rs:111"
+    ],
+    "IVCPCSL_": [
+      "noid_ivc_core/src/merkle.rs:36",
+      "noid_recursive/src/acceptance/trace/self_verify.rs:48"
+    ],
+    "IVCPCSN_": [
+      "noid_ivc_core/src/merkle.rs:42",
+      "noid_recursive/src/acceptance/trace/self_verify.rs:49"
+    ],
+    "LNROUND1": [
+      "noid_recursive/src/acceptance/trace/native_assets/financial_queue.rs:203",
+      "noid_tx/src/native_assets/launch.rs:303"
+    ],
+    "MKQNOD21": [
+      "noid_recursive/src/acceptance/trace/native_assets/financial_queue.rs:122",
+      "noid_tx/src/native_assets/market/queue.rs:212"
+    ],
+    "MKQROOT1": [
+      "noid_recursive/src/acceptance/trace/native_assets/financial_queue.rs:127",
+      "noid_tx/src/native_assets/market/queue.rs:222"
+    ],
+    "MKREQID1": [
+      "noid_recursive/src/acceptance/trace/native_assets/financial_queue.rs:61",
+      "noid_tx/src/native_assets/market/queue.rs:47"
+    ],
+    "MKROUND1": [
+      "noid_recursive/src/acceptance/trace/native_assets/financial_queue.rs:202",
+      "noid_tx/src/native_assets/market.rs:294"
+    ],
+    "MKSEED21": [
+      "noid_recursive/src/acceptance/trace/native_assets/financial_launch_genesis.rs:332",
+      "noid_recursive/src/acceptance/trace/native_assets/financial_pool_genesis.rs:40",
+      "noid_tx/src/native_assets/market.rs:107"
+    ],
+    "NATBAL21": [
+      "noid_recursive/src/acceptance/trace/native_assets/sequential_trade/funding.rs:274",
+      "noid_tx/src/native_assets.rs:133"
+    ],
+    "NATID_21": [
+      "noid_recursive/src/acceptance/trace/native_assets/financial_launch_genesis.rs:315",
+      "noid_recursive/src/acceptance/trace/native_assets/genesis.rs:179",
+      "noid_tx/src/native_assets.rs:38"
+    ],
+    "NMPRIOR1": [
+      "noid_recursive/src/acceptance/trace/native_assets/financial_listing_settlement.rs:339",
+      "noid_tx/src/native_assets/nft_market.rs:365"
+    ],
+    "NMROUND1": [
+      "noid_recursive/src/acceptance/trace/native_assets/financial_queue.rs:204",
+      "noid_tx/src/native_assets/nft_market.rs:262"
+    ],
+    "PAGEDTX_": [
+      "noid_recursive/src/acceptance/trace/paged_spend.rs:25",
+      "noid_tx/src/paged_spend.rs:24"
+    ],
+    "POLICY__": [
+      "research/v2_feasibility/src/bin/policy_capsule.rs:67",
+      "research/v2_feasibility/src/bin/universal_policy_capsule.rs:69"
+    ],
+    "TRBCH_21": [
+      "noid_recursive/src/acceptance/trace/native_assets/sequential_trade/kernel.rs:518",
+      "noid_tx/src/native_assets/trade/batch.rs:202"
+    ],
+    "TRINT_21": [
+      "noid_recursive/src/acceptance/trace/native_assets/sequential_trade/funding.rs:172",
+      "noid_tx/src/native_assets/trade.rs:218"
+    ],
+    "TRORD_21": [
+      "noid_recursive/src/acceptance/trace/native_assets/sequential_trade/global_execution.rs:179",
+      "noid_recursive/src/acceptance/trace/native_assets/sequential_trade/group.rs:133",
+      "noid_recursive/src/acceptance/trace/native_assets/sequential_trade/kernel.rs:272",
+      "noid_tx/src/native_assets/trade.rs:260"
+    ],
+    "TRPOL_21": [
+      "noid_recursive/src/acceptance/trace/native_assets/sequential_trade/policy.rs:126",
+      "noid_tx/src/native_assets/trade.rs:121"
+    ]
+  },
+  "source_root": "pinned",
+  "total_uses": 103
+}

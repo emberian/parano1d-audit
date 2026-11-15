@@ -1,0 +1,17 @@
+[package]
+name = "contract-rights-audit"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+noid_core = { path = "./pristine/noid_core" }
+noid_poseidon2b = { path = "./pristine/noid_poseidon2b" }
+noid_tx = { path = "./pristine/noid_tx" }
+noid_pruv = { path = "./pristine/noid_pruv" }
+noid_chain = { path = "./pristine/noid_chain" }
+noid_gkr = { path = "./pristine/noid_gkr" }
+noid_recursive = { path = "./pristine/noid_recursive" }
+serde_json = "1"
+
+[profile.dev]
+opt-level = 1

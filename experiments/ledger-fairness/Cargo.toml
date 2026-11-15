@@ -1,0 +1,38 @@
+[package]
+name = "ledger-fairness-audit"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+
+[workspace.package]
+version = "2.1.0"
+edition = "2021"
+license = "Apache-2.0"
+
+[workspace.dependencies]
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+thiserror = "1"
+
+[dependencies]
+noid_chain = { path = "pinned/noid_chain" }
+noid_gkr = { path = "pinned/noid_gkr" }
+noid_mempool = { path = "pinned/noid_mempool" }
+noid_node = { path = "pinned/noid_node" }
+noid_poseidon2b = { path = "pinned/noid_poseidon2b" }
+noid_tx = { path = "pinned/noid_tx" }
+rayon = "1.10"
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+tempfile = "3"
+
+[profile.dev]
+opt-level = 2
+
+[profile.release]
+opt-level = 2

@@ -1,0 +1,52 @@
+{
+  "check": "cross-build-network-profile-comparison",
+  "identical_fields": [
+    "profile_id",
+    "genesis_hash",
+    "history_proof_bank_id",
+    "wire_version",
+    "history_terminal_version",
+    "history_class_count",
+    "p2p_protocol_id",
+    "native_chain_id"
+  ],
+  "profile_id": "600c7311c529b2a8547263851007924e5269f68881c1052bab4456c384fc6f85",
+  "schedules": {
+    "default": {
+      "v1_1_activation": 95125,
+      "v2_activation": 210537,
+      "v2_1_activation": 279370,
+      "owner_authorization_activation": 279370
+    },
+    "v2": {
+      "v1_1_activation": 5,
+      "v2_activation": 10,
+      "v2_1_activation": 279370,
+      "owner_authorization_activation": 279370
+    },
+    "v21": {
+      "v1_1_activation": 5,
+      "v2_activation": 10,
+      "v2_1_activation": 24,
+      "owner_authorization_activation": 24
+    }
+  },
+  "terminal_at_24": {
+    "default": {
+      "version": 4,
+      "class_count": 4,
+      "owner_version": 3
+    },
+    "v2": {
+      "version": 7,
+      "class_count": 2,
+      "owner_version": 3
+    },
+    "v21": {
+      "version": 7,
+      "class_count": 3,
+      "owner_version": 4
+    }
+  },
+  "result": "identical P2P preflight identity for three pairwise different consensus schedules"
+}

@@ -1,0 +1,9 @@
+target/
+__pycache__/
+*.pyc
+experiments/*/pinned/
+experiments/*/pinned-src/
+experiments/nft-marketplace/source/
+experiments/build-artifacts/fixture/
+experiments/build-artifacts/tmp/
+experiments/build-artifacts/probes/

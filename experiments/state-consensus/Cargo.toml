@@ -1,0 +1,16 @@
+[package]
+name = "state-consensus-audit"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+noid_chain = { path = "../../parano1d/noid_chain", features = ["isolated-v2-1-fork-testnet"] }
+noid_poseidon2b = { path = "../../parano1d/noid_poseidon2b" }
+noid_tx = { path = "../../parano1d/noid_tx" }
+
+[workspace]
+
+[profile.release]
+lto = false
+codegen-units = 16

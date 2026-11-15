@@ -1,0 +1,74 @@
+{
+  "fixture_notes": [
+    "Mempool submissions use the production AsyncMempool API with an accept-all authorization executor test hook; decoding, state, fee, conflict, selection, and eviction logic are real.",
+    "The MDBX fixture commits a real PoW-valid public block transition with a test terminal verifier; owner queries and durable indexes are real.",
+    "Fixture-only adjustment: the archived context commit uses its existing full owner-index rebuild flag so batch-seeded pre-parent state is indexed; query code is unchanged.",
+    "No native-trade worst-fill or same-anchor replay experiment is included."
+  ],
+  "live_nodes_or_peers": false,
+  "pinned_commit": "52938433a30b185ab007afaa15166a632cf2e82e",
+  "results": [
+    {
+      "best_tip_unchanged_after_rejection": true,
+      "classification": "bounded-HeaderDAG liveness bug; valid PoW headers are a precondition, not a free attack",
+      "configured_test_capacity": 2,
+      "experiment": "selected_ancestry_at_capacity_rejects_next_child",
+      "manual_finality_advance_restores_insertion": true,
+      "next_child_error": "Capacity",
+      "production_capacity": 1024,
+      "production_reconcile_order": "insert missing canonical child, then advance finalized checkpoint"
+    },
+    {
+      "classification": "documented first-seen relay policy; fairness/liveness, not soundness",
+      "distinct_input_owners": true,
+      "experiment": "first_seen_output_conflict_rejects_higher_fee",
+      "first_admitted": true,
+      "first_fee_micronoid": 9000,
+      "higher_fee_error": "Consensus(SlotConflict)",
+      "pool_len_after_race": 1,
+      "racing_fee_micronoid": 100000,
+      "rejected_txid": "57135f40d0f9dc7d7cc263a41a7e3efa2363111ca5c41c6d77a3a211ea4063b1",
+      "selected_txid": "452ac9973953b345514885fdd0ba2762c932831c3a7715869454660cd4839d29",
+      "shared_output_slot": 10
+    },
+    {
+      "classification": "best-effort local mitigation, not a consensus reservation; fairness/liveness, not soundness",
+      "eviction_reason": "OutputSlotOccupied",
+      "experiment": "remote_coinbase_output_collision_evicts_pending_spend",
+      "local_avoidance_prevents_exact_collision": true,
+      "local_pending_aware_template_slot": 162,
+      "pending_spend_evicted": true,
+      "remote_block_contains_victim": false,
+      "remote_coinbase_slot": 161,
+      "victim_output_slot": 161,
+      "victim_txid": "4d319408f6f666a20667e2d57f7f4ccdaf6fac27785875cfe53a0285bce8af01"
+    },
+    {
+      "classification": "explicitly documented reorg policy; liveness depends on online wallet, not soundness",
+      "experiment": "reorg_reclaim_requires_wallet_resubmission",
+      "fresh_intent_manual_submission_accepted": true,
+      "fresh_txid": "bf0bc13779fd2688a0001727bf2db5af437622c8ea6763ccfb5d5d4eab71f01c",
+      "identical_intent_replay_tested": false,
+      "old_confirmation_removed_from_pool": true,
+      "pool_len_after_readmit_after_reorg": 0,
+      "replacement_restores_input_and_output_availability": true,
+      "txid": "c947311f9f9f2970c3277eab2af00e8a81fda092d00c6e1b614197b23af42901"
+    },
+    {
+      "classification": "RPC cost-externalization/liveness risk, not consensus soundness",
+      "cold_full_us": 371,
+      "cold_page_us": 116,
+      "experiment": "unbounded_owner_query_vs_bounded_page",
+      "full_records_returned": 4096,
+      "median_cost_ratio_full_over_page": 5.783333333333333,
+      "median_full_us": 347,
+      "median_page_us": 60,
+      "owner_utxos": 4096,
+      "page_limit": 32,
+      "page_records_returned": 32,
+      "record_count_ratio": 128,
+      "rpc_callsite": "paranoid_getSlotsByOwner holds chain.read() and synchronously calls get_verified_utxos_by_owner",
+      "segments_touched_by_full_set": 1
+    }
+  ]
+}

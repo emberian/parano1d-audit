@@ -1,0 +1,16 @@
+[package]
+name = "block-validation-audit"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+
+[dependencies]
+noid_chain = { path = "../../parano1d/noid_chain" }
+noid_gkr = { path = "../../parano1d/noid_gkr" }
+noid_poseidon2b = { path = "../../parano1d/noid_poseidon2b" }
+noid_tx = { path = "../../parano1d/noid_tx" }
+tempfile = "3"
+
+[profile.release]
+opt-level = 3

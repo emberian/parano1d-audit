@@ -1,0 +1,14 @@
+{
+  "check": "history-step-terminal-metadata-only",
+  "class_id": 2,
+  "downgraded_v4_accepted": false,
+  "downgraded_v5_accepted": false,
+  "height": 24,
+  "native_at_activation": true,
+  "native_before_activation": false,
+  "native_one_height_early_constructor": false,
+  "native_without_v2_1_activation": false,
+  "same_metadata_accepted_under_other_v2_schedule": true,
+  "scope": "metadata admission only; a full terminal still requires its exact proof bank and verified origin",
+  "wire_version": 7
+}

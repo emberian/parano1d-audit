@@ -1,0 +1,13 @@
+[package]
+name = "transcript-chains"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+noid_core = { path = "../../parano1d/noid_core" }
+noid_poseidon2b = { path = "../../parano1d/noid_poseidon2b" }
+noid_fri = { path = "../../parano1d/noid_fri" }
+noid-ivc-core = { path = "../../parano1d/noid_ivc_core" }
+
+[workspace]

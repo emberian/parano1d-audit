@@ -1,0 +1,27 @@
+== one-lane padding equals an explicit second lane ==
+pad tower bits = 0x01000000000000000000000000000080
+Poseidon2bChannel: absorb(x) == absorb(x, PAD); four challenges equal
+Poseidon2bWideChannel: absorb_base(x) == absorb_wide((x, PAD))
+noid_fri::Channel: 3 lanes == 4 lanes ending in PAD; 64 queries equal: [21, 114, 92, 20, 50, 105, 13, 76, 124, 7, 114, 58, 53, 123, 77, 46, 63, 95, 5, 125, 83, 5, 77, 98, 78, 4, 8, 81, 49, 2, 28, 114, 25, 6, 0, 66, 124, 66, 100, 30, 61, 36, 60, 9, 123, 39, 1, 26, 69, 66, 65, 13, 9, 102, 69, 108, 121, 98, 102, 65, 6, 68, 95, 105]
+cross-family control: KSCHANNL, KSCH256, FRICHANL outputs all differ
+framed lane control: adding observe_f128(PAD) does NOT collide (extra op header)
+framed lane control: scalar and one-element slice differ (kind header)
+framed byte control: scalar and one-element slice differ (kind header)
+wide challenge map: raw_hi and raw_hi+1 give the same challenge; hi != 0
+exact distribution: uniform over 2^255 outputs under uniform raw lanes (2-to-1 high map)
+== end-to-end noid_fri final-codeword padding pair ==
+honest four-lane proof verifies; NUM_QUERIES=64
+five-lane verifier: Ok; six-lane verifier: Ok
+identical query set (64 draws, 53 distinct): [89, 53, 74, 103, 44, 73, 76, 43, 9, 115, 50, 19, 88, 25, 54, 24, 41, 93, 109, 119, 56, 24, 63, 80, 26, 69, 118, 122, 115, 97, 82, 60, 4, 113, 116, 8, 56, 22, 66, 105, 37, 10, 35, 20, 93, 38, 40, 2, 109, 65, 20, 54, 88, 83, 29, 101, 53, 112, 63, 36, 57, 122, 121, 27]
+extra lane and PAD are beyond every final index used by this 5-round proof (0..4)
+cost after one honest proof: rebuild 5 round trees + regenerate both query opening lists; no collision search
+== Wallet-style nonce selection changes the packed queries ==
+P(at least one duplicate), random 65 draws over 8192 = 0.224754298; expected unique = 64.746743
+random-nonce model: expected candidates to select a duplicate-containing set = 2^16/p = 291589.5
+selected nonce=379782, candidates=379783, PoW-valid candidates=4
+selected queries=[3501, 3591, 223, 4767, 7412, 7443, 3272, 3109, 638, 4180, 3865, 7654, 505, 362, 6490, 6603, 3153, 593, 5541, 1865, 1636, 2217, 6866, 2951, 4123, 3854, 3365, 5224, 3453, 8035, 3002, 2767, 721, 4527, 950, 5893, 4983, 5900, 5727, 6386, 5230, 2025, 7737, 5036, 982, 2017, 3580, 4760, 4776, 6479, 4767, 5683, 7632, 1748, 79, 5822, 5038, 8160, 4169, 6353, 977, 1155, 3125, 1198, 5123]
+real wide-channel replay matches; nonce is not required to be the first PoW-valid nonce
+cost model: 2 permutations per nonce + 3 more only for PoW-valid nonces whose 7 seeds are decoded
+== framed lane PoW accepts a non-minimal valid nonce ==
+first valid nonce=73, later accepted nonce=117, following challenges differ
+this is query/challenge grinding, not a verifier/prover schedule mismatch

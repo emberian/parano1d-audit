@@ -1,0 +1,19 @@
+{
+  "check": "sparse-matrix-and-artifact-binding",
+  "correct_sparse_key_pin_accepted": true,
+  "first_matrix_digest": "13640d853da45751c4917597b3b243931d2878127550f95d2e596f20f9cbe23b",
+  "matrix_fold_matches_first": true,
+  "matrix_fold_matches_second": false,
+  "matrix_fold_reduction_valid": true,
+  "matrix_fold_relabelled_to_second": false,
+  "safe_artifact_with_correct_digest_accepted": true,
+  "safe_artifact_with_stale_digest_accepted": false,
+  "safe_artifact_with_stale_digest_error": "StructuralDigestMismatch { expected: [238, 235, 203, 1, 156, 151, 123, 25, 65, 243, 90, 122, 235, 125, 6, 145, 196, 40, 35, 124, 206, 130, 122, 172, 219, 158, 30, 208, 225, 156, 224, 130], actual: [19, 100, 13, 133, 61, 164, 87, 81, 196, 145, 117, 151, 179, 178, 67, 147, 29, 40, 120, 18, 117, 80, 249, 93, 46, 89, 111, 32, 249, 203, 226, 59] }",
+  "second_matrix_digest": "eeebcb019c977b1941f35a7aeb7d0691c428237cce827aacdb9e1ed0e19ce082",
+  "sparse_original": true,
+  "sparse_other_context": false,
+  "sparse_other_context_error": "Algebra",
+  "sparse_other_key": false,
+  "sparse_other_key_error": "Algebra",
+  "stale_sparse_key_pin_accepted": false
+}

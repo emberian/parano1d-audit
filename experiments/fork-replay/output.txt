@@ -1,0 +1,20 @@
+pinned_commit=52938433a30b185ab007afaa15166a632cf2e82e
+heights: epoch=279504 parents=279505 children=279506 owner_auth=V4
+transaction: wire_bytes=323 txid=767d876c015691e73a292e9b65a9c8791f9e5b2e70cbb9aff1e3c158e4ef1622
+public_logic: inputs=1 outputs=1 input_sum=100 output_sum=99 fee=1
+epoch_anchor=b36673d93a6df346e44f22f454941023fd69159ef42f887b6fdf3382127dd4be
+input_owner=85b4384ed4636e699aa6de5e9567fd93c76febeb39ea8bf3d630d335dbc351e0
+proving one owner authorization with the legitimate wallet witness
+owner_authorization: wire_roundtrip=ok same_bundle_reused=true
+parent_A=813f13f6edf7e63d20528e6c46eff4d5d985f19d68bf4add11451bbcdd376676
+parent_B=967489114d391df91d303ddd56beb6be14d8dc0d76fc584a2293b2b9f65c5746
+fork_A: epoch_anchor=ok public_logic=ok owner_auth=ok state_delta=ok spends=1 mints=1
+fork_A: pre_root=a3d0488156abdb1878814d1ee930627953e9cff9fc16e0a32a3f09ea291af7b4
+fork_A: post_root=ad9b6092ea99e36eeda553bc8f3f1c6fbc91593414121846bcc7f89039a945f5
+fork_B: epoch_anchor=ok public_logic=ok owner_auth=ok state_delta=ok spends=1 mints=1
+fork_B: pre_root=9f111520ed0cbb53717e1c6d6ea82400fc8864df9bde35c801c8aadc96edd64f
+fork_B: post_root=8546bdc2af55c8a3bfc8a8a9034f146780d7e7c88acf0d6b1c90c70f4adba749
+replay_result: same_transaction=true same_proof=true both_fork_context_checks_passed=true
+same_fork_second_spend: owner_auth=ok state_delta=InputMismatch { tx_index: 0, input_index: 0 }
+changed_epoch_control: epoch_check=BadEpochAnchor owner_auth=AuthProof
+scope: exact transaction/proof replay across same-anchor forks; no new proof forged

@@ -1,0 +1,21 @@
+{
+  "check": "network-profile",
+  "different_legacy_bank_accepted": false,
+  "genesis_hash": "860e70453390bf815718e933aa4927167a13d098b0151391eefd722ee1add610",
+  "history_class_count": 4,
+  "history_proof_bank_id": "4242424242424242424242424242424242424242424242424242424242424242",
+  "history_terminal_version": 4,
+  "native_chain_id": "860e70453390bf815718e933aa4927167a13d098b0151391eefd722ee1add610",
+  "owner_authorization_activation": 24,
+  "owner_version_at_10": 3,
+  "owner_version_at_24": 4,
+  "p2p_protocol_id": "/noid/mainnet/860e70453390bf81/1",
+  "profile_id": "600c7311c529b2a8547263851007924e5269f68881c1052bab4456c384fc6f85",
+  "selected_legacy_bank_accepted": true,
+  "terminal_class_count_at_24": 3,
+  "terminal_version_at_24": 7,
+  "v1_1_activation": 5,
+  "v2_1_activation": 24,
+  "v2_activation": 10,
+  "wire_version": 7
+}

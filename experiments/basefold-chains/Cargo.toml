@@ -1,0 +1,13 @@
+[package]
+name = "basefold-chains"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+noid_core = { path = "../../parano1d/noid_core" }
+noid-ivc-core = { path = "../../parano1d/noid_ivc_core" }
+noid_poseidon2b = { path = "../../parano1d/noid_poseidon2b" }
+hex = "0.4"
+
+[profile.release]
+opt-level = 3

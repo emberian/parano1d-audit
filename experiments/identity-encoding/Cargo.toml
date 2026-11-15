@@ -1,0 +1,15 @@
+[package]
+name = "identity-encoding-poc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+noid_chain = { path = "../../parano1d/noid_chain" }
+noid_mempool = { path = "../../parano1d/noid_mempool" }
+noid_p2p = { path = "../../parano1d/noid_p2p" }
+noid_poseidon2b = { path = "../../parano1d/noid_poseidon2b" }
+noid_tx = { path = "../../parano1d/noid_tx" }
+libp2p = { version = "0.55", features = ["tokio", "tcp", "noise", "yamux", "dns", "gossipsub", "request-response", "cbor", "identify", "ping", "macros", "kad", "mdns", "relay", "dcutr"] }
+tokio = { version = "1", features = ["full"] }
+
+[workspace]

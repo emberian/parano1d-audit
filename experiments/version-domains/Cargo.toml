@@ -1,0 +1,25 @@
+[package]
+name = "version-domains"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[features]
+default = []
+isolated-v2-fork-testnet = ["noid_chain/isolated-v2-fork-testnet"]
+isolated-v2-1-fork-testnet = ["noid_chain/isolated-v2-1-fork-testnet"]
+
+[dependencies]
+noid_chain = { path = "pinned/noid_chain" }
+noid_core = { path = "pinned/noid_core" }
+noid_gkr = { path = "pinned/noid_gkr" }
+noid-ivc-core = { path = "pinned/noid_ivc_core" }
+noid_p2p = { path = "pinned/noid_p2p" }
+noid_poseidon2b = { path = "pinned/noid_poseidon2b" }
+noid_tx = { path = "pinned/noid_tx" }
+serde_json = "1"
+tempfile = "3"
+
+[profile.release]
+opt-level = 2
+codegen-units = 16

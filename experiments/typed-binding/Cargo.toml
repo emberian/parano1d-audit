@@ -1,0 +1,12 @@
+[package]
+name = "typed-binding-witness"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+noid_core = { path = "../../parano1d/noid_core" }
+noid_fri = { path = "../../parano1d/noid_fri" }
+noid_fri_binius = { path = "../../parano1d/noid_fri_binius" }
+noid_ivc_core = { package = "noid-ivc-core", path = "../../parano1d/noid_ivc_core" }
+noid_poseidon2b = { path = "../../parano1d/noid_poseidon2b" }
+hex = "0.4"

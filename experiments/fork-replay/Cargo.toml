@@ -1,0 +1,15 @@
+[package]
+name = "fork-replay-proof"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+noid_tx = { path = "pinned/noid_tx" }
+noid_chain = { path = "pinned/noid_chain" }
+noid_gkr = { path = "pinned/noid_gkr" }
+noid_poseidon2b = { path = "pinned/noid_poseidon2b" }
+
+[profile.release]
+opt-level = 2
+codegen-units = 16

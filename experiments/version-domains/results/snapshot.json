@@ -1,0 +1,10 @@
+{
+  "check": "snapshot-terminal-boundary-only",
+  "foreign_header_error": "Consensus(BadHistoryStepTerminal(\"snapshot terminal does not bind its staged boundary\"))",
+  "foreign_header_terminal_accepted": false,
+  "foreign_terminal_verifier_calls": 0,
+  "matching_terminal_verifier_calls": 1,
+  "matching_terminal_with_completion_accepted": true,
+  "scope": "real snapshot boundary preflight; matching case uses an explicit completion closure, not a full HistoryStep or segment install",
+  "wrong_epoch_anchor_accepted": false
+}

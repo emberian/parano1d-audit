@@ -1,0 +1,13 @@
+[package]
+name = "parano1d-break-poc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+noid_core = { path = "../parano1d/noid_core" }
+noid_poseidon2b = { path = "../parano1d/noid_poseidon2b" }
+hex = "0.4"
+serde_json = "1"
+
+[profile.release]
+opt-level = 3
