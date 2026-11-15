@@ -1,0 +1,103 @@
+warning: sequencing-audit@0.1.0: verified pinned fact: mempool FeeKey: descending fee_rate
+warning: sequencing-audit@0.1.0: verified pinned fact: mempool FeeKey: ascending txid tie-break
+warning: sequencing-audit@0.1.0: verified pinned fact: template sort: contract groups first
+warning: sequencing-audit@0.1.0: verified pinned fact: template sort: descending absolute fee
+warning: sequencing-audit@0.1.0: verified pinned fact: template sort: ascending txid tie-break
+warning: sequencing-audit@0.1.0: verified pinned fact: miner: heartbeat refresh gated on empty template
+warning: sequencing-audit@0.1.0: verified pinned fact: miner: TxAdmitted refresh gated on empty template
+warning: sequencing-audit@0.1.0: verified pinned fact: mempool: financial native fee must equal the exact minimum
+warning: sequencing-audit@0.1.0: verified pinned fact: consensus: financial fee equality with parent-derived requirement
+warning: sequencing-audit@0.1.0: verified pinned fact: trade priority domain TRORD_21
+warning: sequencing-audit@0.1.0: verified pinned fact: trade priority binds parent_id
+warning: sequencing-audit@0.1.0: verified pinned fact: trade priority binds anchor creation_id
+warning: sequencing-audit@0.1.0: verified pinned fact: trade priority binds anchor slot_index
+warning: sequencing-audit@0.1.0: verified pinned fact: trade batch canonical encoding sorted by authorization id
+warning: sequencing-audit@0.1.0: verified pinned fact: execution order sorted by funding priority
+warning: sequencing-audit@0.1.0: verified pinned fact: builder ranks trade intents by funding priority
+warning: sequencing-audit@0.1.0: verified pinned fact: NFT payer priority domain NMPRIOR1
+warning: sequencing-audit@0.1.0: verified pinned fact: NFT payer priority binds payer address
+warning: sequencing-audit@0.1.0: verified pinned fact: deterministic fee breakdown entry point
+warning: associated function `try_from_locally_built_block` is never used
+  --> /Users/ember/dev/parano1d-break/parano1d/noid_chain/src/accepted_block_bundle.rs:73:19
+   |
+65 | impl AcceptedBlockBundle {
+   | ------------------------ associated function in this implementation
+...
+73 |     pub(crate) fn try_from_locally_built_block(
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `encode_body` is never used
+   --> /Users/ember/dev/parano1d-break/parano1d/noid_chain/src/block/payload.rs:297:15
+    |
+297 | pub(crate) fn encode_body<'a>(block_bytes: &'a [u8], openings: &[NativeOpening]) -> Cow<'a, [u8]> {
+    |               ^^^^^^^^^^^
+
+warning: `noid_chain` (lib) generated 2 warnings
+warning: method `address` is never used
+  --> src/main.rs:63:8
+   |
+44 | impl Rng {
+   | -------- method in this implementation
+...
+63 |     fn address(&mut self) -> Address {
+   |        ^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `sequencing-audit` (bin "sequencing-audit") generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.07s
+     Running `target/release/sequencing-audit`
+sequencing audit — parano1d @ 52938433a30b185ab007afaa15166a632cf2e82e
+build.rs verified the pinned ordering facts (fee keys, template sort, miner
+refresh guards, financial fee pinning, TRORD_21/NMPRIOR1 priority domains).
+
+=== B1 CONTROL — mempool selection is descending fee_rate, ascending txid ===
+  ok: both entries selected
+  ok: higher fee first
+  ok: lower fee second
+  ok: equal fees order by ascending txid
+
+=== B2 CONTROL — template fee order; consensus application is order-free ===
+  ok: template carries two user groups
+  ok: template places the 40,000-fee group before the 9,000-fee group
+  ok: template order reproduces the template's own state root
+  ok: reversed order yields a different state root: creation ids are position-derived
+  ok: compute_tx_root reproduces the template's root
+  ok: permuted body order commits to a different tx root (order is consensus-tracked, not consensus-constrained)
+
+=== C  FINDING 1 — trade priority is a UTXO-count-weighted hash lottery ===
+  attacker tickets=8 victims=4 trials=2000: win rate 0.672 (K/(K+M)=0.667)
+  ok: priority win rate matches the K/(K+M) exchangeable-lottery model
+  ok: priority is count-weighted, not value-weighted (dust = whale)
+  ok: 64 intents fill the batch cap exactly (MAX_SEQUENTIAL_TRADES)
+  ok: 65 intents exceed the cap — capacity capture truncates by priority
+  ok: one UTXO cannot buy two draws in one batch (duplicate funding rejected)
+  ok: fills execute in ascending funding-priority order (all-Buy batch)
+  ok: reversed authorization-key encoding still executes in funding-priority order
+  ticket price (1->2 outputs at 0 occupancy): base=5000 io=1500 state_growth=2500 total=9000 micronoid
+  ok: fee components sum to the required total
+  => a K/(K+M) perpetual priority share costs ~9000 x K micronoid one-time (dust, persistent)
+
+=== D  FINDING 2 — NFT fixed-price races are a payer-address hash lottery ===
+  attacker draws=12 (submits 1) victims=4: win rate 0.733 vs K/(K+M)=0.750
+  ok: ground payer wins at the predicted offline-grind rate
+  ok: round id changes with the registration height
+  ok: request bound to round(h) registers at height h
+  ok: the same request is rejected at height h+1 (height-specific grind)
+
+=== E  FINDING 3 — financial natives: pinned fees, txid tie-break, free grind ===
+  ok: equal-shape groups have distinct txids
+  ok: one-slot truncation keeps the smaller txid (fees pinned equal)
+  txid grind vs a fixed victim: median 2 body hashes (mean 7.51) over 200 races
+  ok: beating a victim's txid costs a handful of offline hashes
+  financial natives must pay exactly the parent-derived minimum (9000 here); no tipping
+
+=== F  FINDING 4 — miner inclusion freeze (verified statically) ===
+  pinned guard: `_ = &mut heartbeat, if user_pages == 0 =>`
+  pinned guard: `refresh = next_mining_mempool_refresh(...), if user_pages == 0 =>`
+  => once a template holds any user page, later admissions (any fee)
+     cannot enter the block being mined; inclusion is frozen at build time.
+
+ALL ASSERTIONS PASSED
