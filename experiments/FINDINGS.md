@@ -83,7 +83,11 @@ renders node-authored "AUTHENTICATED PAYMENT / CONFIRMED" verdicts for 256 bytes
 and the node both builds and signs sends while holding `wallet.key` (C24, family W1-W6;
 precondition: a malicious/corrupted node — e.g. the C20 zombie — or a loopback impostor, which
 deceives but cannot spend); anyone can mint NFT items owned by arbitrary addresses — permanent
-junk in victims' wallets that only the victim can remove, by paying (C25). The root's own position statement (02:58:28): *"serious
+junk in victims' wallets that only the victim can remove, by paying (C25); and a malicious
+serving node can make a snapshot-syncing peer commit rule-invalid history as immediately
+finalized — permanently estranging it from the honest chain and re-serving the poison to the
+next syncer (C26; fresh-or-eclipsed-victim precondition; the kimi-era snapshot-staging
+differential weaponized). The root's own position statement (02:58:28): *"serious
 warning signs, no consequential end-to-end attack shown yet — not 'definitely broken,' but also not
 'these results are satisfying.'"* The upstream `main` (`e6d324ff…`) still contains the vulnerable
 compressor unchanged, and the upstream test suites pass — this is a design/parameterization failure,
@@ -123,6 +127,7 @@ reproduction, tied to ethresear.ch/t/25730).
 | C23 | The shipped security claim's fixed-Poseidon2b premise is **either false or vacuous** — the typed-binding machinery does not cover the shipped object | The paper (Zenodo 23778742) never contains `Delta_P2b` or `0.45067` — the machinery lives in `noid_soundness` docs; `BadTypedBind` is stated TWICE with different scope ("a collision, ambiguous encoding or domain confusion changes the typed semantic graph" vs "object/statement/namespace binding fails") and never disambiguated; the paper's H.1 typed dictionary has a SINGLE `v_node` (eq. 52), `c = 3` — production ships a tag-parameterized compressor with >= 2 one-perm node domains, never defined as a dictionary. Verdict fork: (a) same-tag collision — EXCLUDED-BY-CLAUSE under the worklist reading / INSTANTIATES under the dictionary reading (it is precisely the event priced at their ideal 6T^3/2^256 term); (b) cross-tag claw — EXCLUDED + UNMODELED-DOMAIN / INSTANTIATES (satisfies two listed causes simultaneously — collision AND domain confusion — matches the v2 wording verbatim; the reconstruction lemma's "unique node row" step is unguarded against same-anchor rows); (c) Delta — FORCES-DELTA under the dictionary reading: the claw is deterministically producible inside both envelopes (~2^41 gates vs C1 2^130), so `Delta_P2b^C1 >= 0.95067 > 0.45067` and `Delta_P2b(2^64) >= 0.81247 > 0.31247` — BOTH sufficient conditions unsatisfiable, PASS premise FALSE; under the worklist reading Delta stays unevaluated everywhere in their corpus | Kills the shipped security claim as stated (sharpens C8 from "unevaluated" to the fork); definitional analysis over the paper + certificate, quoting PoC-verified objects of prior lanes (C1, C21) — no new attacks run, by design | **[RV-T]** — takeover formal lane (`README.md`, no `results.txt` by design); strongest licensed claim quoted verbatim in the detail block | `/Users/ember/dev/parano1d-break/experiments/typed-bind-verdict/README.md` |
 | C24 | **Finding family W1-W6: the user-facing wallet is node-attested end-to-end — the GUI has NO verifier dependency and nothing cryptographic is ever checked client-side** | Real pinned GUI backend (verbatim crate + lib.rs shim) driven by a scripted impostor node: 256 bytes of `deadbeef` come back `merkle_valid/canonical/confirmed` ALL-TRUE with an attacker-authored summary and render as AUTHENTICATED PAYMENT / CONFIRMED (W1); fabricated txid + 2 NOID fee on a 5 NOID send accepted and rendered TRANSACTION SENT (W2); a pre-bound loopback impostor is adopted as the node with zero spawns (W3); balances/history/status all node word (W4/W5/W6) | W1 High; W2 High when the node holds `wallet.key` (real substitution, spendable) / Medium via impostor; W3/W4 Medium; W5/W6 Low. **Shared precondition: malicious/corrupted node (e.g. the C20 zombie) or the W3 loopback impostor; the impostor deceives but cannot spend (never sees `wallet.key`)** | **[RV-T]** — takeover lane, tee'd `results.txt`: `ALL 15 CHECKS PASSED` across 7 scenarios, 77 requests / 22 methods; trust-boundary table (8 rows) in the README | `/Users/ember/dev/parano1d-break/experiments/wallet-vs-node/` (`README.md`, `results.txt`, `harness/tests/deceive.rs`) |
 | C25 | **MINT-INTO-VICTIM: anyone can mint NFT items owned by arbitrary addresses** | `mint_nft` checks only collection identity and serial continuity — output item owners are unconstrained (authority binds *inputs* only, `transition.rs:165-176,411-447`). Proven through the REAL block-commit path: a block whose 248 minted items are all owned by a non-signing VICTIM address was accepted, and the victim's row set is provable in the real store (`native_owner_roots(VICTIM)` returns all 248 in a 1.8-3.2 ms page scan). No consent or refuse path; deletion requires the VICTIM's signature and fee (5,900 µNOID single, ~123/item batched) | Medium nuisance (headline per takeover root; lane README rates it Low-to-Medium) — no value extraction; permanent junk in victims' wallets and asset listings that only the victim can remove, by paying; also scales victim discovery linearly in attacker junk | **[RV-T]** — takeover lane, tee'd `results.txt` (`MEASURE victim native_owner_roots page: 248 roots in 1804us`; real template -> PoW -> seal -> MDBX commit) | `/Users/ember/dev/parano1d-break/experiments/creation-spam/` (`README.md` Finding F2, `results.txt`) |
+| C26 | **SNAPSHOT POISONING: a malicious serving node can make a snapshot-syncing peer commit — as canonical AND immediately finalized history — a header sequence every honest validator rejects by rule** (answers the kimi recursive-sync differential, U4) | 24-header real-PoW chain, h12 timestamp +10 years: native admission rejects (`BadTimestamp(h=12)`) while the real `SnapshotHeaderStaging` stages all 24 headers (timeless validation excludes exactly the drift rule); the node's drift gate is TIP-ONLY (`main.rs:9255-9269`; design comment at `:4308` admits it); `verify_snapshot_boundary` binds the terminal to (height, tip semantic id, epoch anchor) only — provably blind to intermediate timestamps; the real `apply_staged_state_snapshot` commits AND finalizes (`mdbx_context.rs:2686-2694`). Afterward the honest chain is PERMANENTLY UNREACHABLE: `FinalizedDivergence` -> `reject_incompatible` on honest peers (`main.rs:4924-4943, 11657`), honest re-staging structurally impossible (`base_is_not_first_missing_height`), and the victim RE-SERVES the poisoned generation to the next syncer (`network.rs:8032-8075`) — self-propagating. Bonus (real `next_target`): a far-future PARENT timestamp floors descendant difficulty to `GENESIS_TARGET` instantly — the exact policy `timestamps.rs:11-12` says drift exists to prevent | Medium. Honest precondition: fork choice — the offer must out-work the HeaderDAG tip (`main.rs:287-301`), so a fresh or eclipsed victim is required; ASERT 120 s halflife lets in-drift eclipse forks reach the floor too, so the differential's unique material impacts are the rule-invalidity of committed history (persisting for the timestamp horizon) and one-sided permanent estrangement, NOT a PoW-cost break | **[RV-T]** — takeover lane, tee'd `results.txt` + `results-isolated.txt` (`all_local_assertions=passed` both schedules; staging module blob-verified per run); terminal link rests on the verified binding surface + provable-rules design fact (terminal stubbed in dev builds — caveat carried in detail) | `/Users/ember/dev/parano1d-break/experiments/malicious-node/` (`README.md` Finding A, `results.txt`) |
 
 ### Per-finding detail and exact scope limits
 
@@ -210,7 +215,11 @@ different-genesis networks). Root's severity framing (01:44:12): "a real replay 
 short competing forks often reuse transactions by design, and finality leaves only one canonical
 spend. It becomes a clear protocol flaw if authorization is supposed to be fork-specific, or if
 independent networks can share epoch anchors." Root also notes (02:01:00) this replay is
-**unrelated to the collisions** and visible, not a hidden semantic split.
+**unrelated to the collisions** and visible, not a hidden semantic split. Scoping question
+closed by the takeover malicious-node lane (U35): the replayed transaction is admitted into
+REAL blocks on both same-anchor forks — designed fork/reorg tolerance — and no consumer
+double-applies; severity remains conditional on whether authorization is meant to be
+fork-specific.
 
 **C7 — bound vacuity.** From the artifact's own `data/security-bounds.json` (agent-3, root-endorsed):
 T=2^32 gives 44.96 bits (S=1) and 41.65 bits (S=T); at T=2^41 extraction clips to 1 and the
@@ -609,14 +618,49 @@ availability/cleanliness of arbitrary addresses, plus the demonstrated linear sc
 victim discovery scans in attacker-chosen junk (each root re-reads and re-validates its DATA
 record, `native_payloads.rs:699-739`).
 
+**C26 — snapshot poisoning.** Takeover lane
+`/Users/ember/dev/parano1d-break/experiments/malicious-node/` (run tee'd in `results.txt` and
+`results-isolated.txt`, `all_local_assertions=passed` on BOTH schedules; every step drives the
+pinned production functions in the node's real order; the staging module blob-verified before
+every run). This closes the kimi-era recursive-sync differential (U4) as a **real, weaponized
+gap**: the drift rule excluded from timeless staging is exactly the one rule separating
+honest admission from snapshot admission, the node's own check order applies drift to the tip
+only, and the terminal binding surface — (height, tip semantic id, epoch anchor) — is provably
+blind to intermediate timestamps, so an attacker-mined terminal passes by construction.
+Verbatim from `results.txt`: `honest_path_rejects_poison_header=BadTimestamp(h=12)` /
+`snapshot_path_stages_poison_chain=ok sealed_height=24 staged_headers=24` /
+`snapshot_install=committed` / `committed_history: poison_h12_canonical=true
+finalized_height=24` / `honest_chain_native_admission=all_ok(h1..h25)` /
+`honest_inventory_classification=FinalizedDivergence(...finalized=24)` /
+`honest_snapshot_restage=rejected(base_is_not_first_missing_height)`. Difficulty collapse,
+measured with the real `next_target`: `child_target_sane_parent=0800…` (hard) /
+`child_target_plus120s_parent=0e00…` (bounded in-drift easing) /
+`child_target_10y_parent=0000…00400000` (== `GENESIS_TARGET` floor) — the exact policy
+`timestamps.rs:11-12` states drift exists to prevent. Honest scoping, carried in full: fork
+choice blocks the non-eclipsed victim (snapshot install must improve on HeaderDAG-selected
+work, `main.rs:287-301` — a victim holding honest headers cannot be moved); an in-drift
+eclipse fork also descends to the floor over time (ASERT halflife 120 s), so the PoW-cost
+contribution is bounded to the difficulty ramp; the material impacts are (i) committed
+history is rule-invalid for every honest validator, (ii) it remains inadmissible for the
+timestamp horizon (ten years here), (iii) one-sided permanent estrangement — the victim
+blacklists honest peers while no honest chainwork ever makes its finalized prefix acceptable.
+Terminal caveat (the lane's own assurance limit): the recursive terminal is stubbed in
+development builds; the claim that an attacker terminal cannot reject the poison header rests
+on the verified binding surface (`mdbx_context.rs:2422-2435`) and the design fact that the
+provable header rules are exactly the timeless ones (`header.rs:96-99`) — if a future
+terminal format folded wall-clock-dependent statements, this link needs re-verification. The
+lane's **blocker table** (chain-by-chain: what stops each stronger version, and whether the
+check is cryptographic or conventional) is the citable summary.
+
 ---
 
 ## 3. Reported-but-unverified
 
 Two populations live in this section. (a) Kimi-era items (U1-U9) whose root verification was
 interrupted (02:43-03:03 quota death) or never started — **none of these may be cited as
-root-confirmed**; they keep [AR]/[PC]. (b) U10-U27 (wallet-safety, prover-unsafe, dex-economics,
-rpc-api, storage-reorg, nft-marketplace, tx-admission, dex-games, sequencing):
+root-confirmed**; they keep [AR]/[PC]. (b) U10-U35 (takeover-completed lanes: wallet-safety,
+prover-unsafe, dex-economics, rpc-api, storage-reorg, nft-marketplace, tx-admission,
+dex-games, sequencing, constraint-systems, creation-spam, dark-surface, malicious-node):
 takeover-completed lanes reclassified **[RV-T]** by ember's 2026-11-15 ruling that a
 takeover-completed lane with a tee'd `results.txt` on disk counts as verified — the evidence is
 the lane's own run output ("the subagents just ran it"). They keep their U-IDs here for continuity.
@@ -666,7 +710,11 @@ snapshot_timeless_header_stage= sealed height=4 tip_future_drift=pass intermedia
 Scope: **wall-clock admission mismatch, not an invalid-state proof** — an otherwise valid height-4
 `HistoryStep` terminal is an explicit, assumed precondition (no production-sized terminal was
 generated). Negative results from the same PoC (changed terminal root rejected, exact-root and
-native-sidecar binding enforced) are agent-reported by the same caveat.
+native-sidecar binding enforced) are agent-reported by the same caveat. **ESCALATED by the
+takeover malicious-node lane (C26, [RV-T]): the differential is real and weaponized — the
+assumed-valid terminal is attacker-suppliable by construction (the terminal binding surface is
+provably blind to intermediate timestamps), the poisoned history commits AND finalizes, and
+the victim is permanently estranged from the honest chain and re-serves the poison.**
 
 ### U5 — external-miner: invalid PoW consumes the only prepared template — **promoted to §2 as C15**
 
@@ -680,7 +728,7 @@ template behavior and all six controls. Now recorded as **C15** with certainty *
 this lane). Severity/preconditions unchanged from the lane README: Medium, requires mining
 credential or local owner.
 
-### U6-U27 — further reported results (U6-U9 kimi-era unverified; U10-U27 [RV-T] by ruling)
+### U6-U35 — further reported results (U6-U9 kimi-era unverified; U10-U35 [RV-T] by ruling)
 
 - **U6** state-consensus 20-case adversarial UTXO/state-machine matrix — all rejected
   (`/Users/ember/dev/parano1d-break/experiments/state-consensus/output.txt`, agent-11). The root
@@ -975,6 +1023,73 @@ burn -> C15 (churn lever); same-anchor replay -> C6.
   circuit soundness is the whole game, and contract witnesses are never serialized in the block
   body (proof-internal wires bound through the object-root commitments).
 
+### dark-surface — capability vs. exposure **[RV-T]**
+
+Takeover lane `/Users/ember/dev/parano1d-break/experiments/dark-surface/` (run tee'd in
+`results.txt`; full method matrix in `method-matrix.txt`, `--help` capture in `demo/help.txt`;
+live demos against real pinned binaries, loopback-only, every process stopped by PID file).
+Danger-class counts: **KEY-MATERIAL 2, STATE-MANIP 9, READ-INFO 4 (~13 methods),
+NETWORK-SHAPE 1 (+ documented 0.0.0.0:9600/mDNS defaults), FOOTGUN 2, dead/unreachable 19
+ops.**
+
+- **U30 (HEADLINE, SHOULD-FIX/note) — consensus admits operations no official client can
+  produce.** `Swap` (op 33) and `LaunchRequest` (op 49) are **enabled and provable in
+  consensus** but have **no construction site anywhere in the repo's entire 740-commit
+  history** (`git log -S "FinancialOperation::Swap"` / `-S "FinancialOperation::LaunchRequest"`
+  proof; contrast: `CreateListing` has a construction site in the planner's history). The node
+  will admit and prove a core DEX operation that no shipped GUI/CLI/miner code can produce —
+  reachable only by bespoke software (workspace crates) via `paranoid_submitTxIntent`. The
+  mirror: **17 fully-implemented ops nobody can ever execute** (profile-gated dead code). Not
+  an exploit; an attack-surface and governance fact.
+- **U31 — RPC dark methods.** 79 methods, one registration point (`api.rs` trait ->
+  `into_rpc()` at `server.rs:3598`; grep proves no second merge site). GUI calls 54, CLI 45;
+  25 never called by the GUI, **11 of those never called by ANY shipped client**
+  (`walletStatus`, `walletMinedBlocks`, `estimateFee`, `getActiveSlotCount`, `getHeaderByHash`,
+  `getNativeHoldings`, `getNativeMarket`, `getSlotHints`/`getSlotHintsSalted`,
+  `prepareNativeIntent`, `submitTxIntent`) — all documented, all Local-tier. The only fully
+  undocumented method is the inverse case: `walletDismissNativePending` (GUI-only).
+- **U32 — hidden CLI flags.** 5 hidden node flags, absent from `--help` and docs:
+  `--export-wallet-secret` / `--import-wallet-secret` (**KEY-MATERIAL** — this is the actual
+  mechanism behind the GUI Export/Import dialog; one command replaces a data dir's spending
+  authority; demonstrated live as a hidden round-trip), `--genesis` (isolated block
+  production), `--disable-dns-seeds`, `--prepare-history-step-cache`. No hidden flags in
+  cli/miner/pruv.
+- **U33 — undocumented env.** TOML fully documented except `network.public_addresses`; 8
+  undocumented env vars, notably **`NOID_GUI_NODE_BIN` — the GUI spawns an ARBITRARY BINARY
+  as its node**. Composition: with C24/W3 this is a turnkey user-node substitution — point
+  the env at attacker software and the wallet trusts it completely.
+- **U34 — the complete 39-op profile table** (extends U20 beyond the NFT families): 17 dead
+  ops (1, 4, 32, 34-37, 42, 67-75 — issuance, manual liquidity, offers/rounds), 10
+  sequencer-only ops (authority must be the zero address: producer privilege — ordering/
+  censorship power, conservation-checked so no direct value extraction), 10 wallet ops,
+  2 phantom ops (= U30). Gates enforced identically at construction, wire decode, AND the
+  recursive acceptance trace — disabled ops cannot be proven even by crafted clients.
+
+Live demonstrations (verbatim-capable in `results.txt`): the hidden export/import round-trips
+the master secret in one command; a **bare `curl`** (no GUI, no CLI, no token — only
+`Content-Type`) on loopback called all dark methods, enumerated an arbitrary address's UTXOs
+(`getSlotsByOwner`), and **killed the daemon via `paranoid_stop`** (`RESULT: node pid 24100
+EXITED after paranoid_stop from a foreign loopback curl`). Any local process is inside the
+node's TCB. Negatives verified live: non-loopback-without-credentials refuses startup, equal
+mining/operator keys refuse startup, wrong credential never falls back to Local, and
+pack-missing builds **fail closed** ("scheduled authorization runtime unavailable") rather
+than degrading.
+
+### malicious-node — replay publication and dialect confusion **[RV-T]**
+
+- **U35** malicious-node, **Informational (by-design confirmation; closes C6's scoping
+  question)** **[RV-T]** (takeover lane, same run): the fork-replay transaction pushed
+  through **real block admission** — real `build_block_template` blocks (tx root, ASERT
+  target, real PoW, fee floor, paged-spend markers, the same reused owner-auth bundle) on
+  BOTH same-anchor forks: `both_forks_admitted=ok same_tx=true same_txid=true
+  tx_roots_differ=true` (and the 323-byte body survives the stricter `TxPage` block wire
+  encoding unchanged). That is designed fork/reorg tolerance; blocked at double-apply by
+  single-canonical-history: the same linear state refuses the respend
+  (`UnknownOrSpentInput`, refused by the template builder itself) and the durable txid index
+  is rewritten through the undo log on reorg (`mdbx_store.rs:4061-4067`). No double-applying
+  consumer (UTXO scan, history, RPC) was found. The defect stays bounded to C6's original
+  scope: valid once per fork, fork choice decides.
+
 ---
 
 ## 4. Verified negatives — where the system held
@@ -1012,6 +1127,8 @@ noted per row.
 | Second satisfying witness / forged Pruv execution (the circuit is the sole consensus executor) | **Witness uniqueness held**: 8,870 build-and-check configurations (10 builder configs x both arithmetic variants of the real production R1CS, `bind_program` + `bind_program_v2_1`, over 120 random programs at u64 boundaries + 9 directed cases) with 0 failures; forgery battery (wrap-add/wrap-sub, non-boolean predicates as-true and as-false, writes from inactive instructions, skips of active ones, stale-next under tampered context, all 128 single-bit flips of a nontrivial next state, every reserved encoding, immediates >= 2^64) all rejected. Blocker is STRUCTURAL: rows appended in wire order with C = I (each wire defined by its row over earlier wires); the only two-valued rows (booleanity) sit in gadgets whose sibling pins force uniqueness; range decompositions injective via tower-basis linear independence of phi(2^i); selector families telescope to Sum = 1; both carry chains are exact char-2 majority algebra | [RV-T] (takeover constraint-systems lane, tee'd `results-ip.txt`/`results-puv.txt`/`results.txt` + in-tree controls 5/5 and 4/4 re-run; assurance limit: structural + directed battery, NOT an exhaustive witness-space search of the full HistoryStep relation, no end-to-end recursive prove/verify cycle) |
 | Field-wrap / negative-value attacks; public-input and gate substitution in contract execution | No range/field wrap anywhere — all lanes range-checked (u64/u32/20/64-bit), arithmetic carry-checked in native AND both circuit variants, native fails closed identically (`p-1` attack structurally unavailable; Z3 checker encoding faithful); public-input binding end-to-end (program/current/next -> single-bit-sensitive object-root sponge wraps -> body owner leaves -> TX8X2 -> count-bound TXROOT -> header); `live`/`terminal` gates are authenticated bitmap bits (live=0 ghost behavior gated on committed data; component context-advice design pinned one level up by in-tree full-relation tests) | [RV-T] (takeover constraint-systems lane; tee'd results) |
 | Creation-side value extraction; CPU-asymmetric creation spam; arbitrary-data channel | Extraction check CLEAN NO (F4: hash-derived ids from a genesis anchor — no namespace to squat, no lookalike/identity surface committed on-chain, launch backing parked in `TokenReserve` and redeemable, no refund race); NO CPU asymmetry on creation — node ~59 µs/item apply is CHEAPER than attacker ~106 µs construct (the axis is economically defended, not CPU-defended); creation txs are ordinary fee-paying valid payloads (no C17/C22 amplification — they compete for admission honestly); batch minting amortizes to one receipt per 248 items (C19 grows sublinearly); raw owner index never sees native beneficiaries (measured: victim `get_verified_utxos_by_owner` returns 0); no arbitrary-data channel (fixed-size digests throughout, exact-length encoding enforced) | [RV-T] (takeover creation-spam lane, tee'd `results.txt`) |
+| Hidden maintenance/diagnostic backdoors; credential fallback; p2p control from RPC | No admin socket, no signal-triggered dumps, no secret material in any log (Authorization stripped before jsonrpsee tracing, `server.rs:3759-3767`); no RPC method exposes p2p dial/ban/announce; wrong/duplicate credentials 401 before dispatch with NO fallback to Local; browser `Origin` -> 403 pre-dispatch; mining credential hard-restricted to the two template methods; `--purge-state` refuses genesis-matching/unmarked DBs; disabled native ops unreachable at ALL three gates; isolated fork-test builds refuse non-namespaced non-loopback runs; pack-missing builds fail closed; wallet-maintenance flags refuse combination with mining/node actions | [RV-T] (takeover dark-surface lane, tee'd `results.txt` + live credential matrix; negative gates named in its README §8) |
+| Cross-dialect artifact acceptance (asymmetric version-confusion pairs) | Every artifact class dies on a schedule-bound check at every EXECUTABLE layer: cross-build measured targets diverge (`…ccb2070000` vs `…1864050000` at h24) -> `BadDifficultyTarget`; owner-auth version dispatch V4 vs V3 by schedule; HistoryStep terminal dispatch by schedule (`history_protocol.rs:727-766`); the boundary layer itself is schedule-blind but the dispatch behind it rejects; poisoned-history demonstration is schedule-independent (both builds pass chain A); terminal metadata admission schedule-agnostic but full terminals require the exact proof bank and verified origin | [RV-T] (takeover malicious-node lane, tee'd `results.txt`/`results-isolated.txt`; one layer OPEN — the recursive verifier under a mismatched schedule (pack-gated, not executed): conventional code, a regression surface, not a proven wall — see §7) |
 | Fresh-request forgery (all lanes) | Owner/Phase-A/Phase-B adaptive ordering; queries derived only after all commitments; no accepted unauthorized statement anywhere | [RV] (root, cumulative: "no unauthorized spend, invalid accepted block, owner-key recovery, or fresh-request forgery", 01:58:28) |
 
 ---
@@ -1050,6 +1167,20 @@ route left.
    exhausted (root caller sweep 01:50:29; leaf-reachability in-tree sweep). The rebuttal's
    final position stands as the blocker statement: a principled leaf wall, an accidental node
    breach, and a shipped comment that promises the wrong thing.
+
+**Composition note (malicious-node lane, C26).** The full chain composes: dark-surface's
+hidden `--genesis` (zero-config solo-chain mining) is the attacker-chain generator; C17
+(anonymous serving-pin) and C22 (queue occupancy) are the eclipse-adjacent enablers that make
+a fresh-or-eclipsed victim realistic; and the poisoned victim becomes a new poisoner —
+manifest serving answers from the committed immutable generation with no drift re-check, so
+the poison self-propagates to the next snapshot syncer.
+
+**Composition note (dark-surface lane).** The hidden `--genesis` flag (zero-config solo-chain
+mining, absent from `--help` and docs) is exactly the attacker-fork primitive the
+malicious-node chain needs — one flag away for any social-engineered victim (cross-ref C26).
+A stolen operator token gets the documented `walletSend` spend PLUS `submitTxIntent`
+raw-intent injection (cross-ref C24/W2). `NOID_GUI_NODE_BIN` + C24/W3 is a turnkey user-node
+substitution (U33).
 
 **Composition note (creation-spam lane).** C25's junk is REAL on-chain state — unlike the
 C24/W1 phantoms, fixing node attestation does not remove it — and C24 means the victim sees it
@@ -1169,10 +1300,11 @@ adversarials (dex-games), fee-schedule fairness, and NFT accounting (nft-marketp
 
 ## 6. Lane status table
 
-All 34 experiment directories under `/Users/ember/dev/parano1d-break/experiments/` — the kimi
+All 36 experiment directories under `/Users/ember/dev/parano1d-break/experiments/` — the kimi
 swarm's 25 plus takeover-opened lanes (`leaf-reachability`, `tx-admission`, `dex-games`,
 `sequencing`, `constraint-systems`, `typed-bind-verdict`, `external-consumers`,
-`wallet-vs-node`, `creation-spam`, and later additions). "Completed" = lane returned a final result the root processed
+`wallet-vs-node`, `creation-spam`, `dark-surface`, `malicious-node`, and later additions).
+"Completed" = lane returned a final result the root processed
 (verification status per §2/§3). All 8 lanes the kimi swarm left dead-with-partial-code have now
 been completed by the takeover swarm (wallet-safety, prover-unsafe, p2p-resources, dex-economics,
 rpc-api, storage-reorg, nft-marketplace, token-accounting — [RV-T] per the 2026-11-15 ruling:
@@ -1195,6 +1327,8 @@ pending.
 | `external-consumers` | (takeover probe) | **completed [RV-T]** | §5 lead thread ANSWERED: zero external consumers of the cross-domain raw surface (pub(crate) verify, 0 GitHub-wide refs, 10 stale forks, wrapper-level/RPC-only consumers, no cap-byte caches); full-scope public sentence recorded verbatim (flat short-form is FALSE — Jetsam); ecosystem note + Jetsam caveat into C21 scope addendum; version-skew footnote; auditable search log; REPORT.md landed by coordinator (clones/Kagi logs gitignored) |
 | `wallet-vs-node` | (takeover, new) | **completed [RV-T]** | C24 family W1-W6 (node-attested wallet: phantom AUTHENTICATED/CONFIRMED receipts, fictional TRANSACTION SENT, impostor adoption, silent suppression, decorative status, truncated peers); structural finding (no client-side verifier at all); trust-boundary table cited; §5 composition note (C20 zombie trigger + C17/C22 + noid-wallet SPV-only = node-word-all-the-way-down); evidence `README.md`/`results.txt`/`harness/tests/deceive.rs`, GUI crate verbatim + shim |
 | `creation-spam` | (takeover, new) | **completed [RV-T]** | C25 (mint-into-victim: 248 attacker items into a non-signing victim's owner index through the real block-commit path); U29 (creation axis defended purely economically, flat-forever price; zero-burn occupancy-invisible CreateCollection; saturation math ~71 MB/day state + ~700 MB/day node-local forever); §4 extraction-clean/CPU-symmetry/no-amplification negatives; §5 composition note (real on-chain junk × C24 rendering); evidence `README.md`/`results.txt`, `ALL PHASES COMPLETED` |
+| `dark-surface` | (takeover, new) | **completed [RV-T]** | U30 headline (Swap/LaunchRequest provable-but-unconstructable, 740-commit git-log proof; mirror: 17 dead ops), U31 (11 RPC methods dark to every shipped client), U32 (5 hidden CLI flags incl. KEY-MATERIAL export/import), U33 (`NOID_GUI_NODE_BIN` arbitrary-node-binary), U34 (39-op profile table extending U20); danger-class counts; live curl/`paranoid_stop` kill; §4 maintenance-clean negatives; §5 `--genesis`/operator-token crossovers; evidence `README.md`/`results.txt`/`method-matrix.txt`/`demo/help.txt` |
+| `malicious-node` | (takeover, new) | **completed [RV-T]** | C26 (snapshot poisoning: rule-invalid history committed AND finalized, permanent estrangement, self-propagating re-serve, difficulty-collapse bonus; escalates U4), U35 (replay publication = by-design, closes C6 scoping), §4 dialect-confusion negatives (one layer OPEN, §7); blocker table (crypto-vs-conventional) cited; evidence `README.md`/`results.txt`/`results-isolated.txt`/`run.sh`, both schedules `all_local_assertions=passed` |
 | `external-miner` | agent-20 | **completed [RV-T, C15]** | Template-consumption finding (Medium); reproduced by the takeover root 2026-11-15 (`verify-run.txt`); kimi root never verified this lane |
 | `fork-replay` | agent-7 | **completed [RV]** | C6: same-anchor fork replay, byte-identical reruns |
 | `identity-encoding` | agent-16 | **completed [RV/AR]** | C13 root-verified; proof-identity/terminal-id/Bech32 results agent-reported (U8) |
@@ -1289,6 +1423,8 @@ coverage map, not a critique of lane quality.
 | constraint-systems | Is there a collision in the full-sponge two-permutation wraps (`compress_with_tag`, object-root duplexes) — the only cryptanalytic bridge from the 2^16 node collision to semantics? | — | **LIVE** (cryptanalysis; `noid_soundness` territory; same family as the fact-check lane's padded-sponge item) |
 | typed-bind-verdict | (No runtime question — definitional lane; the BadTypedBind fork IS the answer.) | — | — |
 | creation-spam | What is the recursive prover's marginal cost per creation action, and does the state-growth math hold at multi-million-row scale and against a live cold sync? | constraint-systems (prover cost half); devnet-chaos (live-sync half) | — |
+| dark-surface | What do the 11 GUI+CLI-dark RPC methods do on full synced state, and does any runtime-triggered GUI site call a dark method (static call-site analysis only)? | devnet-chaos (full-state half) | dynamic-trace half: orientation-proof (direct string literals; low risk) |
+| malicious-node | Does the recursive verifier reject a mismatched-schedule terminal (pack-gated, never executed)? Is offer-selection/peer-reputation robust against a live attacker peer set (argued from code, not simulated)? | — (pack-gated execution needs a release pack build) | **LIVE** (regression surface; not a proven wall) |
 
 Unowned + orientation-proof (no adversary orientation needed, only unfinished deterministic
 coverage): x86 SIMD kernel differentials, 256 KiB max-shape verify cost, production-linked
