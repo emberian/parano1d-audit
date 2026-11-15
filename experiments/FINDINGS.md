@@ -455,8 +455,8 @@ collision, no semantic verifier accepts these objects.
 
 Two populations live in this section. (a) Kimi-era items (U1-U9) whose root verification was
 interrupted (02:43-03:03 quota death) or never started — **none of these may be cited as
-root-confirmed**; they keep [AR]/[PC]. (b) U10-U19 (wallet-safety, prover-unsafe, dex-economics,
-rpc-api, storage-reorg):
+root-confirmed**; they keep [AR]/[PC]. (b) U10-U20 (wallet-safety, prover-unsafe, dex-economics,
+rpc-api, storage-reorg, nft-marketplace):
 takeover-completed lanes reclassified **[RV-T]** by ember's 2026-11-15 ruling that a
 takeover-completed lane with a tee'd `results.txt` on disk counts as verified — the evidence is
 the lane's own run output ("the subagents just ran it"). They keep their U-IDs here for continuity.
@@ -520,7 +520,7 @@ template behavior and all six controls. Now recorded as **C15** with certainty *
 this lane). Severity/preconditions unchanged from the lane README: Medium, requires mining
 credential or local owner.
 
-### U6-U19 — further reported results (U6-U9 kimi-era unverified; U10-U19 [RV-T] by ruling)
+### U6-U20 — further reported results (U6-U9 kimi-era unverified; U10-U20 [RV-T] by ruling)
 
 - **U6** state-consensus 20-case adversarial UTXO/state-machine matrix — all rejected
   (`/Users/ember/dev/parano1d-break/experiments/state-consensus/output.txt`, agent-11). The root
@@ -654,6 +654,23 @@ credential or local owner.
   local-write/bit-rot precondition as C20, no invalid state accepted. Recommended correction:
   make `decode_chain_tip` exact-length so the corrupt row is rejected during
   `restore_from_mdbx` and the clear-and-reinitialize recovery runs.
+- **U20** nft-marketplace, **Informational — publicly relevant reachability fact** **[RV-T]**
+  (takeover lane, run tee'd in `/Users/ember/dev/parano1d-break/experiments/nft-marketplace/
+  results.txt`, `test result: ok. 10 passed; 0 failed`): at this commit the funded round-escrow
+  system (request funding, registration op 70, settlement 71, reset/recover/refund 72-75) and
+  the **entire offer family (ops 67-69) are unreachable**. Two independent gates:
+  `noid_tx/src/native_assets/profile.rs:8-33` omits codes 67..=75 from `operation_enabled`
+  (rejected at `operand()` before any semantic check), and `profile.rs:35-53` omits
+  `NftPurchase`/`NftOffer` from `kind_enabled`, so `NativeOpening::validate()` returns
+  `Err(Kind)` and even **perfectly-formed purchase-request funding and offer funding die at the
+  opening-kind gate** (`Err(Kind)` -> `Funding`), demonstrated end-to-end. Additionally
+  `check_purchase_funding` has no dispatcher in `check_financial_owner` at all, and
+  `FinancialBlockTracker::owner_outputs` returns early for `Purchase`, making its
+  purchase->registration arm dead code. Live surface at this pin: base NFT ops (5-8) plus
+  listing create/instant-buy/cancel (64-66) — **no royalty/fee-split settlement or offers can
+  occur on-chain at this commit**. Implication to carry: any docs/paper claim of marketplace
+  offers/escrow at `52938433` is dead code behind a profile gate. (The round-settlement
+  economics were still tested below the gate on synthetic escrow — see §4.)
 
 ---
 
@@ -685,6 +702,7 @@ noted per row.
 | DEX value extraction (manipulated fill, free asset creation, invalid successor state) | No accepted value-extracting transition in 9/9 experiments (`"accepted_value_extraction_found": false`, exit 0); cash-cut successor + pool bump -> page amount binding (`native_assets.rs:1024-1031`); +1 inventory / +1 token / +1 NOID / permuted claims -> re-derived-execution equality (`wire.rs:317-343`); duplicate funding slot, output-slot collision, one bad `min_out` -> whole-batch atomic rejection with state root unchanged; host-vs-recursive: 72 pool + 120 curve/graduation R1CS cases match the host on all 8 economic fields incl. boundary cases, `min_out+1` makes the R1CS unsatisfiable | [RV-T] (takeover dex-economics lane, tee'd `results.txt`/`results.json`; **assurance limit**: differential testing proves honest-witness agreement and min-out enforcement, NOT absence of alternative witnesses — see §5) |
 | RPC receipt forgery / concurrent-query amplification / anonymous remote access / browser drive-by | Every receipt re-verified (Merkle inclusion + key identity), totals correct, no forgery path; single-permit gate rejects concurrent receipt queries immediately; non-loopback listener refuses startup without credentials (`server.rs:3520`); any `Origin` header -> HTTP 403 before dispatch; `Authorization` stripped before tracing; bodies capped `2*128 KiB + 16 KiB`, `deny_unknown_fields`, bounds enforced pre-scan; no panics observed | [RV-T] (takeover rpc-api lane, tee'd `results.txt`) |
 | Reorg/crash/retention inconsistency in MDBX storage | Reorg rollback completeness (depth-1 reorg removes old canonical entries, installs replacement, moves owner-index exactly); staged-reorg atomic abort restores durable state byte-identical and survives reopen; SIGABRT crash recovery resumes at h3 root-matched and accepts block 4; retention boundaries exact at documented depths; historical-window (`TargetOutsideUndoWindow`) and snapshot-boundary checks hold; supply corruption does NOT let an invalid block validate — roots/counters/PoW still bind | [RV-T] (takeover storage-reorg lane, tee'd `results.txt`) |
+| NFT marketplace theft/duplication/race/accounting flip (live surface) | Stale purchase replay, duplicate listings/registration, settlement replay, double reset all rejected; tampered/dropped requests fail queue-commitment recomputation (`Queue`); frozen-round instant-buy/cancel rejected (`Phase`); duplicate items + metadata mutation rejected (`NftConservation`), and the real `bind_native_kernel` R1CS accepts the honest transfer while rejecting the metadata-mutated one; non-owner mint/transfer/offer rejected; timelocks enforced natively and in-circuit; round economics (synthetic escrow below the profile gate) exact to the micronoid — winner = `min(payer_priority, root, key)` recomputed independently, fee shares `q + (i < r)` in funded-key order, refunds exact, merged payouts, supply burn == fee; window/refund/reset/recovery phase machine holds; worst-case fees (90% occupancy, 8x pressure, 1..=16 requests) stay far under the 50k/request cap and 100k credit | [RV-T] (takeover nft-marketplace lane, tee'd `results.txt`, 10/10 tests; round-economics rows are below the profile gate — see U20) |
 | Fresh-request forgery (all lanes) | Owner/Phase-A/Phase-B adaptive ordering; queries derived only after all commitments; no accepted unauthorized statement anywhere | [RV] (root, cumulative: "no unauthorized spend, invalid accepted block, owner-key recovery, or fresh-request forgery", 01:58:28) |
 
 ---
@@ -752,11 +770,16 @@ finding (formerly U5) was closed by the takeover root's rerun and is now C15; th
 (dex-economics proved honest-witness agreement and min-out enforcement only; the full recursive
 predicate — authorization, funding, payout, group composition — was not assembled and no proof
 was generated/verified, so a malicious prover crafting non-canonical witnesses is untested) —
-owned by the constraint-systems lane; the **tx-admission cost-asymmetry question** — whether an
-attacker can cheaply keep admission's bounded queues occupied with distinct, state-valid
-transactions and bad proofs (root first-pass 02:54:49) — explicitly out of the rpc-api lane's
-scope and owned by the new tx-admission lane; and the root's own framing question — whether
-authorization is *supposed* to be fork-specific — which decides C6's severity.
+owned by the constraint-systems lane; the **listing-settlement circuit's native-vs-recursive
+consistency is code-read only** (winner rule, ordering, fee-split arithmetic, timelocks match by
+reading; the `bind_financial_listing_settlement` witness was not built) — same cross-reference,
+constraint-systems lane; the **sequential-trade route (operation 80, `ExecuteTrades`, the live
+trading kernel) was not executed** by the NFT lane (its listing market glue read only
+superficially) — cross-reference the dex/sequencing lanes; the **tx-admission cost-asymmetry
+question** — whether an attacker can cheaply keep admission's bounded queues occupied with
+distinct, state-valid transactions and bad proofs (root first-pass 02:54:49) — explicitly out of
+the rpc-api lane's scope and owned by the new tx-admission lane; and the root's own framing
+question — whether authorization is *supposed* to be fork-specific — which decides C6's severity.
 
 ---
 
@@ -765,10 +788,11 @@ authorization is *supposed* to be fork-specific — which decides C6's severity.
 All 26 experiment directories under `/Users/ember/dev/parano1d-break/experiments/` — the kimi
 swarm's 25 plus `leaf-reachability`, opened by the takeover swarm as the §5 escalation lane.
 "Completed" = lane returned a final result the root processed (verification status per §2/§3).
-Of the 8 lanes the kimi swarm left dead-with-partial-code, the takeover swarm has completed six:
-wallet-safety, prover-unsafe, p2p-resources, dex-economics, rpc-api, and storage-reorg ([RV-T]
-per the 2026-11-15 ruling: takeover-completed lanes with tee'd `results.txt` count as verified);
-the remaining 2 (nft-marketplace, token-accounting) are being re-run by the takeover swarm.
+Of the 8 lanes the kimi swarm left dead-with-partial-code, the takeover swarm has completed
+seven: wallet-safety, prover-unsafe, p2p-resources, dex-economics, rpc-api, storage-reorg, and
+nft-marketplace ([RV-T] per the 2026-11-15 ruling: takeover-completed lanes with tee'd
+`results.txt` count as verified); the remaining 1 (token-accounting) is being re-run by the
+takeover swarm.
 
 | Lane dir | Agent report | Status | Result summary |
 |---|---|---|---|
@@ -785,7 +809,7 @@ the remaining 2 (nft-marketplace, token-accounting) are being re-run by the take
 | `ledger-fairness` | agent-18 | **completed [RV]** | C10-C12; root reran successfully |
 | `leaf-reachability` | (takeover, new) | **completed [RV-T]** | C21 (cross-tag claw, refutes the `compression.rs:319-325` design claim); leaf-wall theorem closing §5 finish line (a) against the attacker; algebra note + economics replacing the 2^224 estimate; evidence `README.md`/`results.txt` (3 binaries, all exited 0) |
 | `native-intents` | agent-8 | **completed [RV]** | Negative: worst-fill accusation disproved at both host and recursive boundaries |
-| `nft-marketplace` | agent-27 | **dead-with-partial-code [PC]** | Two borrow-checker errors fixed, scenarios starting; no results; re-run pending |
+| `nft-marketplace` | agent-27 (takeover) | **completed [RV-T]** | U20 (Informational: round-escrow + offer families unreachable at this pin — profile gates `operation_enabled`/`kind_enabled`); §4 lifecycle/race/conservation/round-economics negatives; §5 residuals (settlement circuit code-read only; op 80 not executed). Process note: the dead agent's "native accepts / recursive rejects `CreateCollection`" PoC **mis-modeled production** (both live trace constructors keep the funding row's real slot/packed/root — `actions.rs` `slot: row[4]`; `financial_base_projection.rs` `slot: mul(selected, action.slot)`) — the inherited claim is REFUTED; the finisher substituted a two-direction soundness control on the real `bind_native_kernel` R1CS (production-faithful witness satisfies; zeroed funding anchor cannot — genesis identity is cryptographically bound to the funding anchor) |
 | `p2p-resources` | agent-21 (takeover) | **completed [RV-T]** | C17 (Medium, the audit's first unauthenticated-remote finding: mempool-pull domain pin), C18 (Low-to-Medium: header-sync memory unbudgeted); §4 codec negatives; evidence `README.md`/`results.txt`. Note: the dead agent's inherited PoC had a false-positive headline — its "object write blocked" assert was a cooperative-yield scheduling artifact in code never actually run; the finisher caught it and converted it to an explicit control (real-time wall-clock shows the object codec write completes during the pin) |
 | `prover-unsafe` | agent-24 (takeover) | **completed [RV-T]** | U13 (Low-to-Medium latent: zero-round provers emit never-written memory; proofs self-reject; not production-reachable), U14 (Low: degenerate raw-API panics), U15 (Low unreachable: parser allocation amplification); §4 kernel-differential negatives; evidence `README.md`/`results.txt` |
 | `recursive-sync` | agent-13 | **completed [AR]** | U4: tip-only future-drift admission differential; root rerun not recorded |
