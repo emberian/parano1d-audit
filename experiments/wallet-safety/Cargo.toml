@@ -1,0 +1,29 @@
+[package]
+name = "wallet-safety-repro"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+blake3 = "1"
+hex = "0.4"
+libc = "0.2"
+noid_block = { path = "../../parano1d/noid_block" }
+noid_chain = { path = "../../parano1d/noid_chain" }
+noid_core = { path = "../../parano1d/noid_core" }
+noid_gkr = { path = "../../parano1d/noid_gkr" }
+noid_poseidon2b = { path = "../../parano1d/noid_poseidon2b" }
+noid_rpc = { path = "../../parano1d/noid_rpc" }
+noid_tx = { path = "../../parano1d/noid_tx" }
+rand = "0.8"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+static_assertions = "1.1"
+thiserror = "1"
+tracing = "0.1"
+zeroize = { version = "1", features = ["zeroize_derive"] }
+
+[dev-dependencies]
+tempfile = "3"

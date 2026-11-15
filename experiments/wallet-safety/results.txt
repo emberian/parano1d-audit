@@ -1,0 +1,131 @@
+=== parano1d pin ===
+52938433a30b185ab007afaa15166a632cf2e82e
+
+=== cargo fmt --check ===
+fmt clean
+
+=== cargo test --test repro ===
+warning: associated function `try_from_locally_built_block` is never used
+  --> /Users/ember/dev/parano1d-break/parano1d/noid_chain/src/accepted_block_bundle.rs:73:19
+   |
+65 | impl AcceptedBlockBundle {
+   | ------------------------ associated function in this implementation
+...
+73 |     pub(crate) fn try_from_locally_built_block(
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `encode_body` is never used
+   --> /Users/ember/dev/parano1d-break/parano1d/noid_chain/src/block/payload.rs:297:15
+    |
+297 | pub(crate) fn encode_body<'a>(block_bytes: &'a [u8], openings: &[NativeOpening]) -> Cow<'a, [u8]> {
+    |               ^^^^^^^^^^^
+
+warning: `noid_chain` (lib) generated 2 warnings
+warning: unused import: `FsChannelOps`
+ --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/acceptance/history_step/v2/capacity_banked/shared_parent.rs:9:36
+  |
+9 | use noid_ivc_core::field_circuit::{FsChannelOps, RecordedChannel};
+  |                                    ^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `pin_eq`
+ --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/acceptance/trace/native_assets/financial_inventory_scan.rs:7:25
+  |
+7 | use super::super::{mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128};
+  |                         ^^^^^^
+
+warning: unused import: `flat_const`
+ --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/acceptance/trace/native_assets/financial_launch_context.rs:7:18
+  |
+7 |     alloc_block, flat_const, mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128,
+  |                  ^^^^^^^^^^
+
+warning: unused import: `F128`
+ --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/acceptance/trace/native_assets/financial_launch_effects_shared.rs:8:32
+  |
+8 |     FieldR1csBuilder, LinExpr, F128,
+  |                                ^^^^
+
+warning: unused import: `flat_const`
+ --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/acceptance/trace/native_assets/financial_nft_funding.rs:6:20
+  |
+6 | use super::super::{flat_const, mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128};
+  |                    ^^^^^^^^^^
+
+warning: unused import: `duplex_substitution_terms_selected`
+  --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/region_sidecar/recording_duplex.rs:36:5
+   |
+36 |     duplex_substitution_terms_selected, duplex_substitution_terms_selected_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `prove_c1_duplex_walk_suffix_selected`, `verify_c1_duplex_walk_suffix_selected_trace`, and `verify_c1_duplex_walk_suffix_selected`
+  --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/region_sidecar/recording_duplex.rs:40:63
+   |
+40 |     prove_c1_duplex_walk_prefix, prove_c1_duplex_walk_suffix, prove_c1_duplex_walk_suffix_selected,
+   |                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+43 |     verify_c1_duplex_walk_suffix_selected, verify_c1_duplex_walk_suffix_selected_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+44 |     verify_c1_duplex_walk_suffix_selected_trace, verify_c1_duplex_walk_suffix_selected_trace_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `prove_c1_duplex_walk_suffix_selected` is never used
+    --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/acceptance/trace/region_source_binding_c1.rs:1587:15
+     |
+1587 | pub(crate) fn prove_c1_duplex_walk_suffix_selected<C: Challenger>(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `verify_c1_duplex_walk_suffix_selected` is never used
+    --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/acceptance/trace/region_source_binding_c1.rs:1728:15
+     |
+1728 | pub(crate) fn verify_c1_duplex_walk_suffix_selected<C: Challenger>(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `verify_c1_duplex_walk_suffix_selected_trace` is never used
+   --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/acceptance/trace/region_source_binding_c1/trace_impl.rs:346:15
+    |
+346 | pub(crate) fn verify_c1_duplex_walk_suffix_selected_trace<C: FsChannelOps>(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `noid_recursive` (lib) generated 10 warnings (run `cargo fix --lib -p noid_recursive` to apply 7 suggestions)
+warning: unused imports: `native_receipt_details` and `trade_receipt_details`
+   --> src/../../../parano1d/noid_node/src/wallet/mod.rs:917:13
+    |
+917 |             native_receipt_details, trade_receipt_details, ParanoidReceipt,
+    |             ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `wallet-safety-repro` (lib) generated 1 warning (run `cargo fix --lib -p wallet-safety-repro` to apply 1 suggestion)
+   Compiling wallet-safety-repro v0.1.0 (/Users/ember/dev/parano1d-break/experiments/wallet-safety)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.00s
+     Running tests/repro.rs (target/cargo/debug/deps/repro-4a3623fc25309ca3)
+
+running 5 tests
+test secret_owners_stay_opaque_redacted_and_zeroizing ... ok
+test authorization_binds_outputs_and_wire_bytes_omit_the_synthetic_secret ... ok
+test production_builder_signs_exactly_the_requested_payment ... ok
+test import_does_not_revoke_a_loaded_wallet_or_isolate_replacement_artifacts ... ok
+test divergence_gate_and_result_cannot_detect_recipient_or_amount_substitution ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 45.05s
+
+
+=== python source_repro.py (PARANO1D_BIN=debug build) ===
+test_export_clears_gui_memory_but_not_the_system_clipboard (__main__.PinnedSourceRepro.test_export_clears_gui_memory_but_not_the_system_clipboard) ... ok
+test_gui_submits_without_an_exact_fee_review (__main__.PinnedSourceRepro.test_gui_submits_without_an_exact_fee_review) ... ok
+test_gui_success_recipient_is_not_recovered_from_the_signed_intent (__main__.PinnedSourceRepro.test_gui_success_recipient_is_not_recovered_from_the_signed_intent) ... ok
+test_native_flow_has_the_review_binding_missing_from_ordinary_send (__main__.PinnedSourceRepro.test_native_flow_has_the_review_binding_missing_from_ordinary_send) ... ok
+test_revision_is_the_requested_pin (__main__.PinnedSourceRepro.test_revision_is_the_requested_pin) ... ok
+test_rpc_divergence_gate_checks_only_fee_and_counts (__main__.PinnedSourceRepro.test_rpc_divergence_gate_checks_only_fee_and_counts) ... ok
+test_owner_only_key_export_and_symlink_rejection (__main__.SyntheticCliKeystoreRepro.test_owner_only_key_export_and_symlink_rejection) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.167s
+
+OK
