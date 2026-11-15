@@ -43,8 +43,12 @@ accepted by the production prehashed Merkle verifier), **proof malleability at t
 statement, with no collision search), an **exact same-anchor fork replay** (one real 323-byte
 transaction and one real owner-auth bundle pass all epoch/logic/auth/state-delta checks on two forks
 with different parents and state roots), a **reduction bound that provides only 41.65 bits at
-T=2^32 and becomes vacuous near 2^41**, and a **soundness certificate whose decisive fixed-permutation
-premise Delta_P2b is assumed (< 0.45067) and never evaluated**. These are real: primitive collision
+T=2^32 and becomes vacuous near 2^41**, and a **soundness certificate whose decisive
+fixed-permutation premise Delta_P2b is assumed (< 0.45067) and never evaluated — and, per the
+formal verdict lane, either false or vacuous for the shipped object: under the only reading
+that makes their ideal binding term meaningful, the cross-tag claw forces Delta above both
+stated thresholds; under the other reading, their definitions cover the shipped multi-tag
+commitment layer not at all (C23)**. These are real: primitive collision
 resistance objectively fails at the raw node / prehashed-Merkle interfaces, and the ideal-model
 justification for the shipped primitive does not hold.
 
@@ -69,7 +73,9 @@ DoS, not cross-version proof acceptance — and **two Medium unauthenticated-rem
 P2P) availability defects (C17, C22)**: four 12-byte mempool pulls can pin the process-wide
 outbound byte domain and convert serving for all peers from delay to rejection, and sustained
 admission-queue occupancy runs at a 62x CPU discount with zero attacker state cost (plus the
-gossip-window variant, U21) — neither with any acceptance impact; the
+gossip-window variant, U21) — neither with any acceptance impact; the native trading stack's
+priority surfaces are unpriced lotteries (UTXO-count draws for trades/NFT, a free txid grind for
+fee-pinned financial natives — conditional on v2.1 activation; SEQ-1/SEQ-2); the
 circulating-supply counter is unauthenticated on the compact-restart path (C20, local-tamper
 precondition: silent divergence upward, permanent spend-admission stall downward). The root's own position statement (02:58:28): *"serious
 warning signs, no consequential end-to-end attack shown yet — not 'definitely broken,' but also not
@@ -105,6 +111,7 @@ not a broken build.
 | C20 | Unauthenticated circulating-supply counter on the compact-restart path | The v2 supply appended to `state_meta` is the only hot counter NOT bound to the hash-committed tip header; compact restart trusts it verbatim while the dense fallback recomputes from authenticated slots. Upward corruption (+123,456,789): silently accepted with state roots EQUAL, propagates through a subsequent valid commit. Downward (zeroed): silently accepted, then a production-template spend of two coinbase UTXOs (validated end-to-end on a clean twin) is rejected deterministically and permanently; tip pinned at height 3 while coinbase-only blocks keep the node looking alive (45M reported vs 180M true) | Medium — integrity/liveness on a single node; **precondition: local DB write / bit rot / tampered backup** (no remote vector); no invalid block accepted, nothing minted, UTXO amounts stay root-authenticated | **[RV-T]** — takeover lane, tee'd `results.txt` (real `MdbxChainContext`, real templates + PoW): `VULN compact-restart: clean_supply=45000000 corrupted_supply=168456789 … state_roots_equal=true`; spend-stall line quoted in detail | `/Users/ember/dev/parano1d-break/experiments/storage-reorg/` (`README.md` Finding 1, `results.txt`) |
 | C21 | Cross-tag claw: one digest simultaneously valid as a `TAG_CAPSNODE` and an `IVCPCSN_` node digest, with two identically-committing prehashed trees | One 32-byte digest (`9964c133…c0429a`), shared left, distinct rights, found in 111,423 evals / 0.49 s; two 2-leaf prehashed trees — one per domain — with IDENTICAL commitment bytes, each accepted by the production raw `verify_source_batched_merkle_proof_to_cap` under its own node hasher (`capsnode_raw_verify: accepted`, `ivcpcsn_raw_verify: accepted`, `roots_identical: true`) | Refutes the shipped design comment at `compression.rs:319-325` ("distinct trees cannot share collisions") — the tag domain separation is worth ~16 bits on the aligned coset, not 128; reach is raw-API-only (no in-tree caller compares digests across domains; the tower-digest bridge is `#[cfg(test)]`) | **[RV-T]** — takeover escalation lane, tee'd `results.txt` (all three binaries exited 0; claw self-verified through the real compressors, real `noid_ivc_core::merkle::hash_pair`, and the production raw verifier) | `/Users/ember/dev/parano1d-break/experiments/leaf-reachability/` (`README.md` Finding B, `results.txt`) |
 | C22 | **Unauthenticated-remote (second): sustained admission-queue occupancy at a 62x CPU discount** | Node pays 8.34 ms per reject vs attacker 134 µs per distinct state-valid payload; attacker marginal STATE cost is zero — failed proofs reserve nothing (input slots reserved only after successful verify, `pool.rs:495-542`), NO rejection cache anywhere (byte-identical resubmission re-verifies 3/3), state-validity requires only public data, and one locally-generated real proof (675 ms) is a perpetual template (corrupt a byte -> fresh full-cost verify). Transport caps do not close it: 128 anonymous inbound x 50 tx/10 s = 640 tx/s offered vs 415.5 tx/s measured 4-permit drain (1.5x; ~84 identities / ~58 MB/s on this laptop; 10 identities at 4.6 MB/s on the code's own 84 ms verify budget). Under saturation: 1024 non-evictable delivery slots fill in ~4.6 s, honest txs dropped at `TxDeliveries::start` on both paths, the 64 MiB process-global inbound budget (shared with block/HistoryStep/state-segment responses) is held by ~742 queued 90 KB pushes, and the local wallet RPC queues on the SAME semaphore (p50 303 ms at 256-deep, 2 s+ at saturation) | Medium availability, **anonymous P2P** — `MempoolRequest::Push` is the one request-response arm with no `is_dispatchable` profile gate; TCP + noise handshake with free libp2p keys; gossip needs only mesh grafting, no app scoring (IP-colocation penalty only, >8 identities/IP). NOT reachable via RPC (operator/loopback per the rpc-api lane) | **[RV-T]** — takeover lane, tee'd `results.txt` (real `AsyncMempool`, real AuthGKR verify): `asymmetry ratio (node CPU s per reject / attacker construction s per tx): 62x`; transport-level effects established from code + crate unit tests + a rate model over measured per-item costs, not a live swarm | `/Users/ember/dev/parano1d-break/experiments/tx-admission/` (`README.md` Finding 1, `results.txt`) |
+| C23 | The shipped security claim's fixed-Poseidon2b premise is **either false or vacuous** — the typed-binding machinery does not cover the shipped object | The paper (Zenodo 23778742) never contains `Delta_P2b` or `0.45067` — the machinery lives in `noid_soundness` docs; `BadTypedBind` is stated TWICE with different scope ("a collision, ambiguous encoding or domain confusion changes the typed semantic graph" vs "object/statement/namespace binding fails") and never disambiguated; the paper's H.1 typed dictionary has a SINGLE `v_node` (eq. 52), `c = 3` — production ships a tag-parameterized compressor with >= 2 one-perm node domains, never defined as a dictionary. Verdict fork: (a) same-tag collision — EXCLUDED-BY-CLAUSE under the worklist reading / INSTANTIATES under the dictionary reading (it is precisely the event priced at their ideal 6T^3/2^256 term); (b) cross-tag claw — EXCLUDED + UNMODELED-DOMAIN / INSTANTIATES (satisfies two listed causes simultaneously — collision AND domain confusion — matches the v2 wording verbatim; the reconstruction lemma's "unique node row" step is unguarded against same-anchor rows); (c) Delta — FORCES-DELTA under the dictionary reading: the claw is deterministically producible inside both envelopes (~2^41 gates vs C1 2^130), so `Delta_P2b^C1 >= 0.95067 > 0.45067` and `Delta_P2b(2^64) >= 0.81247 > 0.31247` — BOTH sufficient conditions unsatisfiable, PASS premise FALSE; under the worklist reading Delta stays unevaluated everywhere in their corpus | Kills the shipped security claim as stated (sharpens C8 from "unevaluated" to the fork); definitional analysis over the paper + certificate, quoting PoC-verified objects of prior lanes (C1, C21) — no new attacks run, by design | **[RV-T]** — takeover formal lane (`README.md`, no `results.txt` by design); strongest licensed claim quoted verbatim in the detail block | `/Users/ember/dev/parano1d-break/experiments/typed-bind-verdict/README.md` |
 
 ### Per-finding detail and exact scope limits
 
@@ -484,14 +491,37 @@ the 62x discount for the observed attack shape; the README adds three complement
 Composes with C17: both anonymous, both attack the shared 64 MiB byte domain and the delivery
 paths — cross-referenced to devnet-chaos for the combined live demonstration.
 
+**C23 — the typed-binding verdict (kills the shipped security claim as stated).** Takeover
+formal lane `/Users/ember/dev/parano1d-break/experiments/typed-bind-verdict/` (definitional
+analysis; no `results.txt` by design — it quotes the PoC-verified objects of prior lanes). It
+sharpens C8 from "the Delta premise is unevaluated" to a two-reading fork their corpus never
+resolves. Their definitions, verbatim-tracked: the paper's H.1 typed dictionary has a single
+`v_node` (eq. 52: `N(a,b)=rate P(a,b XOR v_node) XOR a`) and `c = 3` sponge capacities, while
+production ships a tag-parameterized compressor with at least two one-perm node domains
+(`TAG_CAPSNODE`, `IVCPCSN_`), never defined as a dictionary; the certificate gestures at
+"typed commitment domains" without defining them; `BadTypedBind` is stated twice with
+different scope and never disambiguated; the H.1 guard does not exclude node collisions (two
+distinct records whose node anchors coincide violate no guard clause — the reconstruction
+lemma's "the unique node row" step is unguarded). The verdict fork, per candidate, is in the
+table row above. **Strongest licensed claim, verbatim:** *"Their certificate's
+fixed-Poseidon2b premise is either false or vacuous for the shipped object: false, because the
+2^16 cross-tag claw instantiates their own typed-binding bad event ('a collision or domain
+confusion') and forces Delta_P2b^C1 >= 0.95 against a required < 0.4507; or vacuous, because
+their security statement — whose paper formalizes a single node domain — defines no bad event
+that covers the shipped multi-tag commitment layer at all, leaving the exact property their
+design comment claims ('distinct trees cannot share collisions') outside their theorem in
+either case."* The lane also records the exclusion list — the five surfaces their definitions
+thereby fail to cover (raw-verifier acceptance, cross-domain commitment-byte identity,
+subfield-aligned node collisions, the multi-tag node layer, the Delta premise itself).
+
 ---
 
 ## 3. Reported-but-unverified
 
 Two populations live in this section. (a) Kimi-era items (U1-U9) whose root verification was
 interrupted (02:43-03:03 quota death) or never started — **none of these may be cited as
-root-confirmed**; they keep [AR]/[PC]. (b) U10-U21 (wallet-safety, prover-unsafe, dex-economics,
-rpc-api, storage-reorg, nft-marketplace, tx-admission):
+root-confirmed**; they keep [AR]/[PC]. (b) U10-U27 (wallet-safety, prover-unsafe, dex-economics,
+rpc-api, storage-reorg, nft-marketplace, tx-admission, dex-games, sequencing):
 takeover-completed lanes reclassified **[RV-T]** by ember's 2026-11-15 ruling that a
 takeover-completed lane with a tee'd `results.txt` on disk counts as verified — the evidence is
 the lane's own run output ("the subagents just ran it"). They keep their U-IDs here for continuity.
@@ -555,7 +585,7 @@ template behavior and all six controls. Now recorded as **C15** with certainty *
 this lane). Severity/preconditions unchanged from the lane README: Medium, requires mining
 credential or local owner.
 
-### U6-U21 — further reported results (U6-U9 kimi-era unverified; U10-U21 [RV-T] by ruling)
+### U6-U27 — further reported results (U6-U9 kimi-era unverified; U10-U27 [RV-T] by ruling)
 
 - **U6** state-consensus 20-case adversarial UTXO/state-machine matrix — all rejected
   (`/Users/ember/dev/parano1d-break/experiments/state-consensus/output.txt`, agent-11). The root
@@ -718,6 +748,112 @@ credential or local owner.
   gossip-layer only. Recommended correction: make the byte window per-peer or deduct bytes only
   after the cheap-validity boundary, or keep a small per-peer share of the global window.
 
+### dex-games — MEV posture of the native trading stack (all Informational; includes one ledger correction) **[RV-T]**
+
+Takeover lane `/Users/ember/dev/parano1d-break/experiments/dex-games/` (5/5 sections,
+`ALL ASSERTIONS PASSED`, run tee'd in `results.txt`; library-level against the pinned crates).
+Overall verdict: **no ordering bug, no extraction vector; every race resolves by a named
+deterministic rule; the one capturable prize is priced at 1 µNOID against a 9,800 µNOID fee
+floor.**
+
+- **CORRECTION to the established-facts ledger:** "TradeBatch sorts by authorization key"
+  (`trade/batch.rs:125-164`) governs **canonical encoding only** — **execution order is the
+  funding-priority digest** (PoC: racers with key order reversed relative to digest order still
+  execute in digest order; independently confirmed by the sequencing lane). Authorization-key
+  grinding is worthless as a priority strategy. The dex-economics lane row's process note is
+  annotated accordingly.
+- **U22 — tail snipe.** Winner is the racer with the lowest
+  `funding_priority = Poseidon("TRORD_21", parent_id, asset, anchor-UTXO creation_id, slot_index)`
+  (`noid_tx trade.rs:231-264`); the shipped miner ranks and greedily includes by that digest
+  (`noid_miner trades.rs:424-479`); the sequencing engine executes in the same order
+  (`sequencing.rs:136-139`). The prize is **exactly 1 µNOID** — provably the curve's entire
+  cumulative rounding surplus (exact integral to cap == graduation cash, asserted at 3 supplies)
+  — against a 9,800 µNOID fee floor, and the free tail cannot be sold standalone (pool dust
+  floor rejects 100 units; minimum lot 102). Net **-9,799 µNOID plus a graduation-timing
+  option**. The loser's 1-µNOID buy is declined as pool dust, dropped **uncharged** by
+  `stable_policies`, and stands in the mempool as a free retried lottery ticket.
+- **U23 — graduation timing.** The pool opens at exactly the curve's terminal marginal price
+  (surplus NOT in the pool); no sandwich seam (fair pre-graduation buy -> pool sell loses
+  12 µNOID); the graduator controls only the same-fill remainder leg and same-batch paired
+  intents — first-mover optionality; competitors can enter the pool leg in the same batch.
+- **U24 — launch head is a ceiling overcharge, not a prize** (0.9967 µNOID value for 1 paid;
+  the second buyer gets 300 units for the same NOID); the creator can bundle 0/partial/
+  entire-curve purchase into the creation transition itself.
+- **U25 — fees buy nothing anywhere** (fee_limit is a ceiling; the charge is the state-derived
+  minimum; no tip mechanism; PoC: 1,000x fee changes nothing). The priority market is **UTXO
+  inventory** — chain-assigned coordinates, win probability n/(n+m), redrawn every block via
+  parent_id.
+- **U26 — the default race winner at consensus is the block builder**: validation re-derives
+  whatever batch the proposer submits (`block/native_assets.rs:718-747`); no inclusion or
+  ordering fairness rule exists; ordinary block ordering is documented "miner policy, not
+  consensus."
+
+### sequencing — the five-layer ordering map **[RV-T]**
+
+Takeover lane `/Users/ember/dev/parano1d-break/experiments/sequencing/` (25 assertions green,
+including 19 verbatim pinned-source fact assertions via `build.rs`; run tee'd in `results.txt`).
+The map — delivery (payload-dedup gossip, no order/priority) -> admission (first-come,
+slot-conflict reject, **no RBF anywhere**, fee floor is an admission gate not priority,
+admission race is verification-throughput order with the lock released during proof check) ->
+template selection (ordinary txs desc fee-rate / asc-txid; trades by funding_priority;
+fee-pinned financial natives tie-break on txid) -> in-block (builder discretion, consensus
+never orders, creation ids assigned by in-block position) -> cross-block (heaviest work +
+lexicographic tie-break, finality 18; same-anchor replay means the work race decides which
+fork's spend survives). Race ownership: double-spend -> the PoW winner's mempool state;
+same-price trade-batch position and NFT fixed-price races -> largest pre-positioned
+dust-UTXO inventory (K/(K+M), ~9,000 µNOID per permanent ticket, capacity capture at the
+64/16 caps); congested financial-native inclusion -> smallest-txid grind (free, median 2
+hashes); inclusion within an interval -> reach the builder before template freeze
+(`user_pages == 0` refresh guard); every batch race ultimately -> the builder.
+
+- **SEQ-1 — Medium (conditional on v2.1 native activation, mainnet height 279,370):** priority
+  across the native trading stack is a UTXO-count lottery — count-weighted (dust UTXO = whale),
+  one-time persistent cost (~9,000 µNOID per ticket), capacity-capturing at the 64/16 batch
+  caps; measured 0.672 vs K/(K+M)=0.667 (trades, K=8/M=4, 2,000 parents) and 0.733 vs 0.750
+  (NFT, K=12/M=4, 400 rounds).
+- **SEQ-2 — Medium (v2.1-conditional):** financial natives have no fee lever — fees pinned to
+  the exact parent-derived minimum (both admission and consensus equality lines asserted
+  verbatim), so their ordering reduces to a **free offline txid grind** (median 2 body hashes
+  to beat a victim); any ordinary spend paying 1 µNOID more displaces every native from a
+  saturated template.
+- **SEQ-3 — Low-Medium:** inclusion freezes at template build (`user_pages == 0` refresh
+  guards, asserted verbatim) — later arrivals at any fee wait for the next block; composes
+  with C15 as a template-churn lever adjacent to censorship.
+- **SEQ-4 — structural/informational:** builder discretion is total and reaches future
+  priority entropy (creation ids assigned by in-block application order; registration-height
+  choice shifts round eligibility); no timestamp reads exist in the native logic.
+- **SEQ-5 — integration with C6:** across same-anchor forks the same spend can confirm on
+  both; which survives is purely the work race, decided up to 18 blocks late; downstream
+  indexes treating <finality confirmations as settled see a per-fork, non-monotonic history.
+  No mechanism lets admission order leak into fork resolution.
+
+**Sharpest public claim (verbatim, with its condition):** *"conditional on v2.1 native
+activation (height 279,370), every priority surface in parano1d's native trading stack is an
+unpriced UTXO-count lottery — trade execution order and NFT fixed-price winners are decided by
+offline hash draws over pre-positioned dust (count-weighted, never value-weighted, ~9,000
+micronoid one-time per ticket), while financial natives, whose fees the protocol pins to the
+exact minimum, are ordered by a txid grind that costs a median of two body hashes — with no
+fee- or value-based path to priority anywhere in these paths."*
+
+Cross-references kept clean: first-seen pinning -> ledger-fairness §3; invalid-PoW template
+burn -> C15 (churn lever); same-anchor replay -> C6.
+
+### constraint-systems — one Low process finding **[RV-T]**
+
+- **U28** constraint-systems, **Low (process)**: the v2.1 compact-arithmetic constraint path —
+  `bind_program_v2_1`/`integer_results_v2_1` (`trace/integer_program.rs:178-243`), the
+  production-selected variant for `ScheduledV2` profiles and the one with the more delicate
+  gadgets (inverse-gadget equality, compact carry) — had **zero direct in-tree tests** (every
+  in-tree test exercises the v1 path). Not a bug — the algebra is correct — but until this lane
+  the production-selected arithmetic for v2.1 contracts had never been differentially tested
+  against native execution; the 8,870-configuration battery now covers it under all 10 builder
+  configurations (`results-ip.txt`). Architectural note that scopes all Pruv results
+  (including the earlier 50k-program differential, which ran against the reference native, not a
+  second consensus path): **consensus never natively executes Pruv** — no `integer_program`
+  caller exists in `noid_chain`/`noid_block`; the circuit is the sole consensus executor, so
+  circuit soundness is the whole game, and contract witnesses are never serialized in the block
+  body (proof-internal wires bound through the object-root commitments).
+
 ---
 
 ## 4. Verified negatives — where the system held
@@ -750,6 +886,10 @@ noted per row.
 | Reorg/crash/retention inconsistency in MDBX storage | Reorg rollback completeness (depth-1 reorg removes old canonical entries, installs replacement, moves owner-index exactly); staged-reorg atomic abort restores durable state byte-identical and survives reopen; SIGABRT crash recovery resumes at h3 root-matched and accepts block 4; retention boundaries exact at documented depths; historical-window (`TargetOutsideUndoWindow`) and snapshot-boundary checks hold; supply corruption does NOT let an invalid block validate — roots/counters/PoW still bind | [RV-T] (takeover storage-reorg lane, tee'd `results.txt`) |
 | NFT marketplace theft/duplication/race/accounting flip (live surface) | Stale purchase replay, duplicate listings/registration, settlement replay, double reset all rejected; tampered/dropped requests fail queue-commitment recomputation (`Queue`); frozen-round instant-buy/cancel rejected (`Phase`); duplicate items + metadata mutation rejected (`NftConservation`), and the real `bind_native_kernel` R1CS accepts the honest transfer while rejecting the metadata-mutated one; non-owner mint/transfer/offer rejected; timelocks enforced natively and in-circuit; round economics (synthetic escrow below the profile gate) exact to the micronoid — winner = `min(payer_priority, root, key)` recomputed independently, fee shares `q + (i < r)` in funded-key order, refunds exact, merged payouts, supply burn == fee; window/refund/reset/recovery phase machine holds; worst-case fees (90% occupancy, 8x pressure, 1..=16 requests) stay far under the 50k/request cap and 100k credit | [RV-T] (takeover nft-marketplace lane, tee'd `results.txt`, 10/10 tests; round-economics rows are below the profile gate — see U20) |
 | Token-launch theft/inflation/duplicate-supply/slot confusion | Clean negative on real transition APIs + real `ChainState`: issuance launch-only (`CreateToken`/`TopUpReserve`/`BootstrapPool`/liquidity all profile-disabled; `route=Standalone` cannot validate); reserve must equal exact minimum `s/1000` (underfund `Backing(BelowMinimum)`, overfund `Semantic(Funding)`); graduation handoff exact for every legal supply (sale=3s/5, dex=2s/5, `curve_cash(3s/5) == s/250 ==` pool base, liquidity permanently locked, `escrow + curve_cash == pool + fee + claims`, reserved 40% unreachable on curve); redemption floor-exact with two conservation-neutral thefts rejected (`outstanding-1` -> `Semantic(Reserve)`; `reserve-1/payout+1` -> `Opening(BelowMinimum)`); creation IDs distinct/tagged/namespaces disjoint and duplicate-supply via identical asset id is a pure double-spend (`State(Input)`); slots store exactly `(amount, cid, root)`, raw-NOID carrier -> `SlotBinding`; strict-subset settlement -> `Semantic(Queue)`, cross-round scan -> `Semantic(Round)`, state root unchanged; full lifecycle conserved (`7e10+1e10+1e10+5e9+5e9 == 1e11`); +1 micronoid rounding routes into the burned fee, never a recipient | [RV-T] (takeover token-accounting lane, tee'd `results.txt`, `ALL ASSERTIONS PASSED`) |
+| DEX ordering/extraction games (tail snipe, sandwich, head snipe, fee priority) | No ordering bug or extraction vector: every race resolves by a named deterministic rule; the one capturable prize (the free tail) is exactly 1 µNOID — the entire cumulative rounding surplus — against a 9,800 µNOID fee floor, unsellable standalone (dust floor, min lot 102); pool opens exactly at the curve's terminal marginal price (no transition seam; fair pre-grad roundtrip loses 12 µNOID); launch head is a ceiling overcharge (0.9967 µNOID value for 1 paid); fees buy nothing (1,000x fee changes no digest, outcome, or charge); authorization-key grinding order-neutral (reversed key order still executes in digest order) | [RV-T] (takeover dex-games lane, tee'd `results.txt`; library-level — miner/mempool behaviors read + deterministic core reproduced, no node executed) |
+| Mempool replacement/double-admission games; batch-key grinding as priority attack | No replacement path anywhere (absence asserted verbatim in the pinned source); conflicting admissions -> `InputConflict`/`OutputConflict`; the grindable `authorization_id` sort is encoding-canonical only (PoC both lanes); one UTXO cannot buy two draws (`DuplicateFunding`); batch cap exact at `MAX_SEQUENTIAL_TRADES` (64 accepted, 65th `Bounds`); trade `funding_priority` binds the real parent (`TRORD_21` over `parent_id`) — no offline pre-parent grinding of the target block; NFT rounds height-bound (round id changes with registration height; request bound to round(h) fails at h+1); zero timestamp reads in the native logic | [RV-T] (takeover sequencing lane, tee'd `results.txt`, 25 assertions incl. 19 verbatim source-fact assertions) |
+| Second satisfying witness / forged Pruv execution (the circuit is the sole consensus executor) | **Witness uniqueness held**: 8,870 build-and-check configurations (10 builder configs x both arithmetic variants of the real production R1CS, `bind_program` + `bind_program_v2_1`, over 120 random programs at u64 boundaries + 9 directed cases) with 0 failures; forgery battery (wrap-add/wrap-sub, non-boolean predicates as-true and as-false, writes from inactive instructions, skips of active ones, stale-next under tampered context, all 128 single-bit flips of a nontrivial next state, every reserved encoding, immediates >= 2^64) all rejected. Blocker is STRUCTURAL: rows appended in wire order with C = I (each wire defined by its row over earlier wires); the only two-valued rows (booleanity) sit in gadgets whose sibling pins force uniqueness; range decompositions injective via tower-basis linear independence of phi(2^i); selector families telescope to Sum = 1; both carry chains are exact char-2 majority algebra | [RV-T] (takeover constraint-systems lane, tee'd `results-ip.txt`/`results-puv.txt`/`results.txt` + in-tree controls 5/5 and 4/4 re-run; assurance limit: structural + directed battery, NOT an exhaustive witness-space search of the full HistoryStep relation, no end-to-end recursive prove/verify cycle) |
+| Field-wrap / negative-value attacks; public-input and gate substitution in contract execution | No range/field wrap anywhere — all lanes range-checked (u64/u32/20/64-bit), arithmetic carry-checked in native AND both circuit variants, native fails closed identically (`p-1` attack structurally unavailable; Z3 checker encoding faithful); public-input binding end-to-end (program/current/next -> single-bit-sensitive object-root sponge wraps -> body owner leaves -> TX8X2 -> count-bound TXROOT -> header); `live`/`terminal` gates are authenticated bitmap bits (live=0 ghost behavior gated on committed data; component context-advice design pinned one level up by in-tree full-relation tests) | [RV-T] (takeover constraint-systems lane; tee'd results) |
 | Fresh-request forgery (all lanes) | Owner/Phase-A/Phase-B adaptive ordering; queries derived only after all commitments; no accepted unauthorized statement anywhere | [RV] (root, cumulative: "no unauthorized spend, invalid accepted block, owner-key recovery, or fresh-request forgery", 01:58:28) |
 
 ---
@@ -788,9 +928,29 @@ route left.
    honest commitments; the semantic layer keeps the full generic `2^128` collision resistance
    even though the node layer offers only `2^16`. More computing on aligned node collisions can
    never pay. Scope caveat (lane assurance limits): "dominated" covers the aligned-lift routes
-   through the subfield towers, not a lower bound against all conceivable attacks. Residual
-   formal question: whether a `CAPSNODE` collision or the C21 claw instantiates `BadTypedBind`
-   under their definitions (C8, C14) — the algebra is closed; their evaluator is not.
+   through the subfield towers, not a lower bound against all conceivable attacks. The
+   **BadTypedBind formal question is now ANSWERED — as a fork their corpus never resolves**
+   (C23): under the dictionary reading the same-tag collision INSTANTIATES and the C21 claw
+   INSTANTIATES (collision + domain confusion simultaneously) and FORCES Delta above both
+   sufficient-condition thresholds; under the worklist reading both are excluded by clause and
+   Delta stays unevaluated everywhere in their corpus. Either way the shipped claim does not
+   survive: false or vacuous.
+
+**Collision confinement (constraint-systems lane).** The precise answer to whether the
+fold/constraint bindings consume attacker-chosen digests through the colliding domains:
+**YES at the fold/PCS layer** — the prover of a block chooses the capsule/PCS commitments, and
+the child proof's in-circuit replay (`ff_merkle`) verifies openings against the
+transcript-observed root (confirming the basefold-chains exposure; exploitability there
+depends on FS query unpredictability). **NO at the semantic layer** — no wire of the
+Pruv/object path (program, state, context, amounts, recipients, owners) is ever hashed under
+`compress_flat_feed_forward_with_tag` or any tree built with it; the semantic chains all use
+full-sponge constructions (`compress_with_tag` for state/tx-root/segment/claim nodes,
+one-permutation duplex wraps for object roots). Empirically: the known colliding pair does NOT
+collide under `TAG_EXSTNOD`, `TAG_TXROOT`, `TAG_SEGMENTTREE`, or `TAG_CLAIMS`; the object-root
+wraps are single-bit sensitive in every committed cell (32/32 program words move the code
+digest and both roots). Composing the 2^16 collision into contract-semantics forgery would
+require a collision in a full-sponge two-permutation wrap — a different cryptanalytic problem;
+the two never meet.
 
 **Algebra note (leaf-reachability lane, characterizes C1/C2/C21).** All permutation round
 constants and MDS multipliers live in `K = GF(2^16)` (max tower encoding 14 bits, from
@@ -813,16 +973,22 @@ verification of the build-artifacts remainder — U1 was closed by the takeover 
 `VERIFY.md`), U2's decoder leg is empirically covered by that run while its cache-persistence
 scenario stays code-level, and U3 (profile override) remains unverified — the external-miner
 finding (formerly U5) was closed by the takeover root's rerun and is now C15; the
-**alternative-witness / constraint-completeness question for the sequential-trade predicate**
-(dex-economics proved honest-witness agreement and min-out enforcement only; the full recursive
-predicate — authorization, funding, payout, group composition — was not assembled and no proof
-was generated/verified, so a malicious prover crafting non-canonical witnesses is untested) —
-owned by the constraint-systems lane; the **listing-settlement circuit's native-vs-recursive
+**alternative-witness / constraint-completeness residual is ANSWERED for the layer it was aimed
+at** — the constraint-systems lane holds witness uniqueness on the Pruv integer-program circuit
+(the sole consensus executor of contract semantics): structural blocker (C=I wire-order rows +
+gadget algebra) plus the 8,870-configuration directed battery, with assurance limits
+(structural + directed battery, NOT an exhaustive witness-space search of the full HistoryStep
+relation; no end-to-end recursive prove/verify cycle was run). The sequential-trade and
+listing-settlement witness legs keep their earlier cross-references (dex-economics
+honest-witness agreement + the ordering map; listing-settlement circuit still code-read only);
+the collision-composition leg is closed by the confinement paragraph above; the **listing-settlement circuit's native-vs-recursive
 consistency is code-read only** (winner rule, ordering, fee-split arithmetic, timelocks match by
 reading; the `bind_financial_listing_settlement` witness was not built) — same cross-reference,
 constraint-systems lane; the **sequential-trade route (operation 80, `ExecuteTrades`, the live
-trading kernel) was not executed** by the NFT lane (its listing market glue read only
-superficially) — cross-reference the dex/sequencing lanes; the **tx-admission cost-asymmetry
+trading kernel)** — now **ANSWERED** by the dex-games and sequencing lanes: the ordering/priority
+map is complete (U22-U27; execution order is the funding-priority digest, the builder owns every
+consensus-level race, and no fee- or value-based priority path exists in the native paths); the
+**tx-admission cost-asymmetry
 question is now ANSWERED** — C22 (62x CPU discount, anonymous occupancy of all bounded
 admission resources) plus U21 (gossip-window exhaustion), both from the tx-admission lane;
 its own follow-up is the live multi-peer swarm demonstration, which **composes with C17**
@@ -837,13 +1003,14 @@ adversarials (dex-games), fee-schedule fairness, and NFT accounting (nft-marketp
 
 ## 6. Lane status table
 
-All 27 experiment directories under `/Users/ember/dev/parano1d-break/experiments/` — the kimi
-swarm's 25 plus `leaf-reachability` and `tx-admission`, opened by the takeover swarm. "Completed"
-= lane returned a final result the root processed (verification status per §2/§3). All 8 lanes
-the kimi swarm left dead-with-partial-code have now been completed by the takeover swarm
-(wallet-safety, prover-unsafe, p2p-resources, dex-economics, rpc-api, storage-reorg,
-nft-marketplace, token-accounting — [RV-T] per the 2026-11-15 ruling: takeover-completed lanes
-with tee'd `results.txt` count as verified); zero lanes pending.
+All 31 experiment directories under `/Users/ember/dev/parano1d-break/experiments/` — the kimi
+swarm's 25 plus takeover-opened lanes (`leaf-reachability`, `tx-admission`, `dex-games`,
+`sequencing`, `constraint-systems`, `typed-bind-verdict`, and later additions). "Completed" = lane returned a final result the root processed
+(verification status per §2/§3). All 8 lanes the kimi swarm left dead-with-partial-code have now
+been completed by the takeover swarm (wallet-safety, prover-unsafe, p2p-resources, dex-economics,
+rpc-api, storage-reorg, nft-marketplace, token-accounting — [RV-T] per the 2026-11-15 ruling:
+takeover-completed lanes with tee'd `results.txt` count as verified); zero kimi-era lanes
+pending.
 
 | Lane dir | Agent report | Status | Result summary |
 |---|---|---|---|
@@ -854,6 +1021,10 @@ with tee'd `results.txt` count as verified); zero lanes pending.
 | `capsule-chains` | agent-4 | **completed [RV]** | C3, C4; full PCS rejects everything (`Accepted altered full PCS openings: 0`) |
 | `contract-rights` | agent-14 | **completed [RV]** | Negative: 50k Pruv programs / 428,880 executions, 0 mismatches |
 | `dex-economics` | agent-26 (takeover) | **completed [RV-T]** | Negative: no accepted value-extracting transition (9/9, `"accepted_value_extraction_found": false`); U16 informational boundary observation (free final curve unit / 0-NOID graduation trigger, not extractable); host-vs-recursive 72+120 cases match; §4 guardrails + §5 alternative-witness cross-ref. Process note: the dead agent's harness had never completed a run — 4 bugs fixed, incl. a false "panic" that was its own assertion bug against legitimate flat-ceiling semantics; a `cargo fmt` incident on `pinned/` was reverted and re-verified byte-identical to `git archive 52938433` |
+| `dex-games` | (takeover, new) | **completed [RV-T]** | MEV posture (all Informational, no ordering bug or extraction vector): U22 tail snipe (prize = 1 µNOID surplus vs 9,800 µNOID fee floor), U23 graduation timing, U24 launch head overcharge, U25 fees-buy-nothing / UTXO-inventory priority, U26 builder owns every race at consensus; ledger CORRECTION (authorization-key sort = encoding only; execution = funding-priority digest); §4 negative row | 
+| `sequencing` | (takeover, new) | **completed [RV-T]** | Five-layer ordering map + SEQ-1..SEQ-5 (SEQ-1/SEQ-2 Medium, v2.1-conditional: UTXO-count lottery + free txid grind for fee-pinned natives); verbatim public claim recorded; §4 no-RBF/no-key-grind row; cross-refs ledger-fairness, C15, C6 kept clean |
+| `constraint-systems` | (takeover, new) | **completed [RV-T]** | Witness uniqueness held (8,870 configs, 0 failures; structural blocker); no range/field wrap; public-input binding end-to-end; §5 collision-confinement answer (YES fold layer / NO semantic layer); U28 Low process finding (v2.1 path untested in-tree); architectural note (circuit = sole consensus executor); assurance limits carried |
+| `typed-bind-verdict` | (takeover, new) | **completed [RV-T]** | C23 (kills the shipped security claim as stated: paper never contains `Delta_P2b`/`0.45067`; `BadTypedBind` stated twice, never disambiguated; single-`v_node` dictionary vs shipped multi-tag layer; verdict fork with FORCES-DELTA numbers); strongest licensed claim recorded verbatim; §5 BadTypedBind thread closed (fork); no `results.txt` by design (definitional analysis quoting prior PoC evidence) |
 | `external-miner` | agent-20 | **completed [RV-T, C15]** | Template-consumption finding (Medium); reproduced by the takeover root 2026-11-15 (`verify-run.txt`); kimi root never verified this lane |
 | `fork-replay` | agent-7 | **completed [RV]** | C6: same-anchor fork replay, byte-identical reruns |
 | `identity-encoding` | agent-16 | **completed [RV/AR]** | C13 root-verified; proof-identity/terminal-id/Bech32 results agent-reported (U8) |
@@ -942,6 +1113,11 @@ coverage map, not a critique of lane quality.
 | uc-composition | Is there an online-UC extraction theorem (or a counterexample) for a specified `F_auth`, and can permutation-state collisions occur beyond domain labels? | — | **LIVE** (research) |
 | version-domains | Does a version change race verification asynchronously (eviction path reviewed, no PoC)? | answered-in-part (tx-admission: first-seen-wins, block-driven eviction); residual: devnet-chaos | — |
 | wallet-safety | What does the wallet see when the node binary itself is malicious or compromised (the substitution-blindness gap is only reachable then)? | wallet-vs-node | — |
+| dex-games | Do the latency games (observe parent, re-anchor, submit before template snapshot) behave as characterized from code, and is digest uniformity a theorem rather than a statistical observation? | devnet-chaos (latency half) | uniformity half: orientation-proof (statistical property, no adversary dependence) |
+| sequencing | What are the real latency/bench numbers for the "reach the builder before template build" race, and how does the B25/B255 class-budget interaction behave under load? | devnet-chaos (latency half) | B25/B255 budget interaction: unowned, **LIVE** (small, load test) |
+| constraint-systems | Does witness uniqueness survive an exhaustive witness-space search of the full HistoryStep relation and a complete end-to-end recursive prove/verify cycle for a Pruv-carrying block? | — | **LIVE** (prover-scale run; structural argument + directed battery only) |
+| constraint-systems | Is there a collision in the full-sponge two-permutation wraps (`compress_with_tag`, object-root duplexes) — the only cryptanalytic bridge from the 2^16 node collision to semantics? | — | **LIVE** (cryptanalysis; `noid_soundness` territory; same family as the fact-check lane's padded-sponge item) |
+| typed-bind-verdict | (No runtime question — definitional lane; the BadTypedBind fork IS the answer.) | — | — |
 
 Unowned + orientation-proof (no adversary orientation needed, only unfinished deterministic
 coverage): x86 SIMD kernel differentials, 256 KiB max-shape verify cost, production-linked
