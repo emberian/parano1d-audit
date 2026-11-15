@@ -77,7 +77,12 @@ gossip-window variant, U21) — neither with any acceptance impact; the native t
 priority surfaces are unpriced lotteries (UTXO-count draws for trades/NFT, a free txid grind for
 fee-pinned financial natives — conditional on v2.1 activation; SEQ-1/SEQ-2); the
 circulating-supply counter is unauthenticated on the compact-restart path (C20, local-tamper
-precondition: silent divergence upward, permanent spend-admission stall downward). The root's own position statement (02:58:28): *"serious
+precondition: silent divergence upward, permanent spend-admission stall downward); and the
+user-facing wallet stack is **node-attested end-to-end** — the GUI has no verifier dependency,
+renders node-authored "AUTHENTICATED PAYMENT / CONFIRMED" verdicts for 256 bytes of garbage,
+and the node both builds and signs sends while holding `wallet.key` (C24, family W1-W6;
+precondition: a malicious/corrupted node — e.g. the C20 zombie — or a loopback impostor, which
+deceives but cannot spend). The root's own position statement (02:58:28): *"serious
 warning signs, no consequential end-to-end attack shown yet — not 'definitely broken,' but also not
 'these results are satisfying.'"* The upstream `main` (`e6d324ff…`) still contains the vulnerable
 compressor unchanged, and the upstream test suites pass — this is a design/parameterization failure,
@@ -115,6 +120,7 @@ reproduction, tied to ethresear.ch/t/25730).
 | C21 | Cross-tag claw: one digest simultaneously valid as a `TAG_CAPSNODE` and an `IVCPCSN_` node digest, with two identically-committing prehashed trees | One 32-byte digest (`9964c133…c0429a`), shared left, distinct rights, found in 111,423 evals / 0.49 s; two 2-leaf prehashed trees — one per domain — with IDENTICAL commitment bytes, each accepted by the production raw `verify_source_batched_merkle_proof_to_cap` under its own node hasher (`capsnode_raw_verify: accepted`, `ivcpcsn_raw_verify: accepted`, `roots_identical: true`) | Refutes the shipped design comment at `compression.rs:319-325` ("distinct trees cannot share collisions") — the tag domain separation is worth ~16 bits on the aligned coset, not 128; reach is raw-API-only (no in-tree caller compares digests across domains; the tower-digest bridge is `#[cfg(test)]`); zero external consumers as of 2026-11-15, BUT the Jetsam hard-fork inherited the structure and added its own `hash_pair` consumer — see the scope addendum | **[RV-T]** — takeover escalation lane, tee'd `results.txt` (all three binaries exited 0; claw self-verified through the real compressors, real `noid_ivc_core::merkle::hash_pair`, and the production raw verifier) | `/Users/ember/dev/parano1d-break/experiments/leaf-reachability/` (`README.md` Finding B, `results.txt`) |
 | C22 | **Unauthenticated-remote (second): sustained admission-queue occupancy at a 62x CPU discount** | Node pays 8.34 ms per reject vs attacker 134 µs per distinct state-valid payload; attacker marginal STATE cost is zero — failed proofs reserve nothing (input slots reserved only after successful verify, `pool.rs:495-542`), NO rejection cache anywhere (byte-identical resubmission re-verifies 3/3), state-validity requires only public data, and one locally-generated real proof (675 ms) is a perpetual template (corrupt a byte -> fresh full-cost verify). Transport caps do not close it: 128 anonymous inbound x 50 tx/10 s = 640 tx/s offered vs 415.5 tx/s measured 4-permit drain (1.5x; ~84 identities / ~58 MB/s on this laptop; 10 identities at 4.6 MB/s on the code's own 84 ms verify budget). Under saturation: 1024 non-evictable delivery slots fill in ~4.6 s, honest txs dropped at `TxDeliveries::start` on both paths, the 64 MiB process-global inbound budget (shared with block/HistoryStep/state-segment responses) is held by ~742 queued 90 KB pushes, and the local wallet RPC queues on the SAME semaphore (p50 303 ms at 256-deep, 2 s+ at saturation) | Medium availability, **anonymous P2P** — `MempoolRequest::Push` is the one request-response arm with no `is_dispatchable` profile gate; TCP + noise handshake with free libp2p keys; gossip needs only mesh grafting, no app scoring (IP-colocation penalty only, >8 identities/IP). NOT reachable via RPC (operator/loopback per the rpc-api lane) | **[RV-T]** — takeover lane, tee'd `results.txt` (real `AsyncMempool`, real AuthGKR verify): `asymmetry ratio (node CPU s per reject / attacker construction s per tx): 62x`; transport-level effects established from code + crate unit tests + a rate model over measured per-item costs, not a live swarm | `/Users/ember/dev/parano1d-break/experiments/tx-admission/` (`README.md` Finding 1, `results.txt`) |
 | C23 | The shipped security claim's fixed-Poseidon2b premise is **either false or vacuous** — the typed-binding machinery does not cover the shipped object | The paper (Zenodo 23778742) never contains `Delta_P2b` or `0.45067` — the machinery lives in `noid_soundness` docs; `BadTypedBind` is stated TWICE with different scope ("a collision, ambiguous encoding or domain confusion changes the typed semantic graph" vs "object/statement/namespace binding fails") and never disambiguated; the paper's H.1 typed dictionary has a SINGLE `v_node` (eq. 52), `c = 3` — production ships a tag-parameterized compressor with >= 2 one-perm node domains, never defined as a dictionary. Verdict fork: (a) same-tag collision — EXCLUDED-BY-CLAUSE under the worklist reading / INSTANTIATES under the dictionary reading (it is precisely the event priced at their ideal 6T^3/2^256 term); (b) cross-tag claw — EXCLUDED + UNMODELED-DOMAIN / INSTANTIATES (satisfies two listed causes simultaneously — collision AND domain confusion — matches the v2 wording verbatim; the reconstruction lemma's "unique node row" step is unguarded against same-anchor rows); (c) Delta — FORCES-DELTA under the dictionary reading: the claw is deterministically producible inside both envelopes (~2^41 gates vs C1 2^130), so `Delta_P2b^C1 >= 0.95067 > 0.45067` and `Delta_P2b(2^64) >= 0.81247 > 0.31247` — BOTH sufficient conditions unsatisfiable, PASS premise FALSE; under the worklist reading Delta stays unevaluated everywhere in their corpus | Kills the shipped security claim as stated (sharpens C8 from "unevaluated" to the fork); definitional analysis over the paper + certificate, quoting PoC-verified objects of prior lanes (C1, C21) — no new attacks run, by design | **[RV-T]** — takeover formal lane (`README.md`, no `results.txt` by design); strongest licensed claim quoted verbatim in the detail block | `/Users/ember/dev/parano1d-break/experiments/typed-bind-verdict/README.md` |
+| C24 | **Finding family W1-W6: the user-facing wallet is node-attested end-to-end — the GUI has NO verifier dependency and nothing cryptographic is ever checked client-side** | Real pinned GUI backend (verbatim crate + lib.rs shim) driven by a scripted impostor node: 256 bytes of `deadbeef` come back `merkle_valid/canonical/confirmed` ALL-TRUE with an attacker-authored summary and render as AUTHENTICATED PAYMENT / CONFIRMED (W1); fabricated txid + 2 NOID fee on a 5 NOID send accepted and rendered TRANSACTION SENT (W2); a pre-bound loopback impostor is adopted as the node with zero spawns (W3); balances/history/status all node word (W4/W5/W6) | W1 High; W2 High when the node holds `wallet.key` (real substitution, spendable) / Medium via impostor; W3/W4 Medium; W5/W6 Low. **Shared precondition: malicious/corrupted node (e.g. the C20 zombie) or the W3 loopback impostor; the impostor deceives but cannot spend (never sees `wallet.key`)** | **[RV-T]** — takeover lane, tee'd `results.txt`: `ALL 15 CHECKS PASSED` across 7 scenarios, 77 requests / 22 methods; trust-boundary table (8 rows) in the README | `/Users/ember/dev/parano1d-break/experiments/wallet-vs-node/` (`README.md`, `results.txt`, `harness/tests/deceive.rs`) |
 
 ### Per-finding detail and exact scope limits
 
@@ -532,6 +538,56 @@ either case."* The lane also records the exclusion list — the five surfaces th
 thereby fail to cover (raw-verifier acceptance, cross-domain commitment-byte identity,
 subfield-aligned node collisions, the multi-tag node layer, the Delta premise itself).
 
+**C24 — the wallet-vs-node trust family (W1-W6).** Takeover lane
+`/Users/ember/dev/parano1d-break/experiments/wallet-vs-node/` (run tee'd in `results.txt`,
+`ALL 15 CHECKS PASSED`; the harness drives the REAL `noid_gui::backend::Backend`, constructed
+exactly as `main.rs` constructs it, against a scripted impostor answering every `paranoid_*`
+call with attacker-chosen JSON; `gui-noid_gui/` is the verbatim pinned crate plus a `lib.rs`
+shim, `diff -r` clean). The **structural finding**: the GUI has no dependency on
+`noid_chain`/`noid_fri`/`noid_pruv` or any verifier — no header-hash, PoW, state-root, Merkle,
+or signature check ever runs client-side; every balance, history row, confirmation verdict,
+and the displayed state root are the node's word, and the send builder+signer is the node
+itself (which holds `wallet.key`, `server.rs:1108`). In a signatureless system the client has
+nothing independent to check. The family, with the lane's numbering:
+
+- **W1 (High) — phantom payment/receipt.** The user opens a payment receipt and presses
+  verify — the flow built for exactly that doubt — and `verifyReceipt` delegates to the node
+  INCLUDING the Merkle math (`server.rs:2454-2486`): 256 bytes of `deadbeef` come back
+  `merkle_valid/canonical/confirmed` ALL-TRUE with an attacker-authored summary (chosen fee,
+  height, outputs including 999 NOID to the attacker), rendered as AUTHENTICATED PAYMENT /
+  CONFIRMED (`view/proofs.rs:620-700`). **The verification button asks the attacker whether
+  the attacker is lying.** Explorer corroboration chains the same node
+  (`validateAddress` -> `getSlotsByOwner` -> `getRecentTransactions` -> `getTx`).
+- **W2 (High with a key-holding node / Medium via impostor) — node-side send.** `walletSend`
+  builds AND signs node-side; fabricated txid + 2 NOID fee on a 5 NOID send accepted, rendered
+  TRANSACTION SENT (escalates wallet-safety Finding 1 / U10 from "matters only against a
+  compromised binary" to demonstrated-under-this-threat-model; the key-holding variant was not
+  executed against a live wallet — wallet-safety proved the builder can emit
+  fee/count-preserving divergent intents, and S3 proves the client accepts any result). The
+  node also sees the plaintext request: the wallet has no privacy from its own node.
+- **W3 (Medium) — impostor adoption.** Node identity is a ping to `blockCount` on
+  `127.0.0.1:9601` — no auth, no pinning, no version handshake; a pre-bound impostor is
+  adopted with zero spawns (`backend.rs:727-730`), and if the GUI's own child dies, the GUI
+  goes ONLINE with a dead owned node (`backend.rs:1476-1499`, scenario S6(b)). **Scoping: the
+  impostor deceives but cannot spend — it never sees `wallet.key`.**
+- **W4 (Medium) — suppression.** Real funds zeroed / history rows attacker-authored
+  (`walletReceipts` are node-side scanner output, no client check); a healthy chain at height
+  4324 with balance 0 renders as a calm, empty wallet.
+- **W5 (Low) — status indicators.** `terminal_verified: true` is HARDCODED in the GUI backend
+  (`backend.rs:1083-1086`); fake tip 999999 + attacker state root render as SYNCED +
+  TERMINAL VERIFIED.
+- **W6 (Low) — truncated peer rendering** (first 13 + last 7 chars; lookalikes render
+  identically; no local address validation on the send path beyond non-empty).
+
+What the client DOES do itself (the lane's negative results): local amount/fee parsing, the
+empty-recipient check, conditional-GET revision discipline in the UTXO snapshot (anti-race,
+not anti-node), and the native-asset `finish_submit` binding — a real consistency gate, but
+node-preview vs node-submission, so it catches a divergent builder, not a malicious node. The
+README's trust-boundary table (8 rows: balances, UTXO table, history/receipts, receipt
+verification, payment build/sign/submit, explorer inclusion, fee, chain status — each with RPC
+methods, who computes it, client-side verification: none, and the demonstrated deception) is
+the citable summary.
+
 ---
 
 ## 3. Reported-but-unverified
@@ -638,7 +694,9 @@ credential or local owner.
   `build_send` pipeline, same fee/counts, different recipient and amount — both pass real GKR
   verification and the exact gate condition. **Precondition (verbatim from the lane):** no
   divergent path exists in the pinned code (the control test proves request pass-through into the
-  signed page); the gap matters only against builder regression or a compromised binary. The
+  signed page); the gap matters only against builder regression or a compromised binary — **escalated by the
+  wallet-vs-node lane (C24/W2): under exactly that threat model the client accepts any node
+  result**. The
   stronger binding pattern exists in-tree for native-assets flows but is not applied to ordinary
   sends.
 - **U11** wallet-safety, **Low** **[RV-T]**: exported master secret persists in the system clipboard after
@@ -947,6 +1005,15 @@ route left.
    final position stands as the blocker statement: a principled leaf wall, an accidental node
    breach, and a shipped comment that promises the wrong thing.
 
+**Composition note (wallet-vs-node lane).** The user-facing trust posture composes across
+lanes: a C20 zombie node (silently diverged, still "looking alive") is a fully sufficient
+trigger for the W1-W6 family; the C17/C22 anonymous availability findings deny the escape
+hatch of "just ask another node" during the attack windows; and the external-consumers probe
+found the ecosystem's flagship third-party wallet (noid-wallet, Android, on-phone proving)
+does SPV headers only with slot proofs explicitly deferred to phase 2. The posture is
+node-word-all-the-way-down: the only client-side cryptographic work anywhere in the ecosystem
+today is the phone wallet's header-chain check and its own proof generation.
+
 **Ecosystem note (scope context for C21 — not a finding against the target).** A real
 third-party ecosystem exists: **noid-wallet** (Android light wallet, git-deps parano1d rev
 848209d = 1 docs-only commit behind the audit pin; runs
@@ -1047,10 +1114,10 @@ adversarials (dex-games), fee-schedule fairness, and NFT accounting (nft-marketp
 
 ## 6. Lane status table
 
-All 32 experiment directories under `/Users/ember/dev/parano1d-break/experiments/` — the kimi
+All 33 experiment directories under `/Users/ember/dev/parano1d-break/experiments/` — the kimi
 swarm's 25 plus takeover-opened lanes (`leaf-reachability`, `tx-admission`, `dex-games`,
-`sequencing`, `constraint-systems`, `typed-bind-verdict`, `external-consumers`, and later
-additions). "Completed" = lane returned a final result the root processed
+`sequencing`, `constraint-systems`, `typed-bind-verdict`, `external-consumers`,
+`wallet-vs-node`, and later additions). "Completed" = lane returned a final result the root processed
 (verification status per §2/§3). All 8 lanes the kimi swarm left dead-with-partial-code have now
 been completed by the takeover swarm (wallet-safety, prover-unsafe, p2p-resources, dex-economics,
 rpc-api, storage-reorg, nft-marketplace, token-accounting — [RV-T] per the 2026-11-15 ruling:
@@ -1071,6 +1138,7 @@ pending.
 | `constraint-systems` | (takeover, new) | **completed [RV-T]** | Witness uniqueness held (8,870 configs, 0 failures; structural blocker); no range/field wrap; public-input binding end-to-end; §5 collision-confinement answer (YES fold layer / NO semantic layer); U28 Low process finding (v2.1 path untested in-tree); architectural note (circuit = sole consensus executor); assurance limits carried |
 | `typed-bind-verdict` | (takeover, new) | **completed [RV-T]** | C23 (kills the shipped security claim as stated: paper never contains `Delta_P2b`/`0.45067`; `BadTypedBind` stated twice, never disambiguated; single-`v_node` dictionary vs shipped multi-tag layer; verdict fork with FORCES-DELTA numbers); strongest licensed claim recorded verbatim; §5 BadTypedBind thread closed (fork); no `results.txt` by design (definitional analysis quoting prior PoC evidence) |
 | `external-consumers` | (takeover probe) | **completed [RV-T]** | §5 lead thread ANSWERED: zero external consumers of the cross-domain raw surface (pub(crate) verify, 0 GitHub-wide refs, 10 stale forks, wrapper-level/RPC-only consumers, no cap-byte caches); full-scope public sentence recorded verbatim (flat short-form is FALSE — Jetsam); ecosystem note + Jetsam caveat into C21 scope addendum; version-skew footnote; auditable search log; REPORT.md landed by coordinator (clones/Kagi logs gitignored) |
+| `wallet-vs-node` | (takeover, new) | **completed [RV-T]** | C24 family W1-W6 (node-attested wallet: phantom AUTHENTICATED/CONFIRMED receipts, fictional TRANSACTION SENT, impostor adoption, silent suppression, decorative status, truncated peers); structural finding (no client-side verifier at all); trust-boundary table cited; §5 composition note (C20 zombie trigger + C17/C22 + noid-wallet SPV-only = node-word-all-the-way-down); evidence `README.md`/`results.txt`/`harness/tests/deceive.rs`, GUI crate verbatim + shim |
 | `external-miner` | agent-20 | **completed [RV-T, C15]** | Template-consumption finding (Medium); reproduced by the takeover root 2026-11-15 (`verify-run.txt`); kimi root never verified this lane |
 | `fork-replay` | agent-7 | **completed [RV]** | C6: same-anchor fork replay, byte-identical reruns |
 | `identity-encoding` | agent-16 | **completed [RV/AR]** | C13 root-verified; proof-identity/terminal-id/Bech32 results agent-reported (U8) |
@@ -1158,7 +1226,7 @@ coverage map, not a critique of lane quality.
 | typed-binding | Does a CAPSNODE collision or the C21 claw instantiate `BadTypedBind` under their own definitions (their evaluator never run)? | — | **LIVE** (formal lane; inputs already in hand) |
 | uc-composition | Is there an online-UC extraction theorem (or a counterexample) for a specified `F_auth`, and can permutation-state collisions occur beyond domain labels? | — | **LIVE** (research) |
 | version-domains | Does a version change race verification asynchronously (eviction path reviewed, no PoC)? | answered-in-part (tx-admission: first-seen-wins, block-driven eviction); residual: devnet-chaos | — |
-| wallet-safety | What does the wallet see when the node binary itself is malicious or compromised (the substitution-blindness gap is only reachable then)? | wallet-vs-node | — |
+| wallet-safety | What does the wallet see when the node binary itself is malicious or compromised (the substitution-blindness gap is only reachable then)? | answered (wallet-vs-node, 2026-11-15): C24/W1-W6 — node word all the way down | — |
 | dex-games | Do the latency games (observe parent, re-anchor, submit before template snapshot) behave as characterized from code, and is digest uniformity a theorem rather than a statistical observation? | devnet-chaos (latency half) | uniformity half: orientation-proof (statistical property, no adversary dependence) |
 | sequencing | What are the real latency/bench numbers for the "reach the builder before template build" race, and how does the B25/B255 class-budget interaction behave under load? | devnet-chaos (latency half) | B25/B255 budget interaction: unowned, **LIVE** (small, load test) |
 | constraint-systems | Does witness uniqueness survive an exhaustive witness-space search of the full HistoryStep relation and a complete end-to-end recursive prove/verify cycle for a Pruv-carrying block? | — | **LIVE** (prover-scale run; structural argument + directed battery only) |
