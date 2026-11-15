@@ -1,0 +1,43 @@
+== verify run 1: release-script substitution probe ==
+command: python3 verify/probe_release_inputs_verify.py   (cwd experiments/build-artifacts; fixture scripts byte-identical to parano1d@5293843)
+{
+  "case": "/Users/ember/dev/parano1d-break/experiments/build-artifacts/tmp/verify-legacy-sub-06gwc74m",
+  "fixture_matches_checkout": true,
+  "original_c00_sha256": "12f89b9be3c119b8f8352187268a9b52ec3a8fe20563954085b9b673fc6f4a7f",
+  "substituted_c00_sha256": "309fd9068d8c6482e4d6e243606158a368bfe2d75ef323a8de95f4c7b434ede6",
+  "decompressed_lengths": [
+    1024,
+    1024
+  ],
+  "control": {
+    "build_release_exit": 91,
+    "cargo_reached": true,
+    "metadata_pin_seen_by_cargo": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+  },
+  "substituted": {
+    "build_release_exit": 91,
+    "cargo_reached": true,
+    "metadata_pin_seen_by_cargo": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "leaf_pin_exported_to_cargo": false,
+    "pack_dir_seen_by_cargo": "/Users/ember/dev/parano1d-break/experiments/build-artifacts/tmp/verify-legacy-sub-06gwc74m/legacy",
+    "manifest_stale_for_c00": true,
+    "log_lines_mentioning_hash_or_manifest": []
+  },
+  "explicit_manifest_verifier_exit": 1,
+  "explicit_manifest_verifier_stderr": "error: SHA-256 mismatch for /Users/ember/dev/parano1d-break/experiments/build-artifacts/tmp/verify-legacy-sub-06gwc74m/legacy/v1/history-step-c00.field-r1cs.zst",
+  "substituted_build_log_tail": [
+    "  GUI package:  parano1d-gui-v2.1.0-linux-x86_64.deb",
+    "  rustc:        rustc fixture",
+    "  cargo:        cargo fixture",
+    "",
+    "==> Building matrix-embedded native binaries",
+    "",
+    "FAILED during: self-contained binary build",
+    "Partial output was kept at: /Users/ember/dev/parano1d-break/experiments/build-artifacts/tmp/verify-legacy-sub-06gwc74m/output-substituted"
+  ]
+}
+
+== verify run 2: decoder probe (pinned-src noid_ivc_core @ 5293843) ==
+command: cd verify/decoder-probe && CARGO_NET_OFFLINE=true cargo run --quiet --release
+safe_loader_rejected=true embedded_decoder_foreign_accepted=true cache_decoder_foreign_accepted=true approved_digest=[c4, c6, ab, 01, 32, b5, b6, 63, a2, ff, b1, b3, 70, 08, 96, 47, 92, 61, 11, 9b, 52, 7c, 3a, 4d, 17, 52, 46, 8d, 6a, df, cb, e9] foreign_digest=[3d, c6, fa, 1f, a9, dd, 7f, 33, 11, 3b, c1, 0a, ad, 8a, 0b, 61, 70, ae, 14, 06, 5c, 64, 1b, 63, e4, bd, dd, 5d, 78, 37, 17, 5e] canonical_len=210
+probe_exit=0

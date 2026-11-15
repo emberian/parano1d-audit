@@ -1,0 +1,9 @@
+[package]
+name = "decoder-verify-probe"
+version = "0.0.0"
+edition = "2024"
+
+[dependencies]
+noid-ivc-core = { path = "../../pinned-src/noid_ivc_core" }
+
+[workspace]
