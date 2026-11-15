@@ -1,0 +1,7 @@
+-- blockCount:
+{"jsonrpc":"2.0","id":0,"result":0}
+-- active address: o14f8yj7mlk36ampqvsl4j6afd7kk5tq795ldnxgrv9f43h8gtugwsawa95x
+-- walletStatus (GUI+CLI-dark):
+{"jsonrpc":"2.0","id":2,"result":{"exists":true,"address":"o14f8yj7mlk36ampqvsl4j6afd7kk5tq795ldnxgrv9f43h8gtugwsawa95x","active_index":0,"balance_micronoid":0,"balance_noid":0.0,"utxo_count":0,"address_count":1}}
+-- getActiveSlotCount:
+{"jsonrpc":"2.0","id":3,"result":0}

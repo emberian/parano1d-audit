@@ -1,0 +1,15 @@
+[network]
+listen = "0.0.0.0:9600"
+seeds = []
+public_addresses = []
+
+[storage]
+backend = "mdbx"
+path = "~/.parano1d/data"
+
+[rpc]
+listen = "127.0.0.1:9601"
+
+[mining]
+enabled = false
+miner_address = ""

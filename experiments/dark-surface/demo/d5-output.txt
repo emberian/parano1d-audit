@@ -1,0 +1,8 @@
+=== D5: uncredentialed loopback process == full owner (no GUI/CLI involved) ===
+-- node: /Users/ember/dev/parano1d-break/experiments/devnet-chaos/target-rel/release/parano1d (scratch dir /Users/ember/dev/parano1d-break/experiments/dark-surface/demo/ds6, loopback RPC 39601, no credentials)
+NODE FAILED TO START
+  [36mstate        [0m  0/16777216 slots  0.00%  [░░░░░░░░░░░░░░░░░░|░░░░░]  [2m0/256[0m seg  [2m0B[0m encoded  [2m800.0MB[0m domain max
+  [36mwallet       [0m  [1mo14f8yj7mlk36ampqvsl4j6afd7kk5tq795ldnxgrv9f43h8gtugwsawa95x[0m
+  [36mmining       [0m  [33mdisabled[0m
+[2m────────────────────────────────────────────────────────────────────────────[0m
+

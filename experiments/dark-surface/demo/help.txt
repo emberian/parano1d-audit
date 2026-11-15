@@ -1,0 +1,95 @@
+<jemalloc>: option background_thread currently supports pthread only
+Run a ParanO(1)d node and wallet.
+
+Example:
+  parano1d --miner --data-dir ~/.parano1d/data
+  parano1d --p2p-listen 0.0.0.0:9600 --seed 1.2.3.4:9600
+
+Usage: parano1d [OPTIONS]
+
+Options:
+  -c, --config <FILE>
+          Path to TOML config file. A missing file is created with safe defaults. Default: ~/.parano1d/parano1d.toml
+
+      --mode <MODE>
+          Node operating mode.
+          
+          node     — ordinary node and wallet, no mining (default) miner    — mining node with built-in PoW and automatic proof pipeline extminer — mining node with external PoW nonce search; requires a mining key
+
+          Possible values:
+          - node:     Ordinary node and wallet (default). No mining or template serving. Verifies all complete blocks and serves recent block/header sync. Snapshot sync uses the same manifest/HistoryStep pipeline that the O(1) verifier will authorize
+          - miner:    Mining node with built-in parallel PoW followed by the required HistoryStep and atomic complete-block commit
+          - extminer: Mining node with an external PoW worker. The node owns the immutable template; the worker returns only a nonce, after which the node proves and commits the complete block. Requires a mining credential
+          
+          [default: node]
+
+      --miner
+          Shorthand for `--mode miner`
+
+      --extminer
+          Shorthand for `--mode extminer`
+
+      --miner-address <ADDRESS>
+          Miner payout address (canonical bech32m, beginning with `o1`). Defaults to the wallet's active address
+
+      --cpu-threads <N>
+          Logical CPU threads used by the built-in miner and its proof phases. Defaults to the protocol-safe CPU ceiling (one or two logical CPUs are reserved for networking, RPC and storage)
+
+      --data-dir <PATH>
+          Data directory for the MDBX database and wallet key. Default: ~/.parano1d/data
+
+      --p2p-listen <HOST:PORT>
+          P2P listen address in HOST:PORT format. Default: 0.0.0.0:9600
+
+      --rpc-listen <HOST:PORT>
+          JSON-RPC listen address in HOST:PORT format. Default: 127.0.0.1:9601. A non-loopback address requires a mining or operator credential
+
+      --seed <HOST:PORT>
+          Seed peer address (HOST:PORT). Repeat for multiple seeds. Example: --seed 1.2.3.4:9600 --seed 5.6.7.8:9600
+
+      --log <LEVEL>
+          Log level filter. Examples: debug, info, warn, error
+          
+          [default: info]
+
+      --mining-key <TOKEN>
+          Bearer token required for external mining API access. The credential is restricted to getBlockTemplate and submitBlock
+
+      --mining-key-file <FILE>
+          Owner-only file containing the Bearer token for the external mining API.
+          
+          The file must contain one token of at least 16 characters. On Unix it must be owned by the current user and inaccessible to group and others. The credential authorizes only getBlockTemplate and submitBlock.
+          
+          Pool example: parano1d --mode extminer --mining-key-file ~/.parano1d/mining.key
+
+      --operator-key <TOKEN>
+          Bearer token for remote pool accounting and payout operations. The credential is restricted to the documented operator RPC allowlist
+
+      --operator-key-file <FILE>
+          Owner-only file containing the remote pool operator Bearer token.
+          
+          The file must contain one token of at least 16 characters. On Unix it must be owned by the current user and inaccessible to group and others. This credential can spend from the active wallet; use it only across an authenticated private network or encrypted tunnel.
+
+      --allow-custom-coinbase
+          Allow external miners to specify their own coinbase address in getBlockTemplate.
+          
+          Requires either --mining-key or --mining-key-file. Without a credential this flag is rejected at startup.
+          
+          Use case: infrastructure pool where the node prepares and proves complete blocks and relays them over P2P, while each miner receives rewards directly to its own address. The node operator earns via an off-chain service fee, not via coinbase.
+          
+          Example: parano1d --mode extminer --mining-key-file ~/.parano1d/mining.key \ --allow-custom-coinbase # Miner: getBlockTemplate("o1their_own_address")
+
+      --v2-large-blocks
+          Permit large-class production after v2. The default produces the small v2 class; verification always supports both. Applies to internal mining and external PoW templates, with no change to pre-v2 calibration
+
+      --purge-state
+          Clear the complete chain database on startup and synchronize it again. Wallet files, receipts and the P2P identity are stored separately and remain. Use after an incompatible chain-data upgrade or suspected corruption
+
+      --check-hardware
+          Check production CPU support and exit without touching node data
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version

@@ -1,0 +1,12 @@
+-- getNativeMarket synthetic asset:
+{"jsonrpc":"2.0","id":4,"result":{"height":0,"block_hash":"860e70453390bf815718e933aa4927167a13d098b0151391eefd722ee1add610","state_root":"5c7f3712611c836a2c6ab0448d32c271f04e3213560e8a5321331cd6a5c98492","item":null}}
+-- getSlotHints:
+{"jsonrpc":"2.0","id":5,"result":[9717156,9717157,9717158]}
+-- getSlotsByOwner (arbitrary address, loopback-only tier):
+{"jsonrpc":"2.0","id":6,"result":[]}
+-- prepareNativeIntent (external-client plan):
+{"jsonrpc":"2.0","id":7,"error":{"code":-32602,"message":"Invalid params","data":"missing field `action` at line 1 column 184"}}
+-- walletDismissNativePending unknown txid:
+{"jsonrpc":"2.0","id":8,"result":null}
+-- submitTxIntent raw garbage:
+{"jsonrpc":"2.0","id":9,"error":{"code":-32000,"message":"malformed intent: Wire(BadMarker)"}}

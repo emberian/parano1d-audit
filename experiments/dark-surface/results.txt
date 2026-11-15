@@ -1,0 +1,60 @@
+# dark-surface lane — live demonstration log
+# target: parano1d 52938433a30b185ab007afaa15166a632cf2e82e, loopback-only, synthetic everything
+
+=== D1: --help hides the five maintenance/network flags ===
+0
+0 matches in help (all hidden)
+full help captured: demo/help.txt (      95 lines)
+
+=== D2: hidden --import-wallet-secret / --export-wallet-secret roundtrip ===
+imported synthetic secret: 9fc4ab883af086a274b3b6f51c43ab21ad2bea547bb756d40ed15e2346b47c62
+exported secret:         9fc4ab883af086a274b3b6f51c43ab21ad2bea547bb756d40ed15e2346b47c62
+RESULT: identical — one hidden flag pair replaces + prints the spending authority
+-rw-------  1 ember  staff  48 Nov 15 08:50 demo/ds1/wallet.key
+
+=== D3: credential fallback matrix refusals (pre-listener) ===
+-- command: parano1d --rpc-listen 0.0.0.0:39605 (no keys)
+   Error: non-loopback RPC listener 0.0.0.0:39605 requires --mining-key[-file] or --operator-key[-file]
+-- command: parano1d --mining-key <k> --operator-key <same k>
+   Error: mining key and operator key must be different
+
+=== D4: pack-gated startup refusal (pack-free/finance-only binary, mainnet v2.1) ===
+Error: scheduled authorization runtime unavailable
+
+=== D5: uncredentialed loopback process == full owner (real node, no GUI/CLI) ===
+# node: devnet-chaos lane release build of the same pinned source (full pack set; read-only use —
+#       the lane's own dev rebuild at target/debug/parano1d links but lacks the v2 pack and
+#       refuses startup with 'scheduled v2 HistoryStep runtime unavailable', itself a control:
+#       the node fails closed on missing proof material rather than degrading).
+# scratch dir demo/ds6, rpc 127.0.0.1:39601, p2p 127.0.0.1:39606, --disable-dns-seeds, no credentials
+
+-- blockCount:
+{"jsonrpc":"2.0","id":0,"result":0}
+-- active address: o14f8yj7mlk36ampqvsl4j6afd7kk5tq795ldnxgrv9f43h8gtugwsawa95x
+-- walletStatus (GUI+CLI-dark):
+{"jsonrpc":"2.0","id":2,"result":{"exists":true,"address":"o14f8yj7mlk36ampqvsl4j6afd7kk5tq795ldnxgrv9f43h8gtugwsawa95x","active_index":0,"balance_micronoid":0,"balance_noid":0.0,"utxo_count":0,"address_count":1}}
+-- getActiveSlotCount:
+{"jsonrpc":"2.0","id":3,"result":0}
+-- getNativeMarket synthetic asset:
+{"jsonrpc":"2.0","id":4,"result":{"height":0,"block_hash":"860e70453390bf815718e933aa4927167a13d098b0151391eefd722ee1add610","state_root":"5c7f3712611c836a2c6ab0448d32c271f04e3213560e8a5321331cd6a5c98492","item":null}}
+-- getSlotHints:
+{"jsonrpc":"2.0","id":5,"result":[9717156,9717157,9717158]}
+-- getSlotsByOwner (arbitrary address, loopback-only tier):
+{"jsonrpc":"2.0","id":6,"result":[]}
+-- prepareNativeIntent (external-client plan):
+{"jsonrpc":"2.0","id":7,"error":{"code":-32602,"message":"Invalid params","data":"missing field `action` at line 1 column 184"}}
+-- walletDismissNativePending unknown txid:
+{"jsonrpc":"2.0","id":8,"result":null}
+-- submitTxIntent raw garbage:
+{"jsonrpc":"2.0","id":9,"error":{"code":-32000,"message":"malformed intent: Wire(BadMarker)"}}
+-- getNodeStatus queue-depth dump (excerpt):
+{"jsonrpc":"2.0","id":10,"result":{"testnet":false,"synced":false,"sync_stage":"headers","mining":false,"mining_ready":false,"mining_confirmed_peers":0,"mining_required_peers":1,"isolated_mining":false,"backend":"neon+pmull","available_threads":12,"worker_threads":12,"p2p_healthy":true,"p2p_heartbeat_age_ms":549,"p2p_connected_peers":0,"p2p_dispatchable_peers":0,"p2p_relay_reservations":0,"p2p_con
+-- browser-origin request rejected pre-dispatch:
+HTTP 403
+-- PARANOID_STOP from this foreign loopback process:
+{"jsonrpc":"2.0","id":12,"result":"stopping"}
+RESULT: node pid 24100 EXITED after paranoid_stop from a foreign loopback curl
+[2m23:47:47[0m [32m INFO[0m RPC stop command received — initiating graceful shutdown
+[2m23:47:47[0m [32m INFO[0m stop command received via RPC
+
+-- foreign process was plain curl with only Content-Type set; no GUI, no CLI, no token.

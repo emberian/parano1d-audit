@@ -1,0 +1,13 @@
+<jemalloc>: option background_thread currently supports pthread only
+[2m16:50:49[0m [32m INFO[0m created default node config [3mpath[0m[2m=[0m/Users/ember/dev/parano1d-break/experiments/dark-surface/demo/ds2.toml
+[2m16:50:49[0m [32m INFO[0m initialized mainnet storage identity without deleting existing files [3mpath[0m[2m=[0m/Users/ember/dev/parano1d-break/experiments/dark-surface/demo/ds2
+[2m16:50:49[0m [32m INFO[0m CPU proof and mining backend selected [3mbackend[0m[2m=[0mneon+pmull [3mthreads[0m[2m=[0m12
+[2m16:50:49[0m [33m WARN[0m HistoryStep verification unavailable in this pack-free development build
+[2m16:51:10[0m [32m INFO[0m creating new wallet [3mpath[0m[2m=[0m/Users/ember/dev/parano1d-break/experiments/dark-surface/demo/ds2/wallet.key
+[2m16:51:10[0m [32m INFO[0m loaded receipts from disk [3mcount[0m[2m=[0m0
+[2m16:51:10[0m [32m INFO[0m loaded wallet history from disk [3mcount[0m[2m=[0m0
+[2m16:51:10[0m [32m INFO[0m wallet active address loaded [3mheight[0m[2m=[0m0 [3mactive_index[0m[2m=[0m0 [3mutxos[0m[2m=[0m0 [3mbalance[0m[2m=[0m0 [3mreceipts_removed[0m[2m=[0m0 [3mreceipts_recovered[0m[2m=[0m0
+[2m16:51:10[0m [32m INFO[0m loaded persistent P2P identity [3mpeer[0m[2m=[0m12D3KooWK1vdN4QJdNc41s22gWqyJzPgKuduf4o6URy8ogzg4vBq
+
+thread 'tokio-rt-worker' (25861592) has overflowed its stack
+fatal runtime error: stack overflow, aborting

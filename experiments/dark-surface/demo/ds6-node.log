@@ -1,0 +1,23 @@
+<jemalloc>: option background_thread currently supports pthread only
+[2m23:45:11[0m [32m INFO[0m initialized mainnet storage identity without deleting existing files [3mpath[0m[2m=[0m/Users/ember/dev/parano1d-break/experiments/dark-surface/demo/ds6
+[2m23:45:11[0m [32m INFO[0m CPU proof and mining backend selected [3mbackend[0m[2m=[0mneon+pmull [3mthreads[0m[2m=[0m12
+[2m23:45:16[0m [32m INFO[0m creating new wallet [3mpath[0m[2m=[0m/Users/ember/dev/parano1d-break/experiments/dark-surface/demo/ds6/wallet.key
+[2m23:45:16[0m [32m INFO[0m loaded receipts from disk [3mcount[0m[2m=[0m0
+[2m23:45:16[0m [32m INFO[0m loaded wallet history from disk [3mcount[0m[2m=[0m0
+[2m23:45:16[0m [32m INFO[0m wallet active address loaded [3mheight[0m[2m=[0m0 [3mactive_index[0m[2m=[0m0 [3mutxos[0m[2m=[0m0 [3mbalance[0m[2m=[0m0 [3mreceipts_removed[0m[2m=[0m0 [3mreceipts_recovered[0m[2m=[0m0
+[2m23:45:16[0m [32m INFO[0m loaded persistent P2P identity [3mpeer[0m[2m=[0m12D3KooWQmJZfypvKxiLy8KDs9ipQJL4Qpu5RtY6rf3UmPHy7CKF
+
+[2m────────────────────────────────────────────────────────────────────────────[0m
+  PARANOID  [1mv2.1.0[0m   [2m·  mainnet[0m
+[2m────────────────────────────────────────────────────────────────────────────[0m
+  [36mp2p / rpc    [0m  127.0.0.1:39606   [2mrpc  127.0.0.1:39601[0m
+  [36mchain        [0m  h=[1m0[0m   state  [2m5c7f3712611c836a2c6ab0448d32c271f04e3213560e8a5321331cd6a5c98492[0m
+  [36mstate        [0m  0/16777216 slots  0.00%  [░░░░░░░░░░░░░░░░░░|░░░░░]  [2m0/256[0m seg  [2m0B[0m encoded  [2m800.0MB[0m domain max
+  [36mwallet       [0m  [1mo14f8yj7mlk36ampqvsl4j6afd7kk5tq795ldnxgrv9f43h8gtugwsawa95x[0m
+  [36mmining       [0m  [33mdisabled[0m
+[2m────────────────────────────────────────────────────────────────────────────[0m
+
+[2m23:47:47[0m [32m INFO[0m RPC stop command received — initiating graceful shutdown
+[2m23:47:47[0m [32m INFO[0m stop command received via RPC
+[2m23:47:47[0m [32m INFO[0m shutting down — cancelling miner and closing connections
+[2m23:47:47[0m [32m INFO[0m goodbye — MDBX flushed on drop

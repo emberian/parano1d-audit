@@ -1,0 +1,5 @@
+<jemalloc>: option background_thread currently supports pthread only
+[2m16:51:44[0m [32m INFO[0m created default node config [3mpath[0m[2m=[0m/Users/ember/dev/parano1d-break/experiments/dark-surface/demo/ds3.toml
+[2m16:51:44[0m [32m INFO[0m initialized mainnet storage identity without deleting existing files [3mpath[0m[2m=[0m/Users/ember/dev/parano1d-break/experiments/dark-surface/demo/ds3
+[2m16:51:44[0m [32m INFO[0m CPU proof and mining backend selected [3mbackend[0m[2m=[0mneon+pmull [3mthreads[0m[2m=[0m12
+Error: scheduled authorization runtime unavailable

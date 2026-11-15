@@ -1,0 +1,9 @@
+-- getNodeStatus queue-depth dump (excerpt):
+{"jsonrpc":"2.0","id":10,"result":{"testnet":false,"synced":false,"sync_stage":"headers","mining":false,"mining_ready":false,"mining_confirmed_peers":0,"mining_required_peers":1,"isolated_mining":false,"backend":"neon+pmull","available_threads":12,"worker_threads":12,"p2p_healthy":true,"p2p_heartbeat_age_ms":549,"p2p_connected_peers":0,"p2p_dispatchable_peers":0,"p2p_relay_reservations":0,"p2p_con
+-- browser-origin request rejected pre-dispatch:
+HTTP 403
+-- PARANOID_STOP from this foreign loopback process:
+{"jsonrpc":"2.0","id":12,"result":"stopping"}
+RESULT: node pid 24100 EXITED after paranoid_stop from a foreign loopback curl
+[2m23:47:47[0m [32m INFO[0m RPC stop command received — initiating graceful shutdown
+[2m23:47:47[0m [32m INFO[0m stop command received via RPC
