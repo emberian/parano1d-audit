@@ -1,0 +1,45 @@
+pinned_commit=52938433a30b185ab007afaa15166a632cf2e82e pinned_files_verified=470
+chain_id=[86, 0e, 70, 45, 33, 90, bf, 81, 57, 18, e9, 33, aa, 49, 27, 16, 7a, 13, d0, 98, b0, 15, 13, 91, ee, fd, 72, 2e, e1, ad, d6, 10]
+v2_1_active_at_height=300000
+CONTROL launch created: supply=100000000000 minimum_backing=100000000 curve_cash(purchase)=38888889 creator_paid=138888889 fee=18600
+CONTROL slot binding: reserve slot stores amount=100000000 cid=4611686018427387913 root==opening.root()
+CONTROL creator purchase: 10000000000 units for 38888889 microNOID of curve cash
+REJECT A1 underfunded reserve (minimum-1): reserve construction: Backing(BelowMinimum)
+REJECT A2 overfunded reserve (minimum+1): launch State: Semantic(Funding)
+REJECT A3 creator purchase with market_noid=0 (cash not paid): launch State: Semantic(Conservation)
+REJECT A4 two TokenBalance purchase outputs: launch State: Semantic(Funding)
+REJECT A5 purchase of sale_units+1: initial state: Quantity
+REJECT A6 purchase balance owned by non-authority: launch State: Semantic(Funding)
+REJECT A7 second identical launch (same asset id [b4, d7, b2, 3c]) from the same funding input: apply: State(Input)
+REJECT A8 standalone CreateToken/TopUpReserve/BootstrapPool/liquidity: operation_enabled=false (profile gate)
+REJECT A8b FungibleDefinition route=Standalone: Supply (opening validation forces Launchpad)
+REJECT R6 redeem with balance owner != authority: apply: Semantic(Authority)
+CONTROL redemption: burned=1000000000 payout=1000000(exact floor) new_reserve=99000000 new_outstanding=99000000000
+REJECT R2 redemption burning 0 units: quote: Backing(ZeroAmount)
+REJECT R3 successor reserve with outstanding_units-1 (conservation-neutral): native State: Semantic(Reserve)
+REJECT R3b successor reserve deflated by -1, raw payout +1 (conservation-neutral): native State: Semantic(Opening(Backing(BelowMinimum)))
+REJECT R4 TokenBalance carrier with raw amount 7: SlotBinding (amount_micronoid()==0 for token carriers)
+CONTROL R5 full drain pays the whole reserve; supply-0-with-reserve rejected: EmptySupplyHasReserve
+CONTROL two buyer requests funded: escrow=55655956 each (fee_credit 100000 + limit 55555956) cost_at_clearing=55555556 per request
+CONTROL round registered at height 300001: queue_root committed, timeout=300005
+REJECT M2 settlement of a strict subset of the registered round: Semantic(Queue) (committed queue root cannot be reproduced); state_root_unchanged=true
+CONTROL settlement: sold=30000000000 fee=7401 rounding_fee=1 claims=2
+CONTROL claim payouts: buyer received 10000000000 token units and 87700 microNOID; creator received 10000000000 token units
+CONTROL post-graduation-path redemption of round-issued tokens: burned=5000000000 payout=5000000 (exact floor)
+CONTROL global token conservation: inventory 70000000000 + creator purchase 10000000000 + creator round 10000000000 + buyer 5000000000 + burned 5000000000 == fixed supply 100000000000
+CONTROL creation ids [lifecycle chain]: 9 native ids, all distinct, max sequence 20 <= alloc_counter 28
+CONTROL curve sell round: sold back 2000000000 units, inventory grew to 72000000000, market_noid fell to 136888889, seller proceeds=13111111 (conserved: prior cash - proceeds == new cash + rounding)
+CONTROL graduation: pool base_reserve=400000000 quote_reserve=40000000000 locked_shares==total_shares=true total_shares=isqrt(base*quote)
+CONTROL graduation handoff: buyer holds 60000000000 (60%), pool holds 40000000000 (40%), reserve redeemable 100000000 microNOID; total token units == supply
+REJECT G3 curve state with inventory == dex_units and honest cash (selling the reserved 40%): Definition
+CONTROL G3b inventory == dex_units+1 with cash==curve_cash(sale-1): accepted (boundary is strict)
+REJECT G4 settlement with a request from a different round: State(Input)
+CONTROL creation ids [graduation chain]: 5 native ids, all distinct, max sequence 15 <= alloc_counter 18
+CONTROL creation-id namespaces: sequence 0, overflow, coinbase tag and raw ids all rejected
+REJECT I3 parent ref from the future (sequence == alloc_counter+1): Parent
+CONTROL M1 two-launch registration scan in one atomic update: accepted
+REJECT M2b cross-round request in a multi-group scan: Semantic(Round); state_root_unchanged=true
+REJECT M3 TransferToken(asset A) spending a balance of asset B: Asset
+REJECT M4 RedeemToken(asset A) consuming the reserve of asset B: Asset
+CONTROL property sweep: 12 supplies from 100000000000 to 10248191152000000: sale=3s/5, curve_cash(3s/5)==s/250==graduation cash, dex=2s/5, redemption drains to exactly zero
+ALL ASSERTIONS PASSED
