@@ -1,0 +1,1707 @@
+{
+  "accepted_value_extraction_found": false,
+  "live_targets": false,
+  "pinned_commit": "52938433a30b185ab007afaa15166a632cf2e82e",
+  "results": [
+    {
+      "accepted_quotes_checked": 44,
+      "experiment": "pool_fee_rounding_reserve_and_min_out_matrix",
+      "reserve_overflow_rejected": true,
+      "samples": [
+        {
+          "after": [
+            2000003,
+            1999999
+          ],
+          "before": [
+            2000000,
+            2000000
+          ],
+          "effective": 2,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 3,
+          "min_out_plus_one_rejected": true,
+          "output": 1,
+          "product_delta": "3999997",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            2000004,
+            1999998
+          ],
+          "before": [
+            2000000,
+            2000000
+          ],
+          "effective": 3,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 4,
+          "min_out_plus_one_rejected": true,
+          "output": 2,
+          "product_delta": "3999992",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            2000005,
+            1999997
+          ],
+          "before": [
+            2000000,
+            2000000
+          ],
+          "effective": 4,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 5,
+          "min_out_plus_one_rejected": true,
+          "output": 3,
+          "product_delta": "3999985",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            2000333,
+            1999669
+          ],
+          "before": [
+            2000000,
+            2000000
+          ],
+          "effective": 332,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 333,
+          "min_out_plus_one_rejected": true,
+          "output": 331,
+          "product_delta": "3889777",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            2000334,
+            1999669
+          ],
+          "before": [
+            2000000,
+            2000000
+          ],
+          "effective": 332,
+          "exact_min_out_accepted": true,
+          "fee": 2,
+          "gross": 334,
+          "min_out_plus_one_rejected": true,
+          "output": 331,
+          "product_delta": "5889446",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            2000335,
+            1999668
+          ],
+          "before": [
+            2000000,
+            2000000
+          ],
+          "effective": 333,
+          "exact_min_out_accepted": true,
+          "fee": 2,
+          "gross": 335,
+          "min_out_plus_one_rejected": true,
+          "output": 332,
+          "product_delta": "5888780",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            2001000,
+            1999004
+          ],
+          "before": [
+            2000000,
+            2000000
+          ],
+          "effective": 997,
+          "exact_min_out_accepted": true,
+          "fee": 3,
+          "gross": 1000,
+          "min_out_plus_one_rejected": true,
+          "output": 996,
+          "product_delta": "7004000",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            2009999,
+            1990081
+          ],
+          "before": [
+            2000000,
+            2000000
+          ],
+          "effective": 9969,
+          "exact_min_out_accepted": true,
+          "fee": 30,
+          "gross": 9999,
+          "min_out_plus_one_rejected": true,
+          "output": 9919,
+          "product_delta": "60819919",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            1999999,
+            2000003
+          ],
+          "before": [
+            2000000,
+            2000000
+          ],
+          "effective": 2,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 3,
+          "min_out_plus_one_rejected": true,
+          "output": 1,
+          "product_delta": "3999997",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            1999998,
+            2000004
+          ],
+          "before": [
+            2000000,
+            2000000
+          ],
+          "effective": 3,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 4,
+          "min_out_plus_one_rejected": true,
+          "output": 2,
+          "product_delta": "3999992",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            1999997,
+            2000005
+          ],
+          "before": [
+            2000000,
+            2000000
+          ],
+          "effective": 4,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 5,
+          "min_out_plus_one_rejected": true,
+          "output": 3,
+          "product_delta": "3999985",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            1999669,
+            2000333
+          ],
+          "before": [
+            2000000,
+            2000000
+          ],
+          "effective": 332,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 333,
+          "min_out_plus_one_rejected": true,
+          "output": 331,
+          "product_delta": "3889777",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            1999669,
+            2000334
+          ],
+          "before": [
+            2000000,
+            2000000
+          ],
+          "effective": 332,
+          "exact_min_out_accepted": true,
+          "fee": 2,
+          "gross": 334,
+          "min_out_plus_one_rejected": true,
+          "output": 331,
+          "product_delta": "5889446",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            1999668,
+            2000335
+          ],
+          "before": [
+            2000000,
+            2000000
+          ],
+          "effective": 333,
+          "exact_min_out_accepted": true,
+          "fee": 2,
+          "gross": 335,
+          "min_out_plus_one_rejected": true,
+          "output": 332,
+          "product_delta": "5888780",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            1999004,
+            2001000
+          ],
+          "before": [
+            2000000,
+            2000000
+          ],
+          "effective": 997,
+          "exact_min_out_accepted": true,
+          "fee": 3,
+          "gross": 1000,
+          "min_out_plus_one_rejected": true,
+          "output": 996,
+          "product_delta": "7004000",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            1990081,
+            2009999
+          ],
+          "before": [
+            2000000,
+            2000000
+          ],
+          "effective": 9969,
+          "exact_min_out_accepted": true,
+          "fee": 30,
+          "gross": 9999,
+          "min_out_plus_one_rejected": true,
+          "output": 9919,
+          "product_delta": "60819919",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            1002003,
+            9223362831911026319
+          ],
+          "before": [
+            1002001,
+            9223372036854765807
+          ],
+          "effective": 1,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 2,
+          "min_out_plus_one_rejected": true,
+          "output": 9204943739488,
+          "product_delta": "9223362831911337150",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            1002004,
+            9223353626985659917
+          ],
+          "before": [
+            1002001,
+            9223372036854765807
+          ],
+          "effective": 2,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 3,
+          "min_out_plus_one_rejected": true,
+          "output": 18409869105890,
+          "product_delta": "9223353626986093861",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            1002005,
+            9223344422078666546
+          ],
+          "before": [
+            1002001,
+            9223372036854765807
+          ],
+          "effective": 3,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 4,
+          "min_out_plus_one_rejected": true,
+          "output": 27614776099261,
+          "product_delta": "9223344422079044923",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            1002006,
+            9223335217190046151
+          ],
+          "before": [
+            1002001,
+            9223372036854765807
+          ],
+          "effective": 4,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 5,
+          "min_out_plus_one_rejected": true,
+          "output": 36819664719656,
+          "product_delta": "9223335217190199099",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            1002334,
+            9220317004728480649
+          ],
+          "before": [
+            1002001,
+            9223372036854765807
+          ],
+          "effective": 332,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 333,
+          "min_out_plus_one_rejected": true,
+          "output": 3055032126285158,
+          "product_delta": "9220317004729454959",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            1002335,
+            9220317004728480649
+          ],
+          "before": [
+            1002001,
+            9223372036854765807
+          ],
+          "effective": 332,
+          "exact_min_out_accepted": true,
+          "fee": 2,
+          "gross": 334,
+          "min_out_plus_one_rejected": true,
+          "output": 3055032126285158,
+          "product_delta": "18440634009457935608",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            1002336,
+            9220307805881584575
+          ],
+          "before": [
+            1002001,
+            9223372036854765807
+          ],
+          "effective": 333,
+          "exact_min_out_accepted": true,
+          "fee": 2,
+          "gross": 335,
+          "min_out_plus_one_rejected": true,
+          "output": 3064230973181232,
+          "product_delta": "18440615611763187393",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            1003001,
+            9214203821244421418
+          ],
+          "before": [
+            1002001,
+            9223372036854765807
+          ],
+          "effective": 997,
+          "exact_min_out_accepted": true,
+          "fee": 3,
+          "gross": 1000,
+          "min_out_plus_one_rejected": true,
+          "output": 9168215610344389,
+          "product_delta": "27642611463733295611",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            1012000,
+            9132511837604387673
+          ],
+          "before": [
+            1002001,
+            9223372036854765807
+          ],
+          "effective": 9969,
+          "exact_min_out_accepted": true,
+          "fee": 30,
+          "gross": 9999,
+          "min_out_plus_one_rejected": true,
+          "output": 90860199250378134,
+          "product_delta": "273975355128131696193",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            9223362831911026319,
+            1002003
+          ],
+          "before": [
+            9223372036854765807,
+            1002001
+          ],
+          "effective": 1,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 2,
+          "min_out_plus_one_rejected": true,
+          "output": 9204943739488,
+          "product_delta": "9223362831911337150",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            9223353626985659917,
+            1002004
+          ],
+          "before": [
+            9223372036854765807,
+            1002001
+          ],
+          "effective": 2,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 3,
+          "min_out_plus_one_rejected": true,
+          "output": 18409869105890,
+          "product_delta": "9223353626986093861",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            9223344422078666546,
+            1002005
+          ],
+          "before": [
+            9223372036854765807,
+            1002001
+          ],
+          "effective": 3,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 4,
+          "min_out_plus_one_rejected": true,
+          "output": 27614776099261,
+          "product_delta": "9223344422079044923",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            9223335217190046151,
+            1002006
+          ],
+          "before": [
+            9223372036854765807,
+            1002001
+          ],
+          "effective": 4,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 5,
+          "min_out_plus_one_rejected": true,
+          "output": 36819664719656,
+          "product_delta": "9223335217190199099",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            9220317004728480649,
+            1002334
+          ],
+          "before": [
+            9223372036854765807,
+            1002001
+          ],
+          "effective": 332,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 333,
+          "min_out_plus_one_rejected": true,
+          "output": 3055032126285158,
+          "product_delta": "9220317004729454959",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            9220317004728480649,
+            1002335
+          ],
+          "before": [
+            9223372036854765807,
+            1002001
+          ],
+          "effective": 332,
+          "exact_min_out_accepted": true,
+          "fee": 2,
+          "gross": 334,
+          "min_out_plus_one_rejected": true,
+          "output": 3055032126285158,
+          "product_delta": "18440634009457935608",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            9220307805881584575,
+            1002336
+          ],
+          "before": [
+            9223372036854765807,
+            1002001
+          ],
+          "effective": 333,
+          "exact_min_out_accepted": true,
+          "fee": 2,
+          "gross": 335,
+          "min_out_plus_one_rejected": true,
+          "output": 3064230973181232,
+          "product_delta": "18440615611763187393",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            9214203821244421418,
+            1003001
+          ],
+          "before": [
+            9223372036854765807,
+            1002001
+          ],
+          "effective": 997,
+          "exact_min_out_accepted": true,
+          "fee": 3,
+          "gross": 1000,
+          "min_out_plus_one_rejected": true,
+          "output": 9168215610344389,
+          "product_delta": "27642611463733295611",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            9132511837604387673,
+            1012000
+          ],
+          "before": [
+            9223372036854765807,
+            1002001
+          ],
+          "effective": 9969,
+          "exact_min_out_accepted": true,
+          "fee": 30,
+          "gross": 9999,
+          "min_out_plus_one_rejected": true,
+          "output": 90860199250378134,
+          "product_delta": "273975355128131696193",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            1000000009999,
+            999999991
+          ],
+          "before": [
+            1000000000000,
+            1000000000
+          ],
+          "effective": 9969,
+          "exact_min_out_accepted": true,
+          "fee": 30,
+          "gross": 9999,
+          "min_out_plus_one_rejected": true,
+          "output": 9,
+          "product_delta": "998999910009",
+          "side": "Buy"
+        },
+        {
+          "after": [
+            999999999001,
+            1000000002
+          ],
+          "before": [
+            1000000000000,
+            1000000000
+          ],
+          "effective": 1,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 2,
+          "min_out_plus_one_rejected": true,
+          "output": 999,
+          "product_delta": "1000999998002",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            999999998001,
+            1000000003
+          ],
+          "before": [
+            1000000000000,
+            1000000000
+          ],
+          "effective": 2,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 3,
+          "min_out_plus_one_rejected": true,
+          "output": 1999,
+          "product_delta": "1000999994003",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            999999997001,
+            1000000004
+          ],
+          "before": [
+            1000000000000,
+            1000000000
+          ],
+          "effective": 3,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 4,
+          "min_out_plus_one_rejected": true,
+          "output": 2999,
+          "product_delta": "1000999988004",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            999999996001,
+            1000000005
+          ],
+          "before": [
+            1000000000000,
+            1000000000
+          ],
+          "effective": 4,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 5,
+          "min_out_plus_one_rejected": true,
+          "output": 3999,
+          "product_delta": "1000999980005",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            999999668001,
+            1000000333
+          ],
+          "before": [
+            1000000000000,
+            1000000000
+          ],
+          "effective": 332,
+          "exact_min_out_accepted": true,
+          "fee": 1,
+          "gross": 333,
+          "min_out_plus_one_rejected": true,
+          "output": 331999,
+          "product_delta": "1000889444333",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            999999668001,
+            1000000334
+          ],
+          "before": [
+            1000000000000,
+            1000000000
+          ],
+          "effective": 332,
+          "exact_min_out_accepted": true,
+          "fee": 2,
+          "gross": 334,
+          "min_out_plus_one_rejected": true,
+          "output": 331999,
+          "product_delta": "2000889112334",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            999999667001,
+            1000000335
+          ],
+          "before": [
+            1000000000000,
+            1000000000
+          ],
+          "effective": 333,
+          "exact_min_out_accepted": true,
+          "fee": 2,
+          "gross": 335,
+          "min_out_plus_one_rejected": true,
+          "output": 332999,
+          "product_delta": "2000888445335",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            999999003001,
+            1000001000
+          ],
+          "before": [
+            1000000000000,
+            1000000000
+          ],
+          "effective": 997,
+          "exact_min_out_accepted": true,
+          "fee": 3,
+          "gross": 1000,
+          "min_out_plus_one_rejected": true,
+          "output": 996999,
+          "product_delta": "3000003001000",
+          "side": "Sell"
+        },
+        {
+          "after": [
+            999990031100,
+            1000009999
+          ],
+          "before": [
+            1000000000000,
+            1000000000
+          ],
+          "effective": 9969,
+          "exact_min_out_accepted": true,
+          "fee": 30,
+          "gross": 9999,
+          "min_out_plus_one_rejected": true,
+          "output": 9968900,
+          "product_delta": "30000320968900",
+          "side": "Sell"
+        }
+      ],
+      "zero_effective_input_rejections": 8,
+      "zero_output_or_capacity_rejections": 28
+    },
+    {
+      "accepted_quotes_checked": 195,
+      "crossing_buys": [
+        {
+          "curve_output": 60000000000,
+          "extra": 0,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 60000000000,
+          "extra": 1,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 1,
+          "sold_before": 0,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 60000000000,
+          "extra": 2,
+          "market_fee": 1,
+          "market_output": 99,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 60000000000,
+          "extra": 3,
+          "market_fee": 1,
+          "market_output": 199,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 60000000000,
+          "extra": 4,
+          "market_fee": 1,
+          "market_output": 299,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 60000000000,
+          "extra": 334,
+          "market_fee": 2,
+          "market_output": 33199,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 60000000000,
+          "extra": 1000000,
+          "market_fee": 3000,
+          "market_output": 99452115,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 59999999999,
+          "extra": 0,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 59999999999,
+          "extra": 1,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 1,
+          "sold_before": 1,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 59999999999,
+          "extra": 2,
+          "market_fee": 1,
+          "market_output": 99,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 59999999999,
+          "extra": 3,
+          "market_fee": 1,
+          "market_output": 199,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 59999999999,
+          "extra": 4,
+          "market_fee": 1,
+          "market_output": 299,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 59999999999,
+          "extra": 334,
+          "market_fee": 2,
+          "market_output": 33199,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 59999999999,
+          "extra": 1000000,
+          "market_fee": 3000,
+          "market_output": 99452115,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 30000000000,
+          "extra": 0,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 0,
+          "sold_before": 30000000000,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 30000000000,
+          "extra": 1,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 1,
+          "sold_before": 30000000000,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 30000000000,
+          "extra": 2,
+          "market_fee": 1,
+          "market_output": 99,
+          "refund": 0,
+          "sold_before": 30000000000,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 30000000000,
+          "extra": 3,
+          "market_fee": 1,
+          "market_output": 199,
+          "refund": 0,
+          "sold_before": 30000000000,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 30000000000,
+          "extra": 4,
+          "market_fee": 1,
+          "market_output": 299,
+          "refund": 0,
+          "sold_before": 30000000000,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 30000000000,
+          "extra": 334,
+          "market_fee": 2,
+          "market_output": 33199,
+          "refund": 0,
+          "sold_before": 30000000000,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 30000000000,
+          "extra": 1000000,
+          "market_fee": 3000,
+          "market_output": 99452115,
+          "refund": 0,
+          "sold_before": 30000000000,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 1,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 1,
+          "sold_before": 59999999999,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 2,
+          "market_fee": 1,
+          "market_output": 99,
+          "refund": 0,
+          "sold_before": 59999999999,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 3,
+          "market_fee": 1,
+          "market_output": 199,
+          "refund": 0,
+          "sold_before": 59999999999,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 4,
+          "market_fee": 1,
+          "market_output": 299,
+          "refund": 0,
+          "sold_before": 59999999999,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 334,
+          "market_fee": 2,
+          "market_output": 33199,
+          "refund": 0,
+          "sold_before": 59999999999,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 1000000,
+          "market_fee": 3000,
+          "market_output": 99452115,
+          "refund": 0,
+          "sold_before": 59999999999,
+          "supply": 100000000000
+        },
+        {
+          "curve_output": 420000000000,
+          "extra": 0,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 420000000000,
+          "extra": 1,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 1,
+          "sold_before": 0,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 420000000000,
+          "extra": 2,
+          "market_fee": 1,
+          "market_output": 99,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 420000000000,
+          "extra": 3,
+          "market_fee": 1,
+          "market_output": 199,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 420000000000,
+          "extra": 4,
+          "market_fee": 1,
+          "market_output": 299,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 420000000000,
+          "extra": 334,
+          "market_fee": 2,
+          "market_output": 33199,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 420000000000,
+          "extra": 1000000,
+          "market_fee": 3000,
+          "market_output": 99664512,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 419999999999,
+          "extra": 0,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 419999999999,
+          "extra": 1,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 1,
+          "sold_before": 1,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 419999999999,
+          "extra": 2,
+          "market_fee": 1,
+          "market_output": 99,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 419999999999,
+          "extra": 3,
+          "market_fee": 1,
+          "market_output": 199,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 419999999999,
+          "extra": 4,
+          "market_fee": 1,
+          "market_output": 299,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 419999999999,
+          "extra": 334,
+          "market_fee": 2,
+          "market_output": 33199,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 419999999999,
+          "extra": 1000000,
+          "market_fee": 3000,
+          "market_output": 99664512,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 210000000000,
+          "extra": 0,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 0,
+          "sold_before": 210000000000,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 210000000000,
+          "extra": 1,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 1,
+          "sold_before": 210000000000,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 210000000000,
+          "extra": 2,
+          "market_fee": 1,
+          "market_output": 99,
+          "refund": 0,
+          "sold_before": 210000000000,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 210000000000,
+          "extra": 3,
+          "market_fee": 1,
+          "market_output": 199,
+          "refund": 0,
+          "sold_before": 210000000000,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 210000000000,
+          "extra": 4,
+          "market_fee": 1,
+          "market_output": 299,
+          "refund": 0,
+          "sold_before": 210000000000,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 210000000000,
+          "extra": 334,
+          "market_fee": 2,
+          "market_output": 33199,
+          "refund": 0,
+          "sold_before": 210000000000,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 210000000000,
+          "extra": 1000000,
+          "market_fee": 3000,
+          "market_output": 99664512,
+          "refund": 0,
+          "sold_before": 210000000000,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 1,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 1,
+          "sold_before": 419999999999,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 2,
+          "market_fee": 1,
+          "market_output": 99,
+          "refund": 0,
+          "sold_before": 419999999999,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 3,
+          "market_fee": 1,
+          "market_output": 199,
+          "refund": 0,
+          "sold_before": 419999999999,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 4,
+          "market_fee": 1,
+          "market_output": 299,
+          "refund": 0,
+          "sold_before": 419999999999,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 334,
+          "market_fee": 2,
+          "market_output": 33199,
+          "refund": 0,
+          "sold_before": 419999999999,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 1000000,
+          "market_fee": 3000,
+          "market_output": 99664512,
+          "refund": 0,
+          "sold_before": 419999999999,
+          "supply": 700000000000
+        },
+        {
+          "curve_output": 6148914691200000,
+          "extra": 0,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 6148914691200000,
+          "extra": 1,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 1,
+          "sold_before": 0,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 6148914691200000,
+          "extra": 2,
+          "market_fee": 1,
+          "market_output": 99,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 6148914691200000,
+          "extra": 3,
+          "market_fee": 1,
+          "market_output": 199,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 6148914691200000,
+          "extra": 4,
+          "market_fee": 1,
+          "market_output": 299,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 6148914691200000,
+          "extra": 334,
+          "market_fee": 2,
+          "market_output": 33199,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 6148914691200000,
+          "extra": 1000000,
+          "market_fee": 3000,
+          "market_output": 99699997,
+          "refund": 0,
+          "sold_before": 0,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 6148914691199999,
+          "extra": 0,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 6148914691199999,
+          "extra": 1,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 1,
+          "sold_before": 1,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 6148914691199999,
+          "extra": 2,
+          "market_fee": 1,
+          "market_output": 99,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 6148914691199999,
+          "extra": 3,
+          "market_fee": 1,
+          "market_output": 199,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 6148914691199999,
+          "extra": 4,
+          "market_fee": 1,
+          "market_output": 299,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 6148914691199999,
+          "extra": 334,
+          "market_fee": 2,
+          "market_output": 33199,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 6148914691199999,
+          "extra": 1000000,
+          "market_fee": 3000,
+          "market_output": 99699997,
+          "refund": 0,
+          "sold_before": 1,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 3074457345600000,
+          "extra": 0,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 0,
+          "sold_before": 3074457345600000,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 3074457345600000,
+          "extra": 1,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 1,
+          "sold_before": 3074457345600000,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 3074457345600000,
+          "extra": 2,
+          "market_fee": 1,
+          "market_output": 99,
+          "refund": 0,
+          "sold_before": 3074457345600000,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 3074457345600000,
+          "extra": 3,
+          "market_fee": 1,
+          "market_output": 199,
+          "refund": 0,
+          "sold_before": 3074457345600000,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 3074457345600000,
+          "extra": 4,
+          "market_fee": 1,
+          "market_output": 299,
+          "refund": 0,
+          "sold_before": 3074457345600000,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 3074457345600000,
+          "extra": 334,
+          "market_fee": 2,
+          "market_output": 33199,
+          "refund": 0,
+          "sold_before": 3074457345600000,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 3074457345600000,
+          "extra": 1000000,
+          "market_fee": 3000,
+          "market_output": 99699997,
+          "refund": 0,
+          "sold_before": 3074457345600000,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 1,
+          "market_fee": 0,
+          "market_output": 0,
+          "refund": 1,
+          "sold_before": 6148914691199999,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 2,
+          "market_fee": 1,
+          "market_output": 99,
+          "refund": 0,
+          "sold_before": 6148914691199999,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 3,
+          "market_fee": 1,
+          "market_output": 199,
+          "refund": 0,
+          "sold_before": 6148914691199999,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 4,
+          "market_fee": 1,
+          "market_output": 299,
+          "refund": 0,
+          "sold_before": 6148914691199999,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 334,
+          "market_fee": 2,
+          "market_output": 33199,
+          "refund": 0,
+          "sold_before": 6148914691199999,
+          "supply": 10248191152000000
+        },
+        {
+          "curve_output": 1,
+          "extra": 1000000,
+          "market_fee": 3000,
+          "market_output": 99699997,
+          "refund": 0,
+          "sold_before": 6148914691199999,
+          "supply": 10248191152000000
+        }
+      ],
+      "exact_buy_sell_roundtrips": 12,
+      "experiment": "curve_cash_conservation_min_out_roundtrip_and_graduation_matrix",
+      "supply_extremes": [
+        100000000000,
+        10248191152000000
+      ],
+      "tiny_buy_rejections": 0
+    },
+    {
+      "average_price_vs_cumulative_cash_max_gap": 1,
+      "capacity_crossing_r1cs_unsatisfiable": true,
+      "capacity_crossing_rejected_by_host": true,
+      "dust_crossing_refund_recursive_agrees": true,
+      "experiment": "flat_ceiling_dust_and_capacity_boundaries",
+      "first_noid_buy_spent": 1,
+      "first_noid_buy_units": 299,
+      "flat_sell_point_found": 30000000000,
+      "two_unit_remainder_executes_recursive_agrees": true,
+      "zero_proceeds_sell_rejected": true,
+      "zero_spend_graduation": {
+        "gross": 1,
+        "output": 1,
+        "pool_base": 400000000,
+        "pool_quote": 40000000000,
+        "recursive_r1cs_satisfied_and_equal": true,
+        "sold_before": 59999999999,
+        "spent_input": 0
+      }
+    },
+    {
+      "curve_buy_then_sell_roundtrips": 500,
+      "curve_roundtrip_property": "exact cumulative-cash reversal before graduation",
+      "experiment": "sell_buy_symmetry_and_profit_search",
+      "max_curve_noid_return_observed": 997827,
+      "max_pool_noid_return_observed": 989756,
+      "pool_buy_then_sell_roundtrips": 500,
+      "profitable_curve_roundtrips": 0,
+      "profitable_pool_roundtrips": 0
+    },
+    {
+      "canonical_native_intent_replayed": true,
+      "experiment": "canonical_multi_trade_acceptance_atomicity_and_tampering",
+      "fills": [
+        {
+          "gross": 10000,
+          "market_fee": 30,
+          "min_out": 1,
+          "output": 996975,
+          "side": "Buy",
+          "source_index": 0,
+          "spent": 10000
+        },
+        {
+          "gross": 20000,
+          "market_fee": 60,
+          "min_out": 1,
+          "output": 1993801,
+          "side": "Buy",
+          "source_index": 1,
+          "spent": 20000
+        }
+      ],
+      "first_fill_output": 996975,
+      "network_fee": 19600,
+      "noid_conserved_less_network_fee": true,
+      "one_bad_min_out_rejects_whole_batch": "Batch(Unfilled)",
+      "one_unit_free_token_rejected": true,
+      "one_unit_invalid_pool_successor_rejected": true,
+      "state_applied": true,
+      "state_unchanged_after_batch_rejection": true,
+      "tokens_conserved": true
+    },
+    {
+      "canonical_wire_replayed_and_state_applied": true,
+      "execution_order": [
+        {
+          "curve_output": 1000,
+          "curve_spent": 9,
+          "market_fee": 3000,
+          "output": 99453115,
+          "side": "Buy",
+          "source_index": 1
+        },
+        {
+          "curve_output": 0,
+          "curve_spent": 0,
+          "market_fee": 30,
+          "output": 100,
+          "side": "Sell",
+          "source_index": 0
+        }
+      ],
+      "experiment": "accepted_graduation_liquidity_transition_and_post_graduation_sell",
+      "final_pool": [
+        400999900,
+        39900557885
+      ],
+      "market_definition_auxiliary_bound": true,
+      "shares": [
+        4000000000,
+        4000000000
+      ],
+      "token_conservation_including_post_graduation_sell": true
+    },
+    {
+      "duplicate_funding_slot_rejected": true,
+      "experiment": "canonical_curve_batch_tampering_and_hygiene",
+      "fee_limit_one_rejected": true,
+      "graduation_pool_successor_bump_rejected": true,
+      "min_quoted_fee_in_fixture": 6600,
+      "noid_payout_bump_rejected": true,
+      "output_slot_collision_rejected": true,
+      "permuted_input_claims_rejected": true,
+      "successor_cash_cut_rejected": true,
+      "successor_free_tokens_rejected": true,
+      "tamper_rejection_layers": {
+        "graduation_pool_bump": "page_structure_amount_binding",
+        "noid_payout_bump": "execution_rederivation",
+        "successor_cash_cut": "page_structure_amount_binding",
+        "successor_free_tokens": "execution_rederivation",
+        "token_payout_bump": "execution_rederivation"
+      },
+      "token_payout_bump_rejected": true
+    },
+    {
+      "execution_order": [
+        {
+          "gross": 40000,
+          "output": 3987602,
+          "side": "Buy",
+          "source_index": 1
+        },
+        {
+          "gross": 30000000,
+          "output": 298936,
+          "side": "Sell",
+          "source_index": 0
+        },
+        {
+          "gross": 500000000,
+          "output": 22213376764,
+          "side": "Buy",
+          "source_index": 2
+        }
+      ],
+      "experiment": "sequencing_determinism_and_price_direction",
+      "plan_deterministic_across_runs_and_batch_objects": true,
+      "prepared_batch_matches_plan_order": true
+    },
+    {
+      "comparison_fields": [
+        "spent_input",
+        "output",
+        "market_fee",
+        "curve_spent",
+        "curve_output",
+        "after_curve",
+        "after_base",
+        "after_quote"
+      ],
+      "curve_and_graduation_r1cs_cases_matched": 120,
+      "experiment": "host_vs_recursive_differential",
+      "host_rejected_min_out_plus_one_r1cs_unsatisfied": true,
+      "pool_r1cs_cases_matched": 72
+    }
+  ],
+  "source": "git archive of pinned commit under experiments/dex-economics/pinned"
+}
