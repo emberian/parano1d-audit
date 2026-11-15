@@ -32,7 +32,11 @@ sponge finalization is *not* subfield-confined; the ideal-model theorems are not
 
 Against the pinned commit, the swarm demonstrated **two cheap collisions in production compressor
 domains** (`TAG_CAPSNODE`, 72,274 evaluations / 0.128 s; `IVCPCSN_`, 111,525 evaluations / 0.29 s —
-both root-verified), a **prehashed Merkle commitment collision at the exact production source-tree
+both root-verified) and, from the takeover's escalation lane, a **cross-tag claw** — one 32-byte
+digest simultaneously valid as a `TAG_CAPSNODE` and an `IVCPCSN_` node digest, with two
+prehashed trees committing to identical bytes under both domains' production raw verifier
+(111,423 evaluations / 0.49 s), refuting the shipped design comment that "distinct trees cannot
+share collisions" — a **prehashed Merkle commitment collision at the exact production source-tree
 geometry** (depth 13, cap depth 3: two distinct leaf vectors, one eight-hash cap, both openings
 accepted by the production prehashed Merkle verifier), **proof malleability at the legacy
 `noid_fri` public verifier API** (distinct five- and six-lane final-codeword proofs verify for one
@@ -51,8 +55,11 @@ guardrail: the exact UTXO state tree uses the other (two-permutation) compressor
 BaseFold verifiers recompute leaf hashes and pin depths and path lengths; fold equations reject
 substituted openings (0 altered full PCS openings accepted); the caller sweep found no production
 caller that authenticates attacker-supplied child digests without recomputing descendants. The
-consistent escalation barrier is **valid leaf/descendant semantics for the colliding children**
-(estimated 2^224 per random leaf to enter the aligned class), not more node-hash grinding. The
+consistent escalation barrier is **valid leaf/descendant semantics for the colliding children** —
+now proven a leaf wall: the leaf sponges' capacity IVs sit outside every invariant subfield, so
+no aligned leaf lift exists below the generic 2^128 bound (the earlier 2^224 estimate is
+superseded) — not more node-hash grinding; the only live finish line left is an **external**
+consumer of the public raw APIs. The
 remaining confirmed protocol-level flaws are conditional or bounded: same-anchor replay is a replay
 property (not a forgery; severity depends on whether authorization is meant to be fork-specific),
 the HeaderDAG capacity stall is a Medium conditional liveness defect (requires ~1,024 valid PoW
@@ -60,7 +67,9 @@ headers), the unbounded `getSlotsByOwner` RPC query is local-only under the pinn
 policy, the P2P profile-ID collision across fork schedules yields incompatible-peer mixing /
 DoS, not cross-version proof acceptance — and **one Medium unauthenticated-remote availability
 defect (C17)**: four 12-byte mempool pulls can pin the process-wide outbound byte domain and
-convert serving for all peers from delay to rejection, with no acceptance impact. The root's own position statement (02:58:28): *"serious
+convert serving for all peers from delay to rejection, with no acceptance impact; the
+circulating-supply counter is unauthenticated on the compact-restart path (C20, local-tamper
+precondition: silent divergence upward, permanent spend-admission stall downward). The root's own position statement (02:58:28): *"serious
 warning signs, no consequential end-to-end attack shown yet — not 'definitely broken,' but also not
 'these results are satisfying.'"* The upstream `main` (`e6d324ff…`) still contains the vulnerable
 compressor unchanged, and the upstream test suites pass — this is a design/parameterization failure,
@@ -91,6 +100,8 @@ not a broken build.
 | C17 | **Unauthenticated-remote (audit's first): four cheap mempool pulls pin the entire process-wide outbound byte domain** | Every served mempool pull unconditionally reserves the full 16 MiB `MAX_MEMPOOL_SYNC_BYTES` from the single 64 MiB domain — even for an empty mempool; 4 stalled writes (peer stops reading; one 303,495 B legal intent exceeds the ~256 KiB yamux window) pin it all, blocking object/history-step/segment/fork-origin serving; 6 blocked object requests exhaust the class slots and all further object requests get `Busy` — rejection, not delay — for every peer; rotation every ≤30 s sustains ~100% duty cycle | Medium availability, unauthenticated remote peer, **no acceptance impact**; four honest slow-link mempool syncs can cause the same starvation accidentally | **[RV-T]** — takeover lane, tee'd `results.txt` (real codecs + real process-global budget): `aggressors holding the entire domain mid-write: 4/4`; production-path slot exhaustion established by source reading (`pub(crate)` unreachable externally) | `/Users/ember/dev/parano1d-break/experiments/p2p-resources/` (`README.md` Finding 1, `results.txt`) |
 | C18 | Header-sync serving memory is outside every process-wide budget; retention scales with attacker connections | `GetHeadersResponse` carries no permit; the codec holds canonical (1,179,648 B cap) plus compressed buffers during stalled writes; 64 stalled streams (8/conn x 8 conns, 16-byte requests) retained 75,497,472 canonical bytes — more than the entire 64 MiB domain other protocols respect; ~1-2 GB order at the 128-connection cap (~1024 streams) | Low-to-Medium availability/memory, unauthenticated remote, by-design exclusion with quantified cost — contradicts the domain's stated "without scaling with peer count" goal | **[RV-T]** — takeover lane, tee'd `results.txt` (canonical figure is a content-independent lower bound; the ~1-2 GB extrapolation and 8-slot-semaphore scope are source-read) | `/Users/ember/dev/parano1d-break/experiments/p2p-resources/` (`README.md` Finding 2, `results.txt`) |
 | C19 | Every `paranoid_walletQueryReceipts` call rescans and Merkle-reverifies the entire receipt store | Any page including page 1: fetch+clone every stored receipt, decode, re-run Merkle-inclusion verification, then top-k — no cross-call cache; 20k receipts = 4.1-5.6 s wall per call (~205-225 µs/receipt); a GUI walking 400 pages burns ~28 min of one core | Medium availability, **credential-gated** (operator bearer or loopback owner, `server.rs:3861` allowlist; NOT anonymously reachable); serialized, authenticated CPU burn, not an unauthenticated amplification | **[RV-T]** — takeover lane, tee'd `results.txt` (real `start_rpc_server` + real handlers, 20k Merkle-valid receipts): `A1 … wall 5616038 us`; `A6 repeated page-1 walls: [4514004, 4442464, 4118766] us` | `/Users/ember/dev/parano1d-break/experiments/rpc-api/` (`README.md` Finding 1, `results.txt`) |
+| C20 | Unauthenticated circulating-supply counter on the compact-restart path | The v2 supply appended to `state_meta` is the only hot counter NOT bound to the hash-committed tip header; compact restart trusts it verbatim while the dense fallback recomputes from authenticated slots. Upward corruption (+123,456,789): silently accepted with state roots EQUAL, propagates through a subsequent valid commit. Downward (zeroed): silently accepted, then a production-template spend of two coinbase UTXOs (validated end-to-end on a clean twin) is rejected deterministically and permanently; tip pinned at height 3 while coinbase-only blocks keep the node looking alive (45M reported vs 180M true) | Medium — integrity/liveness on a single node; **precondition: local DB write / bit rot / tampered backup** (no remote vector); no invalid block accepted, nothing minted, UTXO amounts stay root-authenticated | **[RV-T]** — takeover lane, tee'd `results.txt` (real `MdbxChainContext`, real templates + PoW): `VULN compact-restart: clean_supply=45000000 corrupted_supply=168456789 … state_roots_equal=true`; spend-stall line quoted in detail | `/Users/ember/dev/parano1d-break/experiments/storage-reorg/` (`README.md` Finding 1, `results.txt`) |
+| C21 | Cross-tag claw: one digest simultaneously valid as a `TAG_CAPSNODE` and an `IVCPCSN_` node digest, with two identically-committing prehashed trees | One 32-byte digest (`9964c133…c0429a`), shared left, distinct rights, found in 111,423 evals / 0.49 s; two 2-leaf prehashed trees — one per domain — with IDENTICAL commitment bytes, each accepted by the production raw `verify_source_batched_merkle_proof_to_cap` under its own node hasher (`capsnode_raw_verify: accepted`, `ivcpcsn_raw_verify: accepted`, `roots_identical: true`) | Refutes the shipped design comment at `compression.rs:319-325` ("distinct trees cannot share collisions") — the tag domain separation is worth ~16 bits on the aligned coset, not 128; reach is raw-API-only (no in-tree caller compares digests across domains; the tower-digest bridge is `#[cfg(test)]`) | **[RV-T]** — takeover escalation lane, tee'd `results.txt` (all three binaries exited 0; claw self-verified through the real compressors, real `noid_ivc_core::merkle::hash_pair`, and the production raw verifier) | `/Users/ember/dev/parano1d-break/experiments/leaf-reachability/` (`README.md` Finding B, `results.txt`) |
 
 ### Per-finding detail and exact scope limits
 
@@ -135,7 +146,8 @@ the same eight-hash commitment, and production verification accepts both altered
 Precision statement (root, same entry): *"We have a production Merkle commitment/opening collision
 at the correct tree geometry, but not valid CAPSMIX preimages for the colliding children and not a
 full capsule attack."* A random 256-bit `CAPSMIX` digest enters the aligned class with probability
-2^-224 (agent-4).
+2^-224 (agent-4; superseded by the §5 leaf-wall economics — the aligned-lift routes are all
+dominated by the generic 2^128 bound).
 
 **C4 — `CAPSMIX` leaf/internal alias.** `alias_depth.rs`: a real `CAPSMIX` leaf digest
 (`8f896f52226dfede76e85ea49a622eedcba1aeae61a6b2cbc2f965adcf2c9241`) equals
@@ -387,14 +399,64 @@ with receipt count — not an unauthenticated amplification." Recommended correc
 authenticated sort key alongside each receipt and paginate the index, or cache the verified key
 vector keyed by the existing `query_revision()`.
 
+**C20 — unauthenticated circulating-supply counter.** Takeover lane
+`/Users/ember/dev/parano1d-break/experiments/storage-reorg/` (README Finding 1; run tee'd in
+`results.txt`; real `MdbxChainContext::open_or_create`/`apply_next_block`, real templates, real
+PoW; corruption applied by a second process writing single rows with production-identical MDBX
+options). Mechanism: `state_meta` v2 (`noid_chain/src/storage/serial.rs:520-559`) appends a
+16-byte supply to the v1 counters; on restart the v1 counters are cross-checked against the
+hash-committed tip header (`mdbx_context.rs:781-788`) but the supply is read verbatim
+(`:770`) and trusted by the compact restart path (`try_load_compact_chain_state`,
+`mdbx_context.rs:503-567`) — while the dense fallback (`load_dense_chain_state`) proves the
+value is derivable from authenticated data. Verbatim from `results.txt`: `VULN compact-restart:
+clean_supply=45000000 corrupted_supply=168456789 tip=… state_roots_equal=true` /
+`VULN propagated-by-valid-commit: height=2 clean_supply=90000000
+persisted_corrupt_supply=213456789` / `CONTROL dense-restart-recomputes: cleared
+segment_summaries; recovered_supply=90000000` / `VULN zeroed-supply restart: supply=0 accepted
+silently at height 3, state root still header-authenticated` / `VULN spend-admission stall:
+valid block rejected twice with 'corrupt: uncommitted block supply rollback failed'; tip pinned
+at height 3, no header 4 written` / `LIMIT zeroed supply still admits coinbase-only blocks
+(supply=45000000 at height 4, clean chain had 180000000)`. The downward-stall mechanism:
+`supply_after_slot_updates` (`state.rs:585-612`) folds slot deltas with checked arithmetic from
+the corrupted base and underflows; the rollback of the uncommitted candidate hits the same
+underflow (`mdbx_context.rs:983-988`). Scope: the project's own posture is to authenticate or
+clear-on-corrupt (`mdbx_context.rs:674-701`) — the supply is the one hot counter exempt from
+both, and its failure never triggers the clear-and-resync recovery. Precondition: local write
+access, bit rot, or tampered backup. Stated limits: upward corruption never stalls admission
+(bookkeeping divergence only); the spend-stall demo requires the spent total to exceed the
+corrupted base plus the block's own coinbase; the HistoryStep terminal verifier was stubbed
+(nothing tested depends on proof soundness).
+
+**C21 — cross-tag claw between the two 1-perm node domains.** Takeover escalation lane
+`/Users/ember/dev/parano1d-break/experiments/leaf-reachability/` (README Finding B; run tee'd
+in `results.txt`). Object: a single digest that is simultaneously a valid `TAG_CAPSNODE` node
+digest and a valid `IVCPCSN_` node digest (production `noid_ivc_core::merkle::hash_pair`),
+shared left `298ed143…3d6645`, distinct rights, `shared_digest_hex` =
+`9964c133d849e900a90f95543d0db8657f5fb3b5e7244c350e160f765ec0429a`, found in **111,423
+evaluations / 0.49 s**. Two 2-leaf prehashed trees, one per domain, share the identical
+32-byte commitment, and each opening is accepted by the production raw
+`verify_source_batched_merkle_proof_to_cap` under its own node hasher
+(`"capsnode_raw_verify":"accepted"`, `"ivcpcsn_raw_verify":"accepted"`,
+`"roots_identical":true`, `"leaves_distinct":true`). This empirically refutes the shipped
+design comment at `noid_poseidon2b/src/native/compression.rs:319-325` — *"the caller-selected
+tag whitens the right-input lanes so distinct trees cannot share collisions"* — the tag domain
+separation is worth ~16 bits on the aligned coset, not 128. Scope: no in-tree caller compares
+digests across domains (swept; semantic capsule/PCS consumers recompute leaf hashes; the
+`tower_lanes_to_flat_digest` bridge is `#[cfg(test)]`, `zk_auth_qrom.rs:1999-2004`), so reach
+is the same raw/prehashed-API boundary as the same-tag collisions, now ACROSS domains. The lane
+notes: if `BadTypedBind`/`Delta_P2b` is ever evaluated concretely, this is an instantiable
+input — two domain-typed authentication objects with equal commitment bytes and disjoint
+preimage semantics. **Not claimed anywhere:** no fresh-request forgery, no full-capsule
+collision, no semantic verifier accepts these objects.
+
 ---
 
 ## 3. Reported-but-unverified
 
 Two populations live in this section. (a) Kimi-era items (U1-U9) whose root verification was
 interrupted (02:43-03:03 quota death) or never started — **none of these may be cited as
-root-confirmed**; they keep [AR]/[PC]. (b) U10-U18 (wallet-safety, prover-unsafe, dex-economics,
-rpc-api):
+root-confirmed**; they keep [AR]/[PC]. (b) U10-U19 (wallet-safety, prover-unsafe, dex-economics,
+rpc-api, storage-reorg):
 takeover-completed lanes reclassified **[RV-T]** by ember's 2026-11-15 ruling that a
 takeover-completed lane with a tee'd `results.txt` on disk counts as verified — the evidence is
 the lane's own run output ("the subagents just ran it"). They keep their U-IDs here for continuity.
@@ -458,7 +520,7 @@ template behavior and all six controls. Now recorded as **C15** with certainty *
 this lane). Severity/preconditions unchanged from the lane README: Medium, requires mining
 credential or local owner.
 
-### U6-U18 — further reported results (U6-U9 kimi-era unverified; U10-U18 [RV-T] by ruling)
+### U6-U19 — further reported results (U6-U9 kimi-era unverified; U10-U19 [RV-T] by ruling)
 
 - **U6** state-consensus 20-case adversarial UTXO/state-machine matrix — all rejected
   (`/Users/ember/dev/parano1d-break/experiments/state-consensus/output.txt`, agent-11). The root
@@ -577,6 +639,21 @@ credential or local owner.
   credential preconditions (operator-allowlisted at `server.rs:3860`). Recommended correction:
   route through `spawn_blocking` plus the single-permit gate, or acquire
   `wallet_operation_gate` before the scan.
+- **U19** storage-reorg, **Low-to-Medium liveness** **[RV-T]** (takeover lane, run output tee'd
+  in `/Users/ember/dev/parano1d-break/experiments/storage-reorg/results.txt`; README Finding 2):
+  a noncanonical `chain_tip` encoding is accepted at restart but permanently stalls every
+  successor commit. `decode_chain_tip` (`serial.rs:511-518`) accepts any value of at least 40
+  bytes, silently ignoring trailing bytes (unlike the exact-length segment-summary and
+  consensus-meta decoders), while the commit paths re-read the tip typed as `Option<[u8; 40]>`
+  inside the write transaction (`mdbx_store.rs:3829-3838`). A one-byte append therefore passes
+  every restart consistency check, then **every** subsequent block commit — including reorgs —
+  fails with `store: mdbx: 41`, with no recovery: because restart validation succeeds, the
+  documented clear-all recovery never triggers. Verbatim: `VULN noncanonical-tip: 41-byte
+  chain_tip accepted by open_or_create at height=0` / `LIMIT noncanonical-tip: next valid commit
+  rejected with 'store: mdbx: 41'; no partial tip mutation`. Fail-closed but dead; same
+  local-write/bit-rot precondition as C20, no invalid state accepted. Recommended correction:
+  make `decode_chain_tip` exact-length so the corrupt row is rejected during
+  `restore_from_mdbx` and the clear-and-reinitialize recovery runs.
 
 ---
 
@@ -607,28 +684,63 @@ noted per row.
 | Malformed-frame panics in P2P sync codecs; missing backpressure; ban-system bypass | Attacker-controlled lengths checked against count-relative caps before allocation; checked arithmetic; all `unwrap()`s on compile-time-fixed sizes (static review, non-exhaustive — "no panic found" is not "no panic exists"); header `Busy` backpressure works as designed; per-stream/conn/diversity caps, 30-60 s write-abort timeouts, and a separate inbound 64 MiB domain bound both findings; no app-level ban/score system exists to bypass (gossipsub defaults + IP-colocation factor; immediate disconnect at protocol violations) | [RV-T] (takeover p2p-resources lane, tee'd `results.txt`) |
 | DEX value extraction (manipulated fill, free asset creation, invalid successor state) | No accepted value-extracting transition in 9/9 experiments (`"accepted_value_extraction_found": false`, exit 0); cash-cut successor + pool bump -> page amount binding (`native_assets.rs:1024-1031`); +1 inventory / +1 token / +1 NOID / permuted claims -> re-derived-execution equality (`wire.rs:317-343`); duplicate funding slot, output-slot collision, one bad `min_out` -> whole-batch atomic rejection with state root unchanged; host-vs-recursive: 72 pool + 120 curve/graduation R1CS cases match the host on all 8 economic fields incl. boundary cases, `min_out+1` makes the R1CS unsatisfiable | [RV-T] (takeover dex-economics lane, tee'd `results.txt`/`results.json`; **assurance limit**: differential testing proves honest-witness agreement and min-out enforcement, NOT absence of alternative witnesses — see §5) |
 | RPC receipt forgery / concurrent-query amplification / anonymous remote access / browser drive-by | Every receipt re-verified (Merkle inclusion + key identity), totals correct, no forgery path; single-permit gate rejects concurrent receipt queries immediately; non-loopback listener refuses startup without credentials (`server.rs:3520`); any `Origin` header -> HTTP 403 before dispatch; `Authorization` stripped before tracing; bodies capped `2*128 KiB + 16 KiB`, `deny_unknown_fields`, bounds enforced pre-scan; no panics observed | [RV-T] (takeover rpc-api lane, tee'd `results.txt`) |
+| Reorg/crash/retention inconsistency in MDBX storage | Reorg rollback completeness (depth-1 reorg removes old canonical entries, installs replacement, moves owner-index exactly); staged-reorg atomic abort restores durable state byte-identical and survives reopen; SIGABRT crash recovery resumes at h3 root-matched and accepts block 4; retention boundaries exact at documented depths; historical-window (`TargetOutsideUndoWindow`) and snapshot-boundary checks hold; supply corruption does NOT let an invalid block validate — roots/counters/PoW still bind | [RV-T] (takeover storage-reorg lane, tee'd `results.txt`) |
 | Fresh-request forgery (all lanes) | Owner/Phase-A/Phase-B adaptive ordering; queries derived only after all commitments; no accepted unauthorized statement anywhere | [RV] (root, cumulative: "no unauthorized spend, invalid accepted block, owner-key recovery, or fresh-request forgery", 01:58:28) |
 
 ---
 
-## 5. Open escalation paths (the root's stated finish lines)
+## 5. Open escalation paths (the root's stated finish lines, narrowed by the takeover)
 
-From the root (01:50:29, 01:56:34, 01:58:28), in its own priority order — the plausible finish is
-**not** more birthday grinding:
+The root's original finish lines (01:50:29, 01:56:34, 01:58:28) were: (a) valid `CAPSMIX`
+preimages for the colliding `TAG_CAPSNODE` children, (b) a caller that authenticates
+attacker-supplied child digests without recomputing descendants, (c) cross-protocol digest
+reinterpretation. The takeover's leaf-reachability lane has since **closed (a) against the
+attacker** and **narrowed (b)/(c) to external consumers of the public raw APIs** — the only live
+route left.
 
-1. **Valid `CAPSMIX` preimages for the colliding `TAG_CAPSNODE` children.** The "leaf-reachability
-   gap": construct protocol-valid leaf/descendant openings in the aligned class (generic random
-   entry ~2^224 per leaf), then inject the collision on an actual depth-13 authenticated path.
-   This is also the missing object for a `BadTypedBind` witness (C14) and therefore the direct
-   route to testing whether the CAPSNODE collision fails their Delta < 0.45067 condition (C8).
-2. **A caller that authenticates attacker-supplied child digests without recomputing descendants.**
-   The root's caller sweep found none in current live callers — but the unsafe raw/prehashed APIs
-   remain public and accept authentication objects the semantic protocol would reject; a future
-   caller, SDK consumer, cross-protocol bridge, or recursive/native mismatch could bypass the
-   guardrails (root, 01:50:29).
-3. **Cross-protocol digest reinterpretation** — one valid artifact acquiring different meanings in
-   two protocols/sessions/forks sharing the global permutation (root 01:54:09; the UC lane's
-   adapter checks are the current negative baseline).
+1. **[LEAD, open] External consumers of the public raw APIs.** The only remaining finish: audit
+   every *external* consumer of `verify_source_batched_merkle_proof_to_cap`,
+   `noid_ivc_core::merkle::hash_pair`, and the serialized `MerkleCap` type — SDKs, bridges,
+   indexes/caches keyed by cap bytes — where the C21 cross-domain commitment (identical bytes,
+   two semantics, one cache entry) becomes an exploit. In-tree the route is exhausted: the root's
+   caller sweep found no unguarded production path, and the leaf-reachability sweep confirmed no
+   in-tree caller compares digests across domains (the tower-digest bridge is `#[cfg(test)]`).
+   The raw APIs remain public and accept authentication objects the semantic protocol would
+   reject (root, 01:50:29); cross-protocol reinterpretation (root 01:54:09) now reduces to this
+   same question. If no external consumer exists, the rebuttal's final position is the lane's
+   blocker statement: a principled leaf wall, an accidental node breach, and a shipped comment
+   that promises the wrong thing.
+2. **[CLOSED against the attacker] Valid `CAPSMIX` preimages for the colliding children — the
+   leaf wall.** Leaf sponges (`CAPSMIX`/`CAPSLEAF`/`CAPS256`/`IVCPCSL_`/`IVCPCSF`) load capacity
+   IVs (ASCII labels, min 63 tower bits — IV census in `results.txt`) **outside every invariant
+   subfield**, and absorbs never touch the capacity lanes; with `P(K^4) = K^4` and `P`
+   bijective, the sponge state provably never enters `K^4`. Verified: 65,536 fully-aligned
+   leaves -> 0 aligned digests, 0 intermediate states with aligned capacity, simulation
+   byte-identical to the real `capsule_leaf_hash_mixed`; control: the node compressor on aligned
+   inputs -> 100% aligned (4096/4096). **Economics replaces the swarm's 2^224 estimate:** any
+   aligned lift through GF(2^d) costs `2^(4(128-d)+d)` — `2^464` / `2^416` / `2^320` for
+   d = 16/32/64 — ALL strictly dominated by the generic `2^128` whole-node birthday between two
+   honest commitments; the semantic layer keeps the full generic `2^128` collision resistance
+   even though the node layer offers only `2^16`. More computing on aligned node collisions can
+   never pay. Scope caveat (lane assurance limits): "dominated" covers the aligned-lift routes
+   through the subfield towers, not a lower bound against all conceivable attacks. Residual
+   formal question: whether a `CAPSNODE` collision or the C21 claw instantiates `BadTypedBind`
+   under their definitions (C8, C14) — the algebra is closed; their evaluator is not.
+
+**Algebra note (leaf-reachability lane, characterizes C1/C2/C21).** All permutation round
+constants and MDS multipliers live in `K = GF(2^16)` (max tower encoding 14 bits, from
+`MDS_PARTIAL`'s `0x2000`); `K^4` is invariant under `permute_flat_u128` and the restriction is
+exactly the same Poseidon2 schedule over GF(2^16) — GF(2^16) is the smallest invariant subfield
+(GF(2^8)^4 and GF(2^4)^4 are not invariant). The 1-perm node compressor whitens only the right
+input, so `left in K^2, right in IV + K^2` pins the whole state in `K^4`: a 64-to-32-bit
+function whose collisions are a `2^16` birthday — which is what the swarm observed (72,274 /
+111,525 / 111,423 evaluations; a fresh zero-left collision regenerated live in 167,686
+evaluations / 0.29 s). It is **not** affine-solvable: `x -> x^7` is not K-additive in
+characteristic 2, so collisions are found, not solved. Guardrail asymmetry, demonstrated: the
+two-permutation `compress_with_tag` (EXSTNOD state trees) seats the IV in the capacity lanes
+before the first permutation, and 4096/4096 tower-aligned inputs yield 0 aligned digests — same
+constants, same permutation; the *schedule* is the difference (corroborating C1's scope note
+that the exact state tree is unaffected).
 
 Secondary unfinished threads: a live production caller for the legacy-FRI malleability (C5);
 a valid height-4 `HistoryStep` terminal to close the snapshot drift differential (U4); root-style
@@ -650,12 +762,13 @@ authorization is *supposed* to be fork-specific — which decides C6's severity.
 
 ## 6. Lane status table
 
-All 25 experiment directories under `/Users/ember/dev/parano1d-break/experiments/`. "Completed"
-= lane returned a final result the root processed (verification status per §2/§3). Of the 8 lanes
-the kimi swarm left dead-with-partial-code, the takeover swarm has completed wallet-safety,
-prover-unsafe, p2p-resources, dex-economics, and rpc-api ([RV-T] per the 2026-11-15 ruling:
-takeover-completed lanes with tee'd `results.txt` count as verified); the remaining 3
-(storage-reorg, nft-marketplace, token-accounting) are being re-run by the takeover swarm.
+All 26 experiment directories under `/Users/ember/dev/parano1d-break/experiments/` — the kimi
+swarm's 25 plus `leaf-reachability`, opened by the takeover swarm as the §5 escalation lane.
+"Completed" = lane returned a final result the root processed (verification status per §2/§3).
+Of the 8 lanes the kimi swarm left dead-with-partial-code, the takeover swarm has completed six:
+wallet-safety, prover-unsafe, p2p-resources, dex-economics, rpc-api, and storage-reorg ([RV-T]
+per the 2026-11-15 ruling: takeover-completed lanes with tee'd `results.txt` count as verified);
+the remaining 2 (nft-marketplace, token-accounting) are being re-run by the takeover swarm.
 
 | Lane dir | Agent report | Status | Result summary |
 |---|---|---|---|
@@ -670,6 +783,7 @@ takeover-completed lanes with tee'd `results.txt` count as verified); the remain
 | `fork-replay` | agent-7 | **completed [RV]** | C6: same-anchor fork replay, byte-identical reruns |
 | `identity-encoding` | agent-16 | **completed [RV/AR]** | C13 root-verified; proof-identity/terminal-id/Bech32 results agent-reported (U8) |
 | `ledger-fairness` | agent-18 | **completed [RV]** | C10-C12; root reran successfully |
+| `leaf-reachability` | (takeover, new) | **completed [RV-T]** | C21 (cross-tag claw, refutes the `compression.rs:319-325` design claim); leaf-wall theorem closing §5 finish line (a) against the attacker; algebra note + economics replacing the 2^224 estimate; evidence `README.md`/`results.txt` (3 binaries, all exited 0) |
 | `native-intents` | agent-8 | **completed [RV]** | Negative: worst-fill accusation disproved at both host and recursive boundaries |
 | `nft-marketplace` | agent-27 | **dead-with-partial-code [PC]** | Two borrow-checker errors fixed, scenarios starting; no results; re-run pending |
 | `p2p-resources` | agent-21 (takeover) | **completed [RV-T]** | C17 (Medium, the audit's first unauthenticated-remote finding: mempool-pull domain pin), C18 (Low-to-Medium: header-sync memory unbudgeted); §4 codec negatives; evidence `README.md`/`results.txt`. Note: the dead agent's inherited PoC had a false-positive headline — its "object write blocked" assert was a cooperative-yield scheduling artifact in code never actually run; the finisher caught it and converted it to an explicit control (real-time wall-clock shows the object codec write completes during the pin) |
@@ -677,7 +791,7 @@ takeover-completed lanes with tee'd `results.txt` count as verified); the remain
 | `recursive-sync` | agent-13 | **completed [AR]** | U4: tip-only future-drift admission differential; root rerun not recorded |
 | `rpc-api` | agent-19 (takeover) | **completed [RV-T]** | C19 (Medium, credential-gated: full receipt-store rescan + Merkle re-verification per call, 4.1-5.6 s at 20k receipts), U17 (Low: out-of-range page key-set retention), U18 (Low-Medium: inline scan starves async workers, 3078x tail — mirror-verified, split carried); §4 RPC negatives. Process note: the dead agent's draft never compiled (three wrong imports, never run); the finisher fixed it, verified the core hypothesis, and reframed — the draft treated far-page heap retention as the finding, the real story is the per-page rescan cost |
 | `state-consensus` | agent-11 | **completed [AR]** | Negative 20-case matrix (U6); root rerun not recorded |
-| `storage-reorg` | agent-22 | **dead-with-partial-code [PC]** | Partial PoC (41-byte tip accepted at reopen; successor failed at MDBX decode); no report; re-run pending |
+| `storage-reorg` | agent-22 (takeover) | **completed [RV-T]** | C20 (Medium: unauthenticated supply counter on compact restart — silent upward corruption + propagation, permanent spend-admission stall on downward), U19 (Low-Medium: noncanonical 41-byte chain_tip accepted at restart, every later commit fails `store: mdbx: 41`); §4 reorg/crash/retention negatives. Process note: the dead agent's PoC had two defects fixed before recording (hardcoded segment id 0 vs the actual 148; +1 s block spacing would compound ASERT ~100x — switched to 20 s ideal) |
 | `token-accounting` | agent-28 | **dead-with-partial-code [PC]** | Setup only (`pinned/` tree, no own code); re-run pending |
 | `transcript-chains` | agent-6 | **completed [RV]** | C5: legacy-FRI malleability + PAD ambiguity; framed channels hold |
 | `typed-binding` | agent-10 | **completed [RV]** | C14: 4-path witness; `BadTypedBind` not instantiated |
