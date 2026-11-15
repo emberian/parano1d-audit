@@ -1,0 +1,20 @@
+[package]
+name = "constraint-systems-audit"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+noid_core = { path = "../../parano1d/noid_core" }
+noid_poseidon2b = { path = "../../parano1d/noid_poseidon2b" }
+noid_tx = { path = "../../parano1d/noid_tx" }
+noid_recursive = { path = "../../parano1d/noid_recursive" }
+noid-ivc-core = { path = "../../parano1d/noid_ivc_core" }
+noid_pruv = { path = "../../parano1d/noid_pruv" }
+serde_json = "1"
+hex = "0.4"
+
+[profile.dev]
+opt-level = 1
+
+[profile.release]
+opt-level = 3

@@ -1,0 +1,44 @@
+== constraint-systems audit: final runs (pinned 52938433a30b185ab007afaa15166a632cf2e82e) ==
+
+=== ip_battery (witness-uniqueness battery, 10 builder configs x 2 arithmetic variants) ===
+random differential: 37 ok / 83 error instances; 694 forgery candidates rejected
+context advice (component level): consistent height tamper satisfies 10/10 configs (expected: all — binding lives one level up)
+dead slot (live = 0): garbage next satisfies 10/10 configs (expected: all — ghost by design; live is an authenticated bitmap bit)
+TOTAL: 8870 build-and-check configurations, 0 failures
+VERDICT: witness uniqueness held on every probed constraint set; no alternate satisfying witness found
+
+=== pruv_adversarial (9 hand-written adversarial programs; native + circuit + Z3) ===
+P1 underflow: native=Err, wrap-witness rejected, control accepted, z3=Verified
+P2 overflow: native=Err, wrap-witness rejected, z3=Verified
+P3 deadline: boundary no-op kept, forged decrement rejected, z3=Verified
+P4 assert boundary: 100 ok / 101 rejected everywhere, z3=Verified
+P5 intermediate overflow: fail-closed everywhere, z3=Verified
+P6 counterexample control: z3=Counterexample (expected Counterexample)
+P7 infeasible control: z3=Infeasible (expected Infeasible)
+P8 derived guard: false-guard write rejected, boundary 99/100 honored, z3=Verified
+P9 nested when: inactive parent leaves child guard false, z3=Verified
+Pruv adversarial: 0 failures
+VERDICT: all hand-written wrap/boundary programs fail closed in native, circuit and Z3 checker
+
+=== domain_separation (collision confinement + object-root sensitivity) ===
+1. feed-forward TAG_CAPSNODE collision: reproduces (b2cf54a478131d318ebef1af2ec0e315245b8ee3af237a21e3fef04e4a20478b)
+2. TAG_EXSTNOD (exact-state nodes): pair digests differ (a9103fd6 vs 59178b56)
+2. TAG_TXROOT (tx root): pair digests differ (1f63818f vs 7bb3c493)
+2. TAG_SEGMENTTREE (segment tree): pair digests differ (9c1ad7ef vs 65c418da)
+2. TAG_CLAIMS (claims): pair digests differ (286fb075 vs 84aac19d)
+2b. feed-forward IVCPCSN_ (PCS-internal): pair digests differ for this pair
+3. object-root sensitivity current: policy digest changed=false, old root changed=true, new root changed=false
+3. object-root sensitivity next: policy digest changed=false, old root changed=false, new root changed=true
+3. object-root sensitivity deadline: policy digest changed=true, old root changed=true, new root changed=true
+3. object-root sensitivity rules0: policy digest changed=true, old root changed=true, new root changed=true
+3. program cells: 32/32 single-bit changes moved the code digest; old root moved 32/32 (expect 32 via policy chain), new root moved 32/32 (expect 32); probes=36
+domain separation: 0 failures
+VERDICT: the known compressor collision is confined to PCS-internal trees; semantic bindings (state, tx, object roots) use full-sponge wraps and are single-bit sensitive in every committed cell
+
+=== in-tree controls ===
+control-tests.log:test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 457 filtered out; finished in 171.95s
+control-tests2.log:test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 458 filtered out; finished in 275.56s
+
+=== in-tree controls ===
+control-tests.log:test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 457 filtered out; finished in 171.95s
+control-tests2.log:test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 458 filtered out; finished in 275.56s
