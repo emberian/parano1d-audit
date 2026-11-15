@@ -1,0 +1,21 @@
+header-aggregate PoC
+  stalled concurrent max-batch header payload writers: 64
+  canonical bytes retained (content-independent lower bound): 75497472
+  compressed bytes retained (this synthetic content): 35195688
+  aggregate canonical+compressed: 110693160
+  documented process-wide outbound domain all other large protocols share: 67108864
+  header-sync bytes admitted by that domain: 0
+  streams needed to exceed the shared 64 MiB domain at this per-stream cost: ~39
+  per-stream canonical cap: 1179648 bytes (4096 records x 288 wire bytes)
+  production per-connection chain_sync stream cap: 8; connections per peer: 2; inbound connections: 128 (behaviour.rs:329,539,546)
+mempool-pin PoC
+  process-global outbound domain: 67108864 bytes
+  production reservation per served mempool pull: 16777216 bytes (network.rs:327-330, unconditional)
+  full-domain aggressors needed: 4
+  aggressors holding the entire domain mid-write: 4/4
+  1 KiB mempool response (budget-participating) blocked: true
+  exact-object codec write completed during the pin: true
+  header max-batch payload write reached during the pin: true
+  victim admitted after releasing one aggressor: true (27 ms)
+  all writers drained after release: true
+ALL ASSERTIONS PASSED

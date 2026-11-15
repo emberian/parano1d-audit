@@ -1,0 +1,12 @@
+[package]
+name = "p2p-resources-poc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+noid_p2p = { path = "../../parano1d/noid_p2p" }
+noid_chain = { path = "../../parano1d/noid_chain" }
+libp2p = { version = "0.55", features = ["macros"] }
+futures = "0.3"
+tokio = { version = "1", features = ["full"] }
+zstd = "0.13"
