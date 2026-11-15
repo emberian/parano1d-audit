@@ -82,7 +82,8 @@ user-facing wallet stack is **node-attested end-to-end** — the GUI has no veri
 renders node-authored "AUTHENTICATED PAYMENT / CONFIRMED" verdicts for 256 bytes of garbage,
 and the node both builds and signs sends while holding `wallet.key` (C24, family W1-W6;
 precondition: a malicious/corrupted node — e.g. the C20 zombie — or a loopback impostor, which
-deceives but cannot spend). The root's own position statement (02:58:28): *"serious
+deceives but cannot spend); anyone can mint NFT items owned by arbitrary addresses — permanent
+junk in victims' wallets that only the victim can remove, by paying (C25). The root's own position statement (02:58:28): *"serious
 warning signs, no consequential end-to-end attack shown yet — not 'definitely broken,' but also not
 'these results are satisfying.'"* The upstream `main` (`e6d324ff…`) still contains the vulnerable
 compressor unchanged, and the upstream test suites pass — this is a design/parameterization failure,
@@ -121,6 +122,7 @@ reproduction, tied to ethresear.ch/t/25730).
 | C22 | **Unauthenticated-remote (second): sustained admission-queue occupancy at a 62x CPU discount** | Node pays 8.34 ms per reject vs attacker 134 µs per distinct state-valid payload; attacker marginal STATE cost is zero — failed proofs reserve nothing (input slots reserved only after successful verify, `pool.rs:495-542`), NO rejection cache anywhere (byte-identical resubmission re-verifies 3/3), state-validity requires only public data, and one locally-generated real proof (675 ms) is a perpetual template (corrupt a byte -> fresh full-cost verify). Transport caps do not close it: 128 anonymous inbound x 50 tx/10 s = 640 tx/s offered vs 415.5 tx/s measured 4-permit drain (1.5x; ~84 identities / ~58 MB/s on this laptop; 10 identities at 4.6 MB/s on the code's own 84 ms verify budget). Under saturation: 1024 non-evictable delivery slots fill in ~4.6 s, honest txs dropped at `TxDeliveries::start` on both paths, the 64 MiB process-global inbound budget (shared with block/HistoryStep/state-segment responses) is held by ~742 queued 90 KB pushes, and the local wallet RPC queues on the SAME semaphore (p50 303 ms at 256-deep, 2 s+ at saturation) | Medium availability, **anonymous P2P** — `MempoolRequest::Push` is the one request-response arm with no `is_dispatchable` profile gate; TCP + noise handshake with free libp2p keys; gossip needs only mesh grafting, no app scoring (IP-colocation penalty only, >8 identities/IP). NOT reachable via RPC (operator/loopback per the rpc-api lane) | **[RV-T]** — takeover lane, tee'd `results.txt` (real `AsyncMempool`, real AuthGKR verify): `asymmetry ratio (node CPU s per reject / attacker construction s per tx): 62x`; transport-level effects established from code + crate unit tests + a rate model over measured per-item costs, not a live swarm | `/Users/ember/dev/parano1d-break/experiments/tx-admission/` (`README.md` Finding 1, `results.txt`) |
 | C23 | The shipped security claim's fixed-Poseidon2b premise is **either false or vacuous** — the typed-binding machinery does not cover the shipped object | The paper (Zenodo 23778742) never contains `Delta_P2b` or `0.45067` — the machinery lives in `noid_soundness` docs; `BadTypedBind` is stated TWICE with different scope ("a collision, ambiguous encoding or domain confusion changes the typed semantic graph" vs "object/statement/namespace binding fails") and never disambiguated; the paper's H.1 typed dictionary has a SINGLE `v_node` (eq. 52), `c = 3` — production ships a tag-parameterized compressor with >= 2 one-perm node domains, never defined as a dictionary. Verdict fork: (a) same-tag collision — EXCLUDED-BY-CLAUSE under the worklist reading / INSTANTIATES under the dictionary reading (it is precisely the event priced at their ideal 6T^3/2^256 term); (b) cross-tag claw — EXCLUDED + UNMODELED-DOMAIN / INSTANTIATES (satisfies two listed causes simultaneously — collision AND domain confusion — matches the v2 wording verbatim; the reconstruction lemma's "unique node row" step is unguarded against same-anchor rows); (c) Delta — FORCES-DELTA under the dictionary reading: the claw is deterministically producible inside both envelopes (~2^41 gates vs C1 2^130), so `Delta_P2b^C1 >= 0.95067 > 0.45067` and `Delta_P2b(2^64) >= 0.81247 > 0.31247` — BOTH sufficient conditions unsatisfiable, PASS premise FALSE; under the worklist reading Delta stays unevaluated everywhere in their corpus | Kills the shipped security claim as stated (sharpens C8 from "unevaluated" to the fork); definitional analysis over the paper + certificate, quoting PoC-verified objects of prior lanes (C1, C21) — no new attacks run, by design | **[RV-T]** — takeover formal lane (`README.md`, no `results.txt` by design); strongest licensed claim quoted verbatim in the detail block | `/Users/ember/dev/parano1d-break/experiments/typed-bind-verdict/README.md` |
 | C24 | **Finding family W1-W6: the user-facing wallet is node-attested end-to-end — the GUI has NO verifier dependency and nothing cryptographic is ever checked client-side** | Real pinned GUI backend (verbatim crate + lib.rs shim) driven by a scripted impostor node: 256 bytes of `deadbeef` come back `merkle_valid/canonical/confirmed` ALL-TRUE with an attacker-authored summary and render as AUTHENTICATED PAYMENT / CONFIRMED (W1); fabricated txid + 2 NOID fee on a 5 NOID send accepted and rendered TRANSACTION SENT (W2); a pre-bound loopback impostor is adopted as the node with zero spawns (W3); balances/history/status all node word (W4/W5/W6) | W1 High; W2 High when the node holds `wallet.key` (real substitution, spendable) / Medium via impostor; W3/W4 Medium; W5/W6 Low. **Shared precondition: malicious/corrupted node (e.g. the C20 zombie) or the W3 loopback impostor; the impostor deceives but cannot spend (never sees `wallet.key`)** | **[RV-T]** — takeover lane, tee'd `results.txt`: `ALL 15 CHECKS PASSED` across 7 scenarios, 77 requests / 22 methods; trust-boundary table (8 rows) in the README | `/Users/ember/dev/parano1d-break/experiments/wallet-vs-node/` (`README.md`, `results.txt`, `harness/tests/deceive.rs`) |
+| C25 | **MINT-INTO-VICTIM: anyone can mint NFT items owned by arbitrary addresses** | `mint_nft` checks only collection identity and serial continuity — output item owners are unconstrained (authority binds *inputs* only, `transition.rs:165-176,411-447`). Proven through the REAL block-commit path: a block whose 248 minted items are all owned by a non-signing VICTIM address was accepted, and the victim's row set is provable in the real store (`native_owner_roots(VICTIM)` returns all 248 in a 1.8-3.2 ms page scan). No consent or refuse path; deletion requires the VICTIM's signature and fee (5,900 µNOID single, ~123/item batched) | Medium nuisance (headline per takeover root; lane README rates it Low-to-Medium) — no value extraction; permanent junk in victims' wallets and asset listings that only the victim can remove, by paying; also scales victim discovery linearly in attacker junk | **[RV-T]** — takeover lane, tee'd `results.txt` (`MEASURE victim native_owner_roots page: 248 roots in 1804us`; real template -> PoW -> seal -> MDBX commit) | `/Users/ember/dev/parano1d-break/experiments/creation-spam/` (`README.md` Finding F2, `results.txt`) |
 
 ### Per-finding detail and exact scope limits
 
@@ -588,6 +590,25 @@ verification, payment build/sign/submit, explorer inclusion, fee, chain status �
 methods, who computes it, client-side verification: none, and the demonstrated deception) is
 the citable summary.
 
+**C25 — mint-into-victim.** Takeover lane
+`/Users/ember/dev/parano1d-break/experiments/creation-spam/` (run tee'd in `results.txt`,
+`ALL PHASES COMPLETED`; real `apply_native_transition`, real template -> PoW -> seal -> MDBX
+commit through `build_node_owned_block_template_with_native_openings` /
+`commit_locally_proved_next_block`, attacker funded by real coinbase outputs mined to itself).
+Mechanism: `mint_nft` (`noid_tx/src/native_assets/transition.rs:411-447`) checks only
+collection identity and serial continuity; the authority check binds *inputs* only
+(`transition.rs:165-176`), so output item owners are unconstrained. Demonstrated end-to-end: a
+block whose 248 minted items are all owned by a non-signing victim address was accepted, and
+the victim's row set is provable in the real store — verbatim: `MEASURE victim
+native_owner_roots page: 248 roots in 1804us (owner index proves forced carriage)`. There is
+no consent or refuse path; deletion requires the *victim's* signature and fee (5,900 µNOID
+single, ~123/item batched). Every wallet/GUI inventory surface keyed on native ownership lists
+attacker junk until the victim pays to burn it. Severity: Medium nuisance per the takeover
+root (the lane README itself rates it Low-to-Medium); no value extraction — the harm is
+availability/cleanliness of arbitrary addresses, plus the demonstrated linear scaling of
+victim discovery scans in attacker-chosen junk (each root re-reads and re-validates its DATA
+record, `native_payloads.rs:699-739`).
+
 ---
 
 ## 3. Reported-but-unverified
@@ -914,6 +935,30 @@ fee- or value-based path to priority anywhere in these paths."*
 Cross-references kept clean: first-seen pinning -> ledger-fairness §3; invalid-PoW template
 burn -> C15 (churn lever); same-anchor replay -> C6.
 
+### creation-spam — economics of the creation axis **[RV-T]**
+
+- **U29** creation-spam, **Low-to-Medium (economics/design)** **[RV-T]** (takeover lane, run
+  tee'd in `/Users/ember/dev/parano1d-break/experiments/creation-spam/results.txt`; README
+  Findings F1+F3): the creation axis is defended **purely economically and the price is flat
+  forever**. Fees are exact and enforced at mempool admission, block admission, AND template
+  selection (5,000 base + 100/live input + 700/live output + 2,500 x pressure x net-new slots,
+  the growth term BURNED); block caps (510 outputs, 255 pages, 1,531 actions) bound creation
+  to ~496 items/block; the pressure multiplier escalates 2/4/8x only transiently — `log_slots`
+  expansion at 75% occupancy resets it permanently, so the per-object price never scales with
+  total state. **What does NOT exist** (searched, cited by absence): per-account or global
+  creation-count limits, rent/expiry/decay on any slot or object, any cap on declared
+  `maximum_items` (u64::MAX is free), and any pricing of object KIND — the burn sees only
+  outputs-minus-inputs, so a 1-in/1-out `CreateCollection` is a **ZERO-BURN,
+  occupancy-invisible** permanent object at 5,800 µNOID that upgrades a ~102 B slot into ~441 B
+  of node-local carriage (+~192 B on every future cold sync). Scale line (F3, verbatim figures):
+  ~106 attacker-microseconds + 3,227 µNOID buys one NFT item permanent carriage on every full
+  node (~491 B MDBX + 50 B consensus + ~192 B cold-sync); at block saturation 4,609 NOID/day
+  (~151 s attacker CPU) compounds ~71 MB/day of state and ~700 MB/day of node-local storage on
+  every full node FOREVER — one year of saturation ≈ 26 GB state + ~256 GB MDBX per node for
+  ~1.68M NOID total, less than 35 days of genesis-era emission. Cold-sync composition is
+  code-cited (snapshot-segment layout; O(all-records) full-table passes at
+  `mdbx_store.rs:3306,4257,4841`), not executed against a live sync.
+
 ### constraint-systems — one Low process finding **[RV-T]**
 
 - **U28** constraint-systems, **Low (process)**: the v2.1 compact-arithmetic constraint path —
@@ -966,6 +1011,7 @@ noted per row.
 | Mempool replacement/double-admission games; batch-key grinding as priority attack | No replacement path anywhere (absence asserted verbatim in the pinned source); conflicting admissions -> `InputConflict`/`OutputConflict`; the grindable `authorization_id` sort is encoding-canonical only (PoC both lanes); one UTXO cannot buy two draws (`DuplicateFunding`); batch cap exact at `MAX_SEQUENTIAL_TRADES` (64 accepted, 65th `Bounds`); trade `funding_priority` binds the real parent (`TRORD_21` over `parent_id`) — no offline pre-parent grinding of the target block; NFT rounds height-bound (round id changes with registration height; request bound to round(h) fails at h+1); zero timestamp reads in the native logic | [RV-T] (takeover sequencing lane, tee'd `results.txt`, 25 assertions incl. 19 verbatim source-fact assertions) |
 | Second satisfying witness / forged Pruv execution (the circuit is the sole consensus executor) | **Witness uniqueness held**: 8,870 build-and-check configurations (10 builder configs x both arithmetic variants of the real production R1CS, `bind_program` + `bind_program_v2_1`, over 120 random programs at u64 boundaries + 9 directed cases) with 0 failures; forgery battery (wrap-add/wrap-sub, non-boolean predicates as-true and as-false, writes from inactive instructions, skips of active ones, stale-next under tampered context, all 128 single-bit flips of a nontrivial next state, every reserved encoding, immediates >= 2^64) all rejected. Blocker is STRUCTURAL: rows appended in wire order with C = I (each wire defined by its row over earlier wires); the only two-valued rows (booleanity) sit in gadgets whose sibling pins force uniqueness; range decompositions injective via tower-basis linear independence of phi(2^i); selector families telescope to Sum = 1; both carry chains are exact char-2 majority algebra | [RV-T] (takeover constraint-systems lane, tee'd `results-ip.txt`/`results-puv.txt`/`results.txt` + in-tree controls 5/5 and 4/4 re-run; assurance limit: structural + directed battery, NOT an exhaustive witness-space search of the full HistoryStep relation, no end-to-end recursive prove/verify cycle) |
 | Field-wrap / negative-value attacks; public-input and gate substitution in contract execution | No range/field wrap anywhere — all lanes range-checked (u64/u32/20/64-bit), arithmetic carry-checked in native AND both circuit variants, native fails closed identically (`p-1` attack structurally unavailable; Z3 checker encoding faithful); public-input binding end-to-end (program/current/next -> single-bit-sensitive object-root sponge wraps -> body owner leaves -> TX8X2 -> count-bound TXROOT -> header); `live`/`terminal` gates are authenticated bitmap bits (live=0 ghost behavior gated on committed data; component context-advice design pinned one level up by in-tree full-relation tests) | [RV-T] (takeover constraint-systems lane; tee'd results) |
+| Creation-side value extraction; CPU-asymmetric creation spam; arbitrary-data channel | Extraction check CLEAN NO (F4: hash-derived ids from a genesis anchor — no namespace to squat, no lookalike/identity surface committed on-chain, launch backing parked in `TokenReserve` and redeemable, no refund race); NO CPU asymmetry on creation — node ~59 µs/item apply is CHEAPER than attacker ~106 µs construct (the axis is economically defended, not CPU-defended); creation txs are ordinary fee-paying valid payloads (no C17/C22 amplification — they compete for admission honestly); batch minting amortizes to one receipt per 248 items (C19 grows sublinearly); raw owner index never sees native beneficiaries (measured: victim `get_verified_utxos_by_owner` returns 0); no arbitrary-data channel (fixed-size digests throughout, exact-length encoding enforced) | [RV-T] (takeover creation-spam lane, tee'd `results.txt`) |
 | Fresh-request forgery (all lanes) | Owner/Phase-A/Phase-B adaptive ordering; queries derived only after all commitments; no accepted unauthorized statement anywhere | [RV] (root, cumulative: "no unauthorized spend, invalid accepted block, owner-key recovery, or fresh-request forgery", 01:58:28) |
 
 ---
@@ -1004,6 +1050,15 @@ route left.
    exhausted (root caller sweep 01:50:29; leaf-reachability in-tree sweep). The rebuttal's
    final position stands as the blocker statement: a principled leaf wall, an accidental node
    breach, and a shipped comment that promises the wrong thing.
+
+**Composition note (creation-spam lane).** C25's junk is REAL on-chain state — unlike the
+C24/W1 phantoms, fixing node attestation does not remove it — and C24 means the victim sees it
+rendered as ordinary wallet content. The state axis also compounds: every live native object
+adds ~192 B to every future cold sync and one record to the O(all-records) full-table passes
+that snapshot staging and owner-index rebuild perform (code-cited), so new-node sync cost grows
+linearly in historical live-object count even after blocks are pruned. Honest weak negatives
+(the lane's own): creation spam neither amplifies C17/C22 (full fees, valid proofs) nor C19
+(one receipt per 248 items).
 
 **Composition note (wallet-vs-node lane).** The user-facing trust posture composes across
 lanes: a C20 zombie node (silently diverged, still "looking alive") is a fully sufficient
@@ -1114,10 +1169,10 @@ adversarials (dex-games), fee-schedule fairness, and NFT accounting (nft-marketp
 
 ## 6. Lane status table
 
-All 33 experiment directories under `/Users/ember/dev/parano1d-break/experiments/` — the kimi
+All 34 experiment directories under `/Users/ember/dev/parano1d-break/experiments/` — the kimi
 swarm's 25 plus takeover-opened lanes (`leaf-reachability`, `tx-admission`, `dex-games`,
 `sequencing`, `constraint-systems`, `typed-bind-verdict`, `external-consumers`,
-`wallet-vs-node`, and later additions). "Completed" = lane returned a final result the root processed
+`wallet-vs-node`, `creation-spam`, and later additions). "Completed" = lane returned a final result the root processed
 (verification status per §2/§3). All 8 lanes the kimi swarm left dead-with-partial-code have now
 been completed by the takeover swarm (wallet-safety, prover-unsafe, p2p-resources, dex-economics,
 rpc-api, storage-reorg, nft-marketplace, token-accounting — [RV-T] per the 2026-11-15 ruling:
@@ -1139,6 +1194,7 @@ pending.
 | `typed-bind-verdict` | (takeover, new) | **completed [RV-T]** | C23 (kills the shipped security claim as stated: paper never contains `Delta_P2b`/`0.45067`; `BadTypedBind` stated twice, never disambiguated; single-`v_node` dictionary vs shipped multi-tag layer; verdict fork with FORCES-DELTA numbers); strongest licensed claim recorded verbatim; §5 BadTypedBind thread closed (fork); no `results.txt` by design (definitional analysis quoting prior PoC evidence) |
 | `external-consumers` | (takeover probe) | **completed [RV-T]** | §5 lead thread ANSWERED: zero external consumers of the cross-domain raw surface (pub(crate) verify, 0 GitHub-wide refs, 10 stale forks, wrapper-level/RPC-only consumers, no cap-byte caches); full-scope public sentence recorded verbatim (flat short-form is FALSE — Jetsam); ecosystem note + Jetsam caveat into C21 scope addendum; version-skew footnote; auditable search log; REPORT.md landed by coordinator (clones/Kagi logs gitignored) |
 | `wallet-vs-node` | (takeover, new) | **completed [RV-T]** | C24 family W1-W6 (node-attested wallet: phantom AUTHENTICATED/CONFIRMED receipts, fictional TRANSACTION SENT, impostor adoption, silent suppression, decorative status, truncated peers); structural finding (no client-side verifier at all); trust-boundary table cited; §5 composition note (C20 zombie trigger + C17/C22 + noid-wallet SPV-only = node-word-all-the-way-down); evidence `README.md`/`results.txt`/`harness/tests/deceive.rs`, GUI crate verbatim + shim |
+| `creation-spam` | (takeover, new) | **completed [RV-T]** | C25 (mint-into-victim: 248 attacker items into a non-signing victim's owner index through the real block-commit path); U29 (creation axis defended purely economically, flat-forever price; zero-burn occupancy-invisible CreateCollection; saturation math ~71 MB/day state + ~700 MB/day node-local forever); §4 extraction-clean/CPU-symmetry/no-amplification negatives; §5 composition note (real on-chain junk × C24 rendering); evidence `README.md`/`results.txt`, `ALL PHASES COMPLETED` |
 | `external-miner` | agent-20 | **completed [RV-T, C15]** | Template-consumption finding (Medium); reproduced by the takeover root 2026-11-15 (`verify-run.txt`); kimi root never verified this lane |
 | `fork-replay` | agent-7 | **completed [RV]** | C6: same-anchor fork replay, byte-identical reruns |
 | `identity-encoding` | agent-16 | **completed [RV/AR]** | C13 root-verified; proof-identity/terminal-id/Bech32 results agent-reported (U8) |
@@ -1232,6 +1288,7 @@ coverage map, not a critique of lane quality.
 | constraint-systems | Does witness uniqueness survive an exhaustive witness-space search of the full HistoryStep relation and a complete end-to-end recursive prove/verify cycle for a Pruv-carrying block? | — | **LIVE** (prover-scale run; structural argument + directed battery only) |
 | constraint-systems | Is there a collision in the full-sponge two-permutation wraps (`compress_with_tag`, object-root duplexes) — the only cryptanalytic bridge from the 2^16 node collision to semantics? | — | **LIVE** (cryptanalysis; `noid_soundness` territory; same family as the fact-check lane's padded-sponge item) |
 | typed-bind-verdict | (No runtime question — definitional lane; the BadTypedBind fork IS the answer.) | — | — |
+| creation-spam | What is the recursive prover's marginal cost per creation action, and does the state-growth math hold at multi-million-row scale and against a live cold sync? | constraint-systems (prover cost half); devnet-chaos (live-sync half) | — |
 
 Unowned + orientation-proof (no adversary orientation needed, only unfinished deterministic
 coverage): x86 SIMD kernel differentials, 256 KiB max-shape verify cost, production-linked
