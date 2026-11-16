@@ -1,28 +1,38 @@
+# ===== parano1d-break =====
+# Uniform scheme: new experiment lanes are covered automatically. The rule of thumb
+# is "source and reports are tracked; everything a build, a cargo fetch, a web fetch,
+# or a running node produces is not." If a lane ever needs a genuine deliverable that
+# matches one of these patterns, force it in with `git add -f <path>`.
+
+# --- build artifacts & vendored toolchains (any lane, any depth) ---
 target/
+target-*/
+.cargo-home*/
 __pycache__/
 *.pyc
+*.crate
+
+# --- per-lane bulk: target-checkout copies, fetched blobs, run data, logs, compiled
+#     binaries. Scoped to a lane's top level (experiments/<lane>/<dir>/) so that
+#     src/ and src/bin/ Rust sources stay tracked. ---
 experiments/*/pinned/
-experiments/*/pinned-src/
-experiments/nft-marketplace/source/
-experiments/build-artifacts/fixture/
-experiments/build-artifacts/tmp/
-experiments/build-artifacts/probes/
-experiments/external-consumers/repos/
-experiments/external-consumers/logs/
-experiments/network-status/*.html
-experiments/network-status/*.js
+experiments/*/*-src/
+experiments/*/source/
+experiments/*/repos/
+experiments/*/downloads/
+experiments/*/packs/
+experiments/*/logs/
+experiments/*/run/
+experiments/*/bin/
+experiments/*/fixture/
+experiments/*/tmp/
+experiments/*/probes/
 
-# target checkout (read-only reference; reproducible from PROVENANCE.md pinned commit)
-parano1d/
-
-# devnet-chaos: exclude compiled/generated/fetched bulk (~26GB); source + reports tracked
-experiments/devnet-chaos/target-*/
-experiments/devnet-chaos/bin/
-experiments/devnet-chaos/run/
-experiments/devnet-chaos/logs/
-experiments/devnet-chaos/downloads/
-experiments/devnet-chaos/packs/
-experiments/devnet-chaos/.cargo-home-linux/
-
-# raw web-fetch evidence (summarized in REPORT.md)
+# --- raw web-reconnaissance fetches (HTML/JS pulled from explorers, pools, etc.) ---
+experiments/*/*.html
+experiments/*/*.js
 experiments/network-status/jetsam-*.md
+
+# --- the target checkout itself: read-only reference, reproducible from the pinned
+#     commit in PROVENANCE.md; never committed into the audit repo. ---
+parano1d/
