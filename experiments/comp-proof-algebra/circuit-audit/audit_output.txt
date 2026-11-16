@@ -1,0 +1,4 @@
+================================================================================
+ parano1d Recursive Verifier & IVC Fold Constraint Audit (`52938433a30b...`)
+================================================================================
+=== [Check 1] BaseFold T2 (`post_row_batch_commit`) Transcript Binding at `log_batch_size == 0` ===

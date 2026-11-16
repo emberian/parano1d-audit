@@ -1,0 +1,55 @@
+[package]
+name = "comp_sync_finality"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+noid_core = { path = "../../parano1d/noid_core" }
+noid_poseidon2b = { path = "../../parano1d/noid_poseidon2b" }
+noid-ivc-core = { path = "../../parano1d/noid_ivc_core" }
+noid_tx = { path = "../../parano1d/noid_tx" }
+noid_gkr = { path = "../../parano1d/noid_gkr" }
+noid_chain = { path = "../../parano1d/noid_chain" }
+noid_block = { path = "../../parano1d/noid_block" }
+noid_recursive = { path = "../../parano1d/noid_recursive" }
+noid_mempool = { path = "../../parano1d/noid_mempool" }
+noid_miner = { path = "../../parano1d/noid_miner" }
+noid_p2p = { path = "../../parano1d/noid_p2p" }
+noid_node = { path = "../../parano1d/noid_node" }
+
+anyhow = "1"
+futures = "0.3"
+hex = "0.4"
+libc = "0.2"
+libp2p = { version = "0.55", features = [
+    "tokio",
+    "tcp",
+    "noise",
+    "yamux",
+    "gossipsub",
+    "request-response",
+    "identify",
+    "ping",
+    "macros",
+] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tempfile = "3"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+zstd = "0.13"
+
+# Release-equivalent optimization with debug_assertions = false (preserving
+# production 64/64/16 FRI/capsule/grind parameters) while allowing library-mode
+# compilation of `noid_node` without re-staging embedded binary blobs.
+[profile.fast]
+inherits = "dev"
+opt-level = 3
+debug-assertions = false
+lto = false
+codegen-units = 16

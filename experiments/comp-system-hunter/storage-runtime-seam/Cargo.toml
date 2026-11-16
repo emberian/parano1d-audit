@@ -1,0 +1,42 @@
+[package]
+name = "storage-runtime-seam"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+anyhow = "1"
+blake3 = "1"
+hex = "0.4"
+libc = "0.2"
+libmdbx = "0.6"
+noid_block = { path = "../pinned/noid_block" }
+noid_chain = { path = "../pinned/noid_chain" }
+noid_core = { path = "../pinned/noid_core" }
+noid_gkr = { path = "../pinned/noid_gkr" }
+noid_mempool = { path = "../pinned/noid_mempool" }
+noid_miner = { path = "../pinned/noid_miner" }
+noid_p2p = { path = "../pinned/noid_p2p" }
+noid_poseidon2b = { path = "../pinned/noid_poseidon2b" }
+noid_recursive = { path = "../pinned/noid_recursive" }
+noid_rpc = { path = "../pinned/noid_rpc" }
+noid_tx = { path = "../pinned/noid_tx" }
+rand = "0.8"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+static_assertions = "1.1"
+tempfile = "3"
+thiserror = "1"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+zeroize = { version = "1", features = ["zeroize_derive"] }
+
+[profile.dev]
+opt-level = 1
+debug = 0
+
+[profile.release]
+lto = false
+codegen-units = 16

@@ -1,0 +1,18 @@
+[package]
+name = "circuit-audit"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+noid_core = { path = "../../uc-composition/pinned/noid_core" }
+noid_poseidon2b = { path = "../../uc-composition/pinned/noid_poseidon2b" }
+noid_ivc_core = { package = "noid-ivc-core", path = "../../uc-composition/pinned/noid_ivc_core" }
+noid_ivc_prover = { package = "noid-ivc-prover", path = "../../uc-composition/pinned/noid_ivc_prover" }
+noid_recursive = { path = "../../uc-composition/pinned/noid_recursive" }
+
+[profile.dev]
+opt-level = 1
+
+[profile.release]
+opt-level = 3

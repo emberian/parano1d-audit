@@ -1,0 +1,138 @@
+warning: associated function `try_from_locally_built_block` is never used
+  --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_chain/src/accepted_block_bundle.rs:73:19
+   |
+65 | impl AcceptedBlockBundle {
+   | ------------------------ associated function in this implementation
+...
+73 |     pub(crate) fn try_from_locally_built_block(
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `encode_body` is never used
+   --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_chain/src/block/payload.rs:297:15
+    |
+297 | pub(crate) fn encode_body<'a>(block_bytes: &'a [u8], openings: &[Native...
+    |               ^^^^^^^^^^^
+
+warning: `noid_chain` (lib) generated 2 warnings
+warning: unused import: `FsChannelOps`
+ --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/history_step/v2/capacity_banked/shared_parent.rs:9:36
+  |
+9 | use noid_ivc_core::field_circuit::{FsChannelOps, RecordedChannel};
+  |                                    ^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `pin_eq`
+ --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/native_assets/financial_inventory_scan.rs:7:25
+  |
+7 | use super::super::{mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128};
+  |                         ^^^^^^
+
+warning: unused import: `flat_const`
+ --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/native_assets/financial_launch_context.rs:7:18
+  |
+7 |     alloc_block, flat_const, mul, pin_eq, pin_zero, FieldR1csBuilder, Lin...
+  |                  ^^^^^^^^^^
+
+warning: unused import: `F128`
+ --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/native_assets/financial_launch_effects_shared.rs:8:32
+  |
+8 |     FieldR1csBuilder, LinExpr, F128,
+  |                                ^^^^
+
+warning: unused import: `flat_const`
+ --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/native_assets/financial_nft_funding.rs:6:20
+  |
+6 | use super::super::{flat_const, mul, pin_eq, pin_zero, FieldR1csBuilder, L...
+  |                    ^^^^^^^^^^
+
+warning: unused import: `duplex_substitution_terms_selected`
+  --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/region_sidecar/recording_duplex.rs:36:5
+   |
+36 |     duplex_substitution_terms_selected, duplex_substitution_terms_select...
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `prove_c1_duplex_walk_suffix_selected`, `verify_c1_duplex_walk_suffix_selected_trace`, and `verify_c1_duplex_walk_suffix_selected`
+  --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/region_sidecar/recording_duplex.rs:40:63
+   |
+40 |     prove_c1_duplex_walk_prefix, prove_c1_duplex_walk_suffix, prove_c1_duplex_walk_suffix_selected,
+   |                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+43 |     verify_c1_duplex_walk_suffix_selected, verify_c1_duplex_walk_suffix_selected_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+44 |     verify_c1_duplex_walk_suffix_selected_trace, verify_c1_duplex_walk_suffix_selected_trace_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `prove_c1_duplex_walk_suffix_selected` is never used
+    --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/region_source_binding_c1.rs:1587:15
+     |
+1587 | pub(crate) fn prove_c1_duplex_walk_suffix_selected<C: Challenger>(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `verify_c1_duplex_walk_suffix_selected` is never used
+    --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/region_source_binding_c1.rs:1728:15
+     |
+1728 | pub(crate) fn verify_c1_duplex_walk_suffix_selected<C: Challenger>(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `verify_c1_duplex_walk_suffix_selected_trace` is never used
+   --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/region_source_binding_c1/trace_impl.rs:346:15
+    |
+346 | pub(crate) fn verify_c1_duplex_walk_suffix_selected_trace<C: FsChannelO...
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `noid_recursive` (lib) generated 10 warnings (run `cargo fix --lib -p noid_recursive` to apply 7 suggestions)
+   Compiling algebra-audit v0.1.0 (/Users/ember/dev/parano1d-break/experiments/comp-proof-algebra/algebra-audit)
+    Finished `release` profile [optimized] target(s) in 5.44s
+     Running `target/release/algebra-audit`
+=== PARANO1D CRYPTOGRAPHIC & TRANSCRIPT ALGEBRA AUDIT ===
+Target commit: 52938433a30b185ab007afaa15166a632cf2e82e
+N_ROUNDS = 66 (8 full + 58 partial), STATE_SIZE = 4
+
+[1] Galois Equivariance: ALL 8 automorphisms of Gal(GF(2^128)/GF(2^16)) verified
+    - ROUND_CONSTANTS & MDS_FULL in GF(2^8): true; MDS_PARTIAL diag in GF(2^16)\GF(2^8): true
+    - Closed-form sigma_4(v) = v ^ (v >> 64): verified (512 samples)
+    - Equivariance across permute_mut, permute_flat_u128 (PMULL), packed, packed_many: PASS
+
+[2] Subfield Lattice Invariance:
+    - GF(2^ 1)^4 (  4-bit state,   2-bit digest): invariant = false
+    - GF(2^ 2)^4 (  8-bit state,   4-bit digest): invariant = false
+    - GF(2^ 4)^4 ( 16-bit state,   8-bit digest): invariant = false
+    - GF(2^ 8)^4 ( 32-bit state,  16-bit digest): invariant = false
+    - GF(2^16)^4 ( 64-bit state,  32-bit digest): invariant = true
+    - GF(2^32)^4 (128-bit state,  64-bit digest): invariant = true
+    - GF(2^64)^4 (256-bit state, 128-bit digest): invariant = true
+
+[3] DomainTag & leaf_fixed_iv_flat Audit:
+    - Distinct repo DomainTags verified: 87
+    - Any DomainTag IV in GF(2^64)^2: false
+    - Cross-tag Frobenius conjugate pairs (k=1..7): 0
+    - leaf_fixed_iv_flat sigma_4 64x64 GF(2) rank = 61, u64 conjugate solutions = 8
+
+[4] Feed-Forward Compression & Zero-IV Sponge Subspace:
+    - compress_flat_feed_forward_with_tag Frobenius equivariance (all k=0..7): PASS
+    - Coset subfield traps GF(2^16)^4, GF(2^32)^4, GF(2^64)^4 (zero b1 shift at d=64): PASS
+    - CryptographicHasher ignores self sponge IV on hash_pair/hash_field/hash_concatenation: true
+    - Zero-IV Block-0 GF(2^16)^2 rate traps 256-bit capacity into 32-bit GF(2^16)^2: true
+    - MasterSecret::derive_spend_secret (with_iv([0;2])) == poseidon2b_digest == hash_concatenation: true
+
+[5] GF(2^256) Challenge Map & Gal(GF(2^256)/GF(2^16)):
+    - 2-to-1 trace-one fiber, non-base-subfield, full GF(2^256) generation: PASS
+    - All 16 Galois automorphisms Phi^k and cocycle constants e_k verified: PASS
+
+[6] Fiat-Shamir Channels & State-Machine Properties:
+    - Unframed 0-absorb squeeze ignores IV ([0,0] / (0,TAU)): verified
+    - Odd-vs-even squeeze state aliasing after absorb / squeeze_wide: verified
+    - zk_authorization 1-lane tag + Block256 half-block split + pad permutation: verified
+    - FsLaneChallenger PoW even/odd parity & 0-bit canonical zero nonce: PASS
+    - Empty RoundPolynomial degree()==0 & 0-absorb stale pending behavior: verified
+
+[7] noid_soundness Accounting Differential:
+    - poseidon2b_cryptanalysis ideal_degree = 7^73, even_balancing_core = 0xbe32 (< 2^16), actual GF(2^16) degree cap = 65535
+    - qrom.rs history_query_squeeze_permutations on [m24(k=21), m25(k=22)]: .max()=14 vs .min()=12 (49/36 = 1.361111x gate-depth undercharge)
+    - FsLaneChallenger::sample_f128_vec(23): 13 total perms (12 effective + 1 trailing)
+=== ALL CHECKS PASSED (results written to results.json) ===

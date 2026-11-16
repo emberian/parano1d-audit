@@ -1,0 +1,130 @@
+{
+  "commit": "52938433a30b185ab007afaa15166a632cf2e82e",
+  "galois_equivariance": {
+    "basis_isomorphism_samples": 512,
+    "round_constants_all_in_gf256": true,
+    "mds_full_all_in_gf256": true,
+    "mds_partial_active_entry_in_gf256": true,
+    "mds_partial_passive_diag_in_gf65536_minus_gf256": true,
+    "minimal_parameter_subfield_bits": 16,
+    "galois_group_order_128_over_16": 8,
+    "sigma4_closed_form_verified_samples": 512,
+    "tower_permute_equivariant_all_k": true,
+    "flat_permute_pmull_equivariant_all_k": true,
+    "packed_permute_equivariant_all_k": true,
+    "packed_flat_many_equivariant_all_k": true
+  },
+  "subfield_lattice": [
+    {
+      "subfield_bits": 1,
+      "state_space_bits": 4,
+      "rate_digest_bits": 2,
+      "invariant_full_permutation": false,
+      "invariant_flat_basis": false
+    },
+    {
+      "subfield_bits": 2,
+      "state_space_bits": 8,
+      "rate_digest_bits": 4,
+      "invariant_full_permutation": false,
+      "invariant_flat_basis": false
+    },
+    {
+      "subfield_bits": 4,
+      "state_space_bits": 16,
+      "rate_digest_bits": 8,
+      "invariant_full_permutation": false,
+      "invariant_flat_basis": false
+    },
+    {
+      "subfield_bits": 8,
+      "state_space_bits": 32,
+      "rate_digest_bits": 16,
+      "invariant_full_permutation": false,
+      "invariant_flat_basis": false
+    },
+    {
+      "subfield_bits": 16,
+      "state_space_bits": 64,
+      "rate_digest_bits": 32,
+      "invariant_full_permutation": true,
+      "invariant_flat_basis": true
+    },
+    {
+      "subfield_bits": 32,
+      "state_space_bits": 128,
+      "rate_digest_bits": 64,
+      "invariant_full_permutation": true,
+      "invariant_flat_basis": true
+    },
+    {
+      "subfield_bits": 64,
+      "state_space_bits": 256,
+      "rate_digest_bits": 128,
+      "invariant_full_permutation": true,
+      "invariant_flat_basis": true
+    }
+  ],
+  "domain_tags": {
+    "total_distinct_repo_tags": 87,
+    "any_tag_iv_in_gf2_64_sq": false,
+    "sigma4_formula_all_verified": true,
+    "min_frobenius_orbit_size": 8,
+    "cross_tag_frobenius_conjugate_pairs": 0,
+    "empty_rate_one_perm_collisions": 0,
+    "leaf_fixed_iv_aliases_any_domain_tag": false,
+    "leaf_fixed_iv_sigma_k_neq_4_possible": false,
+    "leaf_fixed_iv_sigma4_linear_rank": 61,
+    "leaf_fixed_iv_sigma4_conjugate_u64_solutions": 8
+  },
+  "compression_and_zero_iv": {
+    "ff_tag_frobenius_equivariant_all_k": true,
+    "ff_tag_sigma4_delta_equals_iv_lo_zero": true,
+    "ff_tag_gf2_16_coset_invariant": true,
+    "ff_tag_gf2_32_coset_invariant": true,
+    "ff_tag_gf2_64_coset_invariant_with_zero_b1_shift": true,
+    "hash_pair_galois_equivariant": true,
+    "hash_pair_ignores_sponge_iv": true,
+    "hash_field_ignores_sponge_iv": true,
+    "hash_concatenation_ignores_sponge_iv": true,
+    "zero_iv_block0_gf2_16_traps_capacity_in_32_bits": true,
+    "keystore_with_zero_iv_matches_digest_and_hash_concatenation": true
+  },
+  "extension_field_256": {
+    "tower_flat_f256_isomorphism_samples": 256,
+    "raw_challenge_two_to_one_verified": true,
+    "raw_challenge_trace_one_and_non_base": true,
+    "raw_challenge_generates_full_gf2_256": true,
+    "galois_256_over_16_order": 16,
+    "cocycle_constants_e_k_verified_all_16": true
+  },
+  "fiat_shamir_channels": {
+    "poseidon2b_channel_zero_absorb_squeeze_pair_is_zero": true,
+    "fri_channel_zero_absorb_squeeze_pair_is_zero": true,
+    "wide_channel_zero_absorb_squeeze_is_zero_tau": true,
+    "fs_challenger_frames_domain_on_init": true,
+    "fs_lane_challenger_frames_domain_on_init": true,
+    "odd_even_squeeze_post_absorb_state_alias_base": true,
+    "odd_even_squeeze_base_then_wide_alias": true,
+    "zk_auth_single_tag_shifts_wide_across_rate_blocks": true,
+    "fs_lane_pow_even_and_odd_parity_roundtrip": true,
+    "fs_lane_pow_zero_bits_rejects_nonzero_nonce": true,
+    "empty_round_poly_reports_degree_zero_and_absorbs_nothing": true
+  },
+  "soundness_accounting": {
+    "poseidon_audit_appendix_a_applies": true,
+    "poseidon_audit_ideal_degree_exponent": 73,
+    "poseidon_audit_even_balancing_core_hex": "0xbe32",
+    "poseidon_audit_even_balancing_core_in_gf2_16": true,
+    "actual_gf2_16_univariate_degree_cap": 65535,
+    "legacy_history_squeeze_perms": 12,
+    "heterogeneous_m24_m25_max_perms": 14,
+    "heterogeneous_m24_m25_min_perms": 12,
+    "qrom_max_vs_min_gate_depth_undercharge_num": 49,
+    "qrom_max_vs_min_gate_depth_undercharge_den": 36,
+    "qrom_max_vs_min_gate_depth_undercharge_ratio": 1.3611111111111112,
+    "fs_lane_challenger_23_lanes_total_perms": 13,
+    "fs_lane_challenger_23_lanes_effective_perms": 12,
+    "wallet_wide_channel_grind_plus_7_seeds_effective_perms": 4
+  }
+}

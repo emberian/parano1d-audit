@@ -1,0 +1,27 @@
+[package]
+name = "native_market_seam"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+noid_core = { path = "../pinned/noid_core" }
+noid_poseidon2b = { path = "../pinned/noid_poseidon2b" }
+noid_tx = { path = "../pinned/noid_tx" }
+noid_chain = { path = "../pinned/noid_chain", features = ["isolated-v2-1-fork-testnet"] }
+noid_gkr = { path = "../pinned/noid_gkr" }
+noid_block = { path = "../pinned/noid_block" }
+noid_recursive = { path = "../pinned/noid_recursive" }
+noid_mempool = { path = "../pinned/noid_mempool" }
+noid_miner = { path = "../pinned/noid_miner" }
+noid_p2p = { path = "../pinned/noid_p2p" }
+noid_rpc = { path = "../pinned/noid_rpc" }
+noid_pruv = { path = "../pinned/noid_pruv" }
+libp2p = "0.55"
+jsonrpsee = { version = "0.24", features = ["client", "http-client"] }
+tokio = { version = "1", features = ["full"] }
+serde_json = "1"
+tempfile = "3"
+hex = "0.4"
