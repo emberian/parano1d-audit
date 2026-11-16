@@ -1,0 +1,177 @@
+warning: associated function `try_from_locally_built_block` is never used
+  --> /Users/ember/dev/parano1d-break/parano1d/noid_chain/src/accepted_block_bundle.rs:73:19
+   |
+65 | impl AcceptedBlockBundle {
+   | ------------------------ associated function in this implementation
+...
+73 |     pub(crate) fn try_from_locally_built_block(
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `encode_body` is never used
+   --> /Users/ember/dev/parano1d-break/parano1d/noid_chain/src/block/payload.rs:297:15
+    |
+297 | pub(crate) fn encode_body<'a>(block_bytes: &'a [u8], openings: &[NativeOpening]) -> Cow<'a, [u8]> {
+    |               ^^^^^^^^^^^
+
+warning: `noid_chain` (lib) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.07s
+     Running `target/release/subtle-edges-audit`
+subtle-edges consensus-boundary audit (pin verified by build.rs)
+schedule: v1.1@95125 v2@210537 (30s) v2.1@279370 finality 18 tx-epoch 144
+
+=== SECTION A: v2.1 activation boundary at 279370 ===
+PASS A0 pinned activation constant matches the audited build
+PASS A0 v2 activation constant
+PASS A1 anchor is epoch-aligned
+PASS A1 ASERT target function is byte-identical across the v2.1 boundary for on-time profiles
+PASS A1 equal-age targets byte-equal across boundary
+PASS A2 class count pre-activation
+PASS A2 class count at activation
+PASS A2 class ids are 0-based
+PASS A2 v2.1 adds exactly one class
+PASS A2 class id 2 rejected one block before activation
+PASS A2 class id 2 accepted at the activation block
+PASS A2 class id 3 still rejected after activation
+PASS A2 class id 1 valid on both sides
+PASS A2 terminal wire version pre
+PASS A2 terminal wire version post
+PASS A2 terminal prefix round-trip
+PASS A2 terminal prefix round-trip class
+PASS A2 stale terminal version byte rejected
+PASS A3 owner-auth version pre-activation
+PASS A3 owner-auth version at activation
+PASS A4 ordinary id at alloc bound accepted both sides
+PASS A4 ordinary id above alloc rejected both sides
+PASS A4 coinbase id from 279_369 valid at both boundary heights
+PASS A4 future coinbase id rejected at 279_369 and at 279_370
+PASS A4 native id rejected under pre-activation raw comparison
+PASS A4 native id accepted post-activation within alloc bound
+PASS A4 native sequence above alloc rejected post-activation
+PASS A4 native sequence zero rejected post-activation
+PASS A5 activation tx-epoch position
+PASS A5 anchor identical across the boundary
+PASS A5 shared anchor height
+PASS A5 anchor advances only at the next epoch boundary
+PASS A6.1 boundary block target stays at the genesis floor (on-time)
+PASS A6.1 real block h=279369 accepted by sequential consensus (PoW nonce 383303)
+PASS A6.1 standalone PoW validates
+PASS A6.1 timeless historical header path agrees
+PASS A6.2 boundary block target stays at the genesis floor (on-time)
+PASS A6.2 real block h=279370 accepted by sequential consensus (PoW nonce 259764)
+PASS A6.2 standalone PoW validates
+PASS A6.2 timeless historical header path agrees
+A6 final tip height 279370 target 0000000000000000000000000000000000000000000000000000000000400000
+PASS A6 height regression rejected
+
+=== SECTION B: height/time arithmetic extremes ===
+PASS B1 no-panic bounded [h=MAX anchor=MAX-1 ts=0]
+PASS B1 no-panic bounded [h=MAX all-MAX]
+PASS B1 no-panic bounded [h=MAX anchor-future]
+PASS B1 no-panic bounded [h=1 genesis anchor zero ts]
+PASS B1 no-panic bounded [h=MAX ts=parent=anchor]
+PASS B1 no-panic bounded [activation h=279370 zero times]
+PASS B1 no-panic bounded [anchor_ts=MAX parent=0]
+PASS B1 no-panic bounded [h=MAX ts=1]
+PASS B1 zero-exponent target is the anchor target
+PASS B1 instant-parent target hardens by 2^0.5 and stays in production bounds
+PASS B2 parent-timestamp monotone non-decreasing, capped at genesis floor
+PASS B2 genesis-anchor floor reached at parent lateness 0s (<= one halflife family; ASERT easing is floored)
+PASS B2 floor reached within 2 halflives (360s)
+PASS B2 37 halflives late on a hard 2^200 anchor stays below the floor
+PASS B2 38 halflives late on a hard 2^200 anchor hits the floor exactly
+PASS B2 far-future parent floors (generalized C26 datum)
+PASS B2 target never zero
+PASS B2 extreme-fast clamps to MIN_TARGET
+PASS B2 MIN_TARGET is 1 (difficulty has no reachable cap)
+PASS B3 median of 11 picks the true middle
+PASS B3 child ts == mtp rejected
+PASS B3 child ts == mtp+1 accepted
+PASS B3 even window upper median
+PASS B3 even-window child at lower-mid rejected
+PASS B3 even-window child at 31 accepted
+PASS B3 genesis window median is 0
+PASS B3 genesis-child timestamp 0 rejected
+PASS B3 genesis-child timestamp 1 accepted
+PASS B3 only last 11 matter
+PASS B3 drift exactly at limit accepts
+PASS B3 drift one over rejects
+PASS B3 drift saturates near u64::MAX: no panic, no wrap (accepts at the ceiling)
+PASS B3 non-saturating over-limit rejects
+PASS B4 is_final at depth 17 false
+PASS B4 is_final at depth 18 true
+PASS B4 reorg_allowed(18) — undo exactly the 18 non-final blocks
+PASS B4 reorg_allowed(19) false — touches the finalized block
+PASS B4 finality/reorg consistency at h=481 (undos=20)
+PASS B4 finality/reorg consistency at h=482 (undos=19)
+PASS B4 finality/reorg consistency at h=483 (undos=18)
+PASS B5 window at parent 34 is None
+PASS B5 window at parent 35 is exactly (0,17)
+PASS B5 no expansion before the first window even with max counts
+PASS B5 wrong-length window never expands
+PASS B5 even-window 9/18 tie never expands
+PASS B5 strict 10/18 expands
+
+=== SECTION C: v2 ASERT boundary at 210537 ===
+PASS A/C anchor at tip v2-2 is the regular boundary
+PASS C anchor at tip v2-1 pins to the pre-activation block
+PASS C anchor stays pinned until the next regular boundary
+PASS C first v2-aligned regular boundary re-anchors
+PASS C mixed-interval ideal elapsed 2*20+3*30
+PASS C last pre-v2 child uses the legacy rule
+PASS C first v2 block inherits the parent target exactly
+PASS C v2 siblings share one parent-derived target
+PASS C pre-v2 child timestamp selects its own target
+PASS C version at v2-1 is V1_1
+PASS C version at v2 is V2
+PASS C block time at v2-1 is 20
+PASS C block time at v2 is 30
+PASS C halflife switches 120 -> 180 at v2
+PASS mainnet v2 height is mid-epoch (210537 % 6)
+PASS C aligned activation: anchor at tip 210539 still the pre-activation block
+PASS C aligned activation: tip 210540 re-anchors to itself
+PASS C aligned activation preserves the parent target too
+
+=== SECTION D: canonical encoding ===
+PASS D1 header wire size 212
+PASS D1 extreme-valued header round-trips
+PASS D1 trailing byte rejected
+PASS D1 every truncation rejected
+PASS D1 nonce change changes the encoding
+PASS D1 log_slots change changes the encoding
+PASS D2 body wire size 323
+PASS D2 body round-trip
+PASS D2 non-bool discriminator rejected
+PASS D2 high bitmap bit rejected (no malleable bitmap)
+PASS D2 nonzero dead slot rejected (no second encoding)
+PASS D2 trailing byte rejected
+PASS D3 ids distinct across the activation
+PASS D3 heights >= 2^63 alias onto the same creation id (unreachable corner)
+PASS D3 decode of the aliased id loses the high bit
+PASS D3 boundary check accepts the aliased id at BOTH heights
+PASS D4 terminal prefix is 42 bytes
+PASS D4 version byte is the v2 terminal version
+PASS D4 out-of-range class id rejected on decode
+PASS D4 truncated terminal rejected
+
+=== SECTION E: tx-epoch anchor corners ===
+PASS E anchor for child 0
+PASS E anchor for child 1
+PASS E anchor for child 143
+PASS E anchor for child 144
+PASS E anchor for child 145
+PASS E anchor for child 288
+PASS E anchor for child 289
+PASS E anchor at u64::MAX is epoch-aligned
+PASS E anchor at u64::MAX is the last boundary strictly below the child (u128 check)
+PASS E next boundary above the u64::MAX anchor overflows u64 (naive-consumer hazard)
+PASS E every u64 height decomposes (doc claim holds at MAX)
+PASS E decomposition reconstructs MAX
+PASS E accumulator unchanged at child 143
+PASS E accumulator advances at child 144
+PASS E accumulator unchanged at child 0
+PASS E accumulator unchanged at child 145
+PASS E one 144-block anchor window spans the activation (279_361..=279_504)
+
+ALL ASSERTIONS PASSED

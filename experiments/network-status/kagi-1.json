@@ -1,0 +1,1 @@
+{"meta":{"trace":"0d6548526572dbac6edf3220df1cde04","ms":1,"node":"us-central1"},"data":null,"errors":[{"code":"general.malformed_token","url":"https://kagi.com/api#todo","message":"Token is incorrectly formatted. It must be of form `Bearer TOKEN`, where `TOKEN` is a valid API key."}]}

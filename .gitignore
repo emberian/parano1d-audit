@@ -9,3 +9,5 @@ experiments/build-artifacts/tmp/
 experiments/build-artifacts/probes/
 experiments/external-consumers/repos/
 experiments/external-consumers/logs/
+experiments/network-status/*.html
+experiments/network-status/*.js
