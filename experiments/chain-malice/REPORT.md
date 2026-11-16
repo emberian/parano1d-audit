@@ -97,3 +97,48 @@ if the stronger chain arrives before finalization.
 The key open question for the broader operator-power audit is how cheaply a
 party could create and sustain a *header-level* partition. Work on body-path
 availability and DNS bootstrap does not answer that for established nodes.
+
+## CM-3 — Reorg segment-union cap: latent at second State expansion
+
+The production recursive-reorg path calls
+`MdbxChainContext::apply_reorg_mdbx_with_objects` (`main.rs:4575-4586` via
+`mdbx_context.rs:1876`). Before any rollback, that method adds every segment
+touched by each replacement block *and* every segment in every reverted undo
+log to one `HashSet`, and returns `ResourceLimit` at 513 distinct segment IDs
+(`mdbx_context.rs:322-345, 2001-2033`). The per-block consensus budget is
+256 distinct segments. It does not imply a 512-segment bound for a multi-block
+branch: three otherwise valid blocks can touch 200 disjoint segments each.
+The limit is local reorg RAM policy, rather than a header or state validity
+rule. The error is classified as local, not a malicious body-peer fault
+(`noid_node/src/main.rs:4285-4290`), and the commit does not start.
+
+**Present scope:** genesis `log_slots=24`, segment size `2^16` slots, hence
+only `2^(24-16)=256` possible segment IDs in the current State domain
+(`params.rs:295-301`). At `log_slots=25`, exactly 512 exist. Thus this cap
+cannot reject any valid current m24 branch, or an m25 branch, regardless of
+how many blocks it touches. At m26 there are 1,024 possible IDs and a
+multi-block reorg can exceed 512. Reaching m26 requires two consensus State
+expansions: 10 of 18 finalized occupancy measurements at or above 75% of
+the previous domain (`slot_expansion.rs:18-58`). The second threshold is
+25,165,824 live slots. The earlier public network snapshot reported about
+89,000 live UTXOs; this is far from the relevant capacity. A proof of
+present mainnet reachability would be wrong.
+
+**Recovery boundary:** the network planner routes a nonfinal competing branch
+to snapshot synchronization once its selected replacement suffix contains
+more than 36 headers (`main.rs:11365-11455`). That route carries an explicit
+nonfinal rebase hint and can stage from a canonical ancestor
+(`main.rs:3878-3915, 8925-8955`). Therefore the 513-ID rejection need not
+permanently strand the node; if the remote branch keeps growing and offers
+an eligible authenticated State snapshot, the later snapshot path should
+replace the failed bounded reorg. Source inspection supports a conditional
+delay at m26, not a permanent fork. This recovery has not been executed in
+this review. It depends on a provider serving the selected branch's snapshot
+and terminal and on the boundary advancing beyond the local tip.
+
+At m26 a useful local experiment would construct two otherwise valid branches
+with >512 union segment IDs, first demonstrate exact reorg rejection without
+state mutation, then extend the winning branch beyond 36 headers and observe
+whether the same node recovers by rebase snapshot. A control with 512 IDs
+should succeed. This test will require deliberately dispersed owned UTXOs
+and a large isolated State; no such build or devnet run was started here.

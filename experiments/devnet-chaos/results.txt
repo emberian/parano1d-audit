@@ -506,3 +506,6 @@ PHASE7 OK
 [start] p8-n1: pid=96566 log=p8-n1.log
 [start] p8-n2: pid=96997 log=p8-n2.log
 [start] p8-w1: pid=97458 log=p8-w1.log
+[stop] p8-w1 pid=97458
+[phase8] honest chain frozen at low work: (31, 'd6fc8017364927c8')
+[start] p8-poison: pid=7444 log=p8-poison.log

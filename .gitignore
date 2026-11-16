@@ -4,6 +4,8 @@
 # or a running node produces is not." If a lane ever needs a genuine deliverable that
 # matches one of these patterns, force it in with `git add -f <path>`.
 
+tmp/
+
 # --- build artifacts & vendored toolchains (any lane, any depth) ---
 target/
 target-*/
