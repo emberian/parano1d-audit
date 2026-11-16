@@ -109,12 +109,46 @@ run. Earlier reports are leads, not an upper bound on attack ideas.
 | `proof-soundness` | Do deployed relations or verifiers admit unauthorized value or serious denial? | Exact pinned relation, witness and verifier path. |
 | `review-prior` | Which publication claims exceed the saved evidence? | Claim, counterevidence, and replacement wording. |
 
-Early leads, **not yet promoted to findings**: the wallet lane reports a
-photo-key recovery context mismatch between GUI code and guides; the economic
-lane is testing an unsolicited NFT with a maximal unlock height; the snapshot
-lane found the five-second candidate settlement and higher-chainwork preference
-omitted from C27's "first manifest wins" description. Each requires a local
-control and impact assessment.
+The first pass produced bounded results:
+
+- `wallet-boundary` reproduced a wrong photo-key derivation context in three
+  guides: the published recipe produces a different real wallet address.
+  Official GUI recovery from the original photo still works. A separate
+  local-RPC impostor test replaced the GUI backend's receive address with an
+  attacker-owned one; the production wallet builder signed a synthetic payment
+  to it. No block was mined, and a remote P2P peer alone was not shown to
+  control the GUI's local RPC endpoint.
+- `economic-state` committed 248 unsolicited NFTs with maximum unlock height
+  in an isolated v2.1 block for 0.8002 NOID. The victim's verified wallet
+  pages returned them, and every attempted input was rejected as timelocked.
+  Native NOID remained spendable; GUI slowdown at greater scale is unmeasured.
+- `operator-exit` showed `walletSend` returning a txid with zero connected
+  peers while an independent receiver had no entry. Connection later delivered
+  the same txid. This is an acknowledgment error, not proof of operator-run
+  censorship or an exchange deposit.
+- `chain-malice` traced an 18-block replaceable suffix despite documentation
+  saying at most 17. Tip-inclusive 18 confirmations remain replaceable by a
+  heavier valid fork; 19 cross the node's local finality boundary. SafeTrade's
+  NOID credit threshold is unverified.
+- `network-abuse` drove anonymous header requests against a live 150-block
+  local node. Eight parked small responses did not stall an honest request;
+  a large-chain stall remains a hypothesis.
+- `proof-soundness` found no new unauthorized spend along the reviewed
+  authorization and version dispatch paths. A native-versus-recursive
+  differential at v2.1 activation remains high-value work.
+- `snapshot-adversary` confirmed the historical timestamp validation
+  differential at component level, found a five-second work-ranked candidate
+  window and an install-time HeaderDAG recheck, and left genuine release
+  terminal acceptance unresolved. A false advertised-work offer may delay
+  honest snapshot selection; sustained starvation is untested.
+
+The paper has been rewritten and rendered as a six-page bounded argument.
+`FINDINGS.md` and the operator-power report now lead with evidence and limits.
+Older detailed reports are being edited separately. The concurrently running
+phase-8 release-node test remains an open experiment until it records terminal,
+selection, and victim outcomes. Commit `0feaeec` accidentally captured files
+staged by multiple lanes in the shared Git index; later path-scoped commits
+recorded their completed results. No history was rewritten.
 
 ## Exchange boundary checked during takeover
 
