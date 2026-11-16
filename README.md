@@ -19,9 +19,9 @@ powers. The reports name which one each argument needs.
   corrections to earlier claims.
 - [Publication review](experiments/review-prior/REPORT.md) lists statements
   in the draft paper that exceed the saved evidence.
-- [Whitepaper source](experiments/whitepaper/parano1d-audit.typ) is being
-  rewritten. The existing PDF predates several corrections; do not cite it
-  as the final audit.
+- [Audit paper](experiments/whitepaper/parano1d-audit.pdf) and
+  [source](experiments/whitepaper/parano1d-audit.typ) give the concise argument.
+  The experiment reports remain the authority for measurements and limits.
 
 ## What the evidence says now
 
@@ -39,6 +39,27 @@ selected honest tip reach height 150 while installed height stayed zero.
 Therefore that run does not establish the claimed stall-to-poison chain.
 The [saved evidence check](experiments/devnet-chaos/header-progress-review.txt)
 records the distinction.
+The later [release-node control](experiments/devnet-chaos/PHASE8_REVIEW.md)
+also rejected a heavier poison fork because its tip was ten years in the
+future; both fresh joiners ended on honest height 31. A future-dated middle
+header under a present-day tip remains a separate, untested release case.
+
+An [anonymous header-serving test](experiments/network-abuse/README.md) made
+40 requests from five identities against a copied store with 4,096 synthetic,
+consensus-invalid header rows. RSS rose by 89–116 MiB in two bursts and
+honest responses slowed during overlapping preparation, but all completed.
+The [Sybil relay analysis](experiments/sybil-availability/REPORT.md) finds
+that inbound identities can consume direct transaction recipients. Its
+initial gossip-mesh delay model assumed an honest peer would not GRAFT itself.
+In a real P2P loopback control with eight Sybils connected first, the honest
+outbound peer did GRAFT and received all 12 pre-heartbeat test payloads in
+0–2 ms. Neither result is a measured sustained eclipse.
+
+The [producer resource analysis](experiments/pow-resource/README.md) shows
+that a miner can reclaim collection-creation fees through its coinbase, while
+continued growth still requires fresh funding slots, state-growth burn, and
+winning blocks. Its full-rate state-growth figures are bounds, not a mined
+full-block demonstration or current-network attack price.
 
 The consensus code permits replacing an 18-block suffix, while two protocol
 guides state a maximum of 17. A payment with exactly 18 confirmations is

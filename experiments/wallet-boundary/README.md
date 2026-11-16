@@ -52,6 +52,64 @@ changes the payer's actual destination. The fix needs a local, independently
 trusted binding between the displayed receive address and the wallet's
 derivation, or a trusted display/confirmation from a separate signer.
 
+### Reassessment of reachability
+
+The shipped default GUI endpoint is `http://127.0.0.1:9601`
+(`backend.rs:49,1592`). RPC URL is **not** in persisted GUI settings and has no
+user-facing Network setting (`backend.rs:119-130`; `docs/wallet/settings.md:49`);
+only the `NOID_RPC` environment variable overrides it. The GUI normally finds
+the node binary beside its own executable, falling back to `parano1d` on PATH
+when no sibling exists (`backend.rs:1918-1952`), and spawns it with the local
+data directory (`backend.rs:1420-1453`). Extra P2P seeds are passed as `--seed`;
+they do not change which RPC endpoint the GUI trusts.
+
+The default has an actual first-binder race: `ensure_running` accepts a
+successful `blockCount` ping *before* it inspects or spawns an owned child
+(`backend.rs:727-750`); `wait_until_ready` also pings before checking whether
+its child exited (`backend.rs:1476-1499`). An unprivileged local process able
+to bind `127.0.0.1:9601` before the real daemon can answer JSON-RPC there.
+The focused `prebound_default_port_is_adopted_without_rpc_override` test binds
+the literal default port, leaves `NOID_RPC` unset, and shows `ensure_running`
+adopting the impostor and the real GUI backend displaying its attacker receive
+address (`default-port-results.txt`). It uses a synthetic GUI data dir; the
+port was free at test time. A test of a separate OS user account was not run.
+If the honest daemon already owns the port, this pre-binding route is closed
+until it exits; slowing P2P sync does not by itself make the GUI replace a
+still-live owned child (`backend.rs:740-745`).
+
+The environment variable permits an arbitrary HTTP or HTTPS URL by source
+inspection (`backend.rs:1592-1597,1384-1391`), but the GUI sends no bearer
+token in its RPC request. A standard non-loopback node requires bearer auth
+(`noid_rpc/src/server.rs:3519-3521,3803-3815`), so simply setting the GUI to
+one of those nodes would not work without a proxy. A custom malicious service
+could answer if the user or a local launcher first sets `NOID_RPC`. The GUI
+client uses reqwest with `rustls-tls`; no certificate-bypass option or node
+identity pin is configured (`noid_gui/Cargo.toml:40`, `backend.rs:272-285`).
+For HTTPS, this is ordinary hostname certificate validation, not a guarantee
+that the service is the user's wallet node; plain HTTP has no TLS.
+
+With the **honest local daemon still serving RPC**, a remote P2P peer cannot
+replace `walletActiveAddress` or `walletListAddresses`: those methods read the
+daemon's locally held `WalletState` (`server.rs:2980-2994`), and
+`WalletState::active_address` derives from its local master secret and active
+index (`noid_node/src/wallet/state.rs:249-250`). The node's ordinary
+`verifyReceipt` independently checks Merkle inclusion and the receipt's
+header against its selected local chain (`server.rs:2457-2486`). A P2P peer can
+affect which *valid* chain the daemon sees or delay sync, and the snapshot
+audit explores a possible first-sync divergence, but this lane has no evidence
+that one peer can make an honest established daemon report an invented
+payment or attacker-owned receive address. The receipt verification result
+still comes from one node's chain view; it is not an independent check against
+the wider network. Its `confirmed` boolean denotes current canonical
+inclusion here, without testing the 18-block finality window.
+
+Thus W7's demonstrated path is a local endpoint substitution under a
+first-binder or explicitly configured endpoint precondition. A malicious
+developer release is a different and stronger threat: a binary that can read
+`wallet.key` could spend directly, so the GUI trust finding does not add a
+necessary exploit step there. Neither path establishes a developer-controlled
+remote peer rugpull against users running uncompromised local nodes.
+
 ## W8: the published photo-key recipe derives a different wallet
 
 The production GUI uses BLAKE3 derive-key context

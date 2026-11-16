@@ -33,17 +33,22 @@ Consequences:
 - C26's staging/install differential remains a separate finding. Its original
   demonstration used a stubbed recursive terminal and no live sockets; genuine
   release-terminal generation and end-to-end offer selection remain outstanding.
-- At the first handoff read, the recovered phase-8 worker's latest recorded
-  action was starting the poison-node build. During this review a concurrent
-  worker added `scripts/phase8_live_c26.py` and continued editing the README.
-  Preserve that live work; no successful phase-8 result was verified in this
-  review. Wording that phase 8 already demonstrates poisoning needs run evidence.
+- The phase-8 release-node attempt built a longer poison fork whose *tip*
+  was ten years in the future. The victim rejected its inventory and genuine
+  HistoryStep terminal for `BadTimestamp`, installed the honest snapshot, and
+  reached height 31. This refutes the script's claimed end-to-end result.
+  It does not test C26's narrower condition, a future-dated *middle* header
+  under a present-day tip. A second joiner seeded only to that victim also
+  adopted honest height 31. `devnet-chaos/results.txt` records both outcomes;
+  its unconditional `PHASE8 OK` means the script completed, not that the
+  poisoning claim succeeded. The script's static `SCOPE` line is contradicted
+  by `victim_on_poison=False` and `reserved_to_next=False` immediately above.
 - A restarted or eclipsed node does not automatically lose its retained work
   or finalized history. Do not group it with a genesis-only fresh node.
 
-The current whitepaper PDF and portions of the historical lane reports still
-contain stronger wording. **They are not publication-ready.** This correction
-supersedes those composition claims; it does not retract all component findings.
+The audit paper and leading reports have been rewritten around these
+boundaries. Detailed historical results remain useful, but any contradictory
+composition wording is superseded by the saved log and this correction.
 
 ## The selective-selling question
 
@@ -131,8 +136,11 @@ The first pass produced bounded results:
   heavier valid fork; 19 cross the node's local finality boundary. SafeTrade's
   NOID credit threshold is unverified.
 - `network-abuse` drove anonymous header requests against a live 150-block
-  local node. Eight parked small responses did not stall an honest request;
-  a large-chain stall remains a hypothesis.
+  local node. Eight parked small responses did not stall an honest request.
+  A copied store extended with consensus-invalid rows to 4,096 headers
+  produced a large real-wire serving response: five identities and 40
+  requests raised RSS by 89–116 MiB across two bursts; honest reads slowed
+  during preparation but all succeeded. This is transient serving pressure.
 - `proof-soundness` found no new unauthorized spend along the reviewed
   authorization and version dispatch paths. A native-versus-recursive
   differential at v2.1 activation remains high-value work.
@@ -143,10 +151,19 @@ The first pass produced bounded results:
   honest snapshot selection; sustained starvation is untested.
 
 The paper has been rewritten and rendered as a six-page bounded argument.
-`FINDINGS.md` and the operator-power report now lead with evidence and limits.
-Older detailed reports are being edited separately. The concurrently running
-phase-8 release-node test remains an open experiment until it records terminal,
-selection, and victim outcomes. Commit `0feaeec` accidentally captured files
+`FINDINGS.md`, the operator-power report, and the crypto, asset, availability,
+wallet, and network reports now lead with evidence and limits. Further lanes
+found source-level direct-recipient dilution, repeated wallet work from
+unspendable unsolicited NFTs, and producer fee recapture bounded by new-slot
+burn and block capacity (`sybil-availability/`, `valid-spam/`, `pow-resource/`).
+Their first-hop odds and sustained-growth rates are models, not observed
+network outages. A later real P2P control with eight early Sybils delivered
+all 12 pre-heartbeat test payloads to an honest outbound peer, which had
+GRAFTed into the mesh. The valid-spam lane measured a warm four-page storage scan
+of the 248 locked items at 10.06 ms median; RPC and GUI latency remain
+unmeasured. The phase-8 victim rejected the all-future poison tip and
+installed honest state; the real-terminal C26 middle-timestamp test remains
+open. Commit `0feaeec` accidentally captured files
 staged by multiple lanes in the shared Git index; later path-scoped commits
 recorded their completed results. No history was rewritten.
 

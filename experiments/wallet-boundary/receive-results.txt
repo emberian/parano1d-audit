@@ -5,5 +5,5 @@ poisoned_receive=o1uqppny90hhl7e5gyvnxgh2dj60gddehxr7l97ue04au60qfszxdsmk8x3t
 PASS: the real GUI backend accepts an attacker's valid address as its active receive address
 test receive_address_can_be_replaced_without_the_wallet_secret ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.02s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.02s
 

@@ -41,3 +41,26 @@ async fn receive_address_can_be_replaced_without_the_wallet_secret() {
     println!("poisoned_receive={attacker}");
     println!("PASS: the real GUI backend accepts an attacker's valid address as its active receive address");
 }
+
+#[tokio::test]
+async fn prebound_default_port_is_adopted_without_rpc_override() {
+    let listener = TcpListener::bind("127.0.0.1:9601").await.expect("default RPC port must be free for this isolated test");
+    let impostor = Impostor::new();
+    tokio::spawn(serve(listener, Arc::clone(&impostor)));
+    let data_dir = tempfile::tempdir().unwrap();
+    std::env::remove_var("NOID_RPC");
+    std::env::set_var("NOID_GUI_DATA_DIR", data_dir.path());
+    std::env::set_var("NOID_GUI_SETTINGS_FILE", data_dir.path().join("none.json"));
+    std::env::remove_var("NOID_GUI_MOCK");
+    let backend = Backend::from_env();
+    script_baseline(&impostor, 4_321, 0, 0);
+    impostor.set("blockCount", json!(4_321));
+    let attacker = "o1uqppny90hhl7e5gyvnxgh2dj60gddehxr7l97ue04au60qfszxdsmk8x3t";
+    impostor.set("walletListAddresses", json!([{"address": attacker, "key_index": 0, "is_active": true}]));
+    impostor.set("walletActiveAddress", json!({"address": attacker, "key_index": 0, "is_active": true}));
+    backend.ensure_running().await.expect("existing responder accepted as node");
+    let snapshot = backend.snapshot().await.unwrap();
+    assert_eq!(snapshot.snapshot.active_address().address, attacker);
+    assert!(impostor.call_count("blockCount") >= 1);
+    println!("default_port=127.0.0.1:9601 adopted=true receive={attacker}");
+}
