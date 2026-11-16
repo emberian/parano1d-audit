@@ -106,10 +106,53 @@ python3 scripts/collapse.py <stage>`):
 7. Write `REPORT.md`, commit named files (branch dev, no push).
 
 State as of last update (UPDATE THIS EACH MILESTONE):
-- Raise stage ran 22:16:45–22:28:30 PST 2026-11-15 under load ~140
-  (sibling halt-reorg lane). Tip ≈ h33+, ratio_log2 ≈ 1.5 (R ≈ 2.8). Stage
-  summary line printed by the stage: `[raise] done: {...}` — copy it here.
-- Freeze/fork/wait/adopt/produce: NOT YET RUN.
+- Raise DONE 22:28 PST 2026-11-15: tip h43 at mining end (44 sampled), final
+  block ratio_log2 2.07 (R≈4.2 at the tip), plateau cadence median 16.1s
+  under load ~100-140. Summary line in `logs/stage-raise.log`.
+- Freeze DONE 22:28:30 PST: frozen tip T=h44 hash 92d1fde1..., anchor A=h42
+  ts=1794810425, anchor ratio_log2=1.799 (R=3.48 vs floor),
+  need_excess=215.8s, delta=420s. n1 restarted as relay (pid 63970, debug
+  log). n3 stopped, pristine copy at `run/n3-snapshot` (tip h44).
+- Fork IN PROGRESS 22:29 PST: poison miner (pid 64140, clock +420s) mining
+  from frozen tip h44. **CONFIRMED: fork blocks h45-h47 are at the exact
+  genesis floor 2^238** (anchor h42 was R=3.48× harder — the collapse
+  arithmetic with delta=420s worked). Honest relays n1/n2 are rejecting the
+  fork at the drift gate: "snapshot header candidate rejected at h=45:
+  BadTimestamp" (6 rejection lines each so far) — that is the live gate
+  control. Fork target: h62 (18 blocks), then S serves on 21106/21107.
+- **The rest of the timeline is SELF-DRIVING (no agent needed)**: wrapper
+  `scripts/finish_run.sh` (pid in `run/stage-finish.pid`, log
+  `logs/stage-finish.log`) waits for the fork stage, then runs `wait` (~8
+  min, sleeps until fork_tip_ts − 120 + 15 sampling relay tips + rejection
+  counts), `adopt` (~5-10 min: 120s spontaneous watch, then restart n2
+  seeded [n1,S] → must select the fork by cumulative work; then n1 follows or
+  restarts), `produce --blocks 15` (~5-10 min: n2 restarted as honest
+  stock-binary miner on the collapsed chain; samples post-collapse blocks).
+  Completion marker: "RUN COMPLETE" at the end of `logs/stage-finish.log`.
+  Each stage logs to `logs/stage-<name>.log` and writes `run/state.json`.
+  Nodes stay RUNNING at the end (n2 as the honest producer at floor).
+
+Harvesting after "RUN COMPLETE" (or on failure of a stage — each stage-*.log
+says which):
+1. `python3 scripts/summarize.py` — the measurement tables (raise curve,
+   fork blocks with floor flags, wait samples incl. `relays_frozen_ok` and
+   rejection counts, adoption timings, post-collapse cadence/targets).
+2. `cat run/state.json` — freeze/fork/wait/adopt/produce records with hashes.
+3. `grep -c "BadTimestamp" logs/n1.log logs/n2.log` — drift-gate rejections.
+4. Write `REPORT.md` per CHOREOGRAPHY.md §7 + the task brief: conditions,
+   choreography, measured collapse (anchor h42 ratio_log2 1.799 → fork
+   blocks at exact 2^238), acceptance evidence (adoption timings + hash
+   match), what followed (post-collapse targets/cadence + re-tightening),
+   controls (drift-gate rejections live; unshifted-epoch plateau from the
+   raise curve; MTP-5-vs-6 boundary cited from comp-sync-finality), and the
+   mainnet-work-cost extrapolation clearly labeled a model (cite
+   verification-asert/results.json, scaled by the measured devnet R=3.48).
+   Commit named files on dev, no push.
+
+If a stage FAILED: the state at failure is in `run/state.json`; the fork
+retry runbook is in §4 step 3; relays can be checked with
+`python3 scripts/collapse.py status`. To stop everything:
+`python3 scripts/collapse.py teardown` (stops only by PID files).
 
 ## 5) Artifacts on disk
 
