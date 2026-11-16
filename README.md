@@ -52,6 +52,18 @@ GUI still recovers a wallet from the same original photo. An independent
 implementation of the published recipe derives a different key. See
 [wallet review](experiments/wallet-boundary/README.md).
 
+The same wallet review shows a separate receive-address risk: an impostor
+controlling the GUI's local RPC can replace the address the receive card
+offers to a payer. A production wallet builder signed a synthetic payment
+to that substituted address. This requires control of the local node
+interface; a public-network peer alone has not been shown to gain it.
+
+A full local block test minted 248 unsolicited NFTs to a victim with a maximal
+unlock height. The victim's wallet query returned every item, but the
+production spend check rejected them as locked. The [economic-state report](experiments/economic-state/REPORT.md)
+measures the attacker's 0.8002 NOID cost. Native NOID remains spendable;
+stock-GUI slowdown from larger collections has not been measured.
+
 No experiment has yet shown a developer-only ability to sell NOID while
 preventing other holders from selling. The audit is testing routes through
 transaction propagation, wallet display, block inclusion, and exchange
