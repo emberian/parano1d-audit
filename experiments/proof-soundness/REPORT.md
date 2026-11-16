@@ -63,6 +63,7 @@ native block validation for every adversarial body at the v2.1 boundary**.
 | Exploit a metadata-only terminal or absent verifier | Metadata only reaches the callback; production callback requires an embedded runtime and verifies the full terminal. | Code path traced. |
 | Have a stale verified terminal authorize a new reorg | The context rechecks ancestor depth/finality and derives authority against its current base. | Code path traced; race/rollback test remains valuable. |
 | Allocate arbitrarily from a malformed owner proof | Wire size caps at 92,696 bytes; a hand-written preflight checks vector lengths before bincode (`noid_gkr/src/zk_authorization_wire.rs:55,286-450`). | Code path traced; not a fuzz or peak-memory measurement. |
+| Omit the v2.1 finance runtime and verify post-activation terminals with the older v2 bank | `uses_finance_runtime` does fall back to v2 when the optional runtime is absent (`noid_miner/src/history_protocol.rs:163-209,727-757`). However the release build requires the scheduled v2.1 pack (`noid_node/build.rs:143,155-175`), and the distributed release script requires matching inputs (`scripts/build_release.sh:133-141`). | Negative for the official release path; a custom or misconfigured library consumer remains a separate integration question. |
 
 ## Higher-value next experiments
 
