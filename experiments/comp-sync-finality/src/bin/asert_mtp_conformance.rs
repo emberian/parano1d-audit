@@ -20,9 +20,9 @@ use noid_chain::consensus::params::{
 };
 use noid_chain::consensus::pow::{search_pow, validate_pow};
 use noid_chain::consensus::timestamps::median_time_past;
+use noid_chain::consensus::header::validate_header_timeless;
 use noid_chain::consensus::{
-    asert_anchor_height, validate_future_drift, validate_header, validate_header_timeless,
-    ConsensusError,
+    asert_anchor_height, validate_future_drift, validate_header, ConsensusError,
 };
 use noid_miner::history_step_artifacts::{
     decode_history_step_runtime_metadata_pinned, HISTORY_STEP_PACK_VERSION_DIRECTORY,
@@ -154,7 +154,7 @@ fn verify_mainnet_h210536_origin() -> Result<BlockHeader> {
     )?;
     let cert = v2::RetirementOriginCertificate::from_bytes(&origin_bytes)
         .map_err(|e| anyhow::anyhow!("decode retirement cert: {e}"))?;
-    let header = *cert.legacy_certificate().header();
+    let header = *cert.legacy_certificate().parent_header();
     let verified = cert
         .verify(&legacy_runtime, v2_meta.bank(), &retirement_keys)
         .map_err(|e| anyhow::anyhow!("verify retirement cert: {e}"))?;
@@ -229,7 +229,7 @@ fn run_epoch_anchor_reset_test(
         let mtp = median_time_past(&prev_11);
 
         let ts = if step <= 5 {
-            base_ts + min_offset_secs + step
+            base_ts + min_offset_secs + (step - 1) * V2_BLOCK_TIME
         } else if step == 6 {
             // At step == 6, 5 of 11 ancestors are shifted and 6 of 11 are <= base_ts,
             // so MTP equals `base_ts`!
@@ -324,14 +324,14 @@ fn run_epoch_anchor_reset_test(
     let mut sixth_far = parent_5;
     sixth_far.height = base_epoch_height + 6;
     sixth_far.prev_block_hash = block_id(&parent_5);
-    sixth_far.timestamp = base_ts + min_offset_secs + 6;
+    sixth_far.timestamp = base_ts + min_offset_secs + 5 * V2_BLOCK_TIME;
     six_shifted.push(sixth_far);
     let prev_11_after_6: Vec<u64> = six_shifted[six_shifted.len() - MEDIAN_TIME_BLOCKS..]
         .iter()
         .map(|h| h.timestamp)
         .collect();
     let mtp_after_6 = median_time_past(&prev_11_after_6);
-    assert_eq!(mtp_after_6, base_ts + min_offset_secs + 1);
+    assert_eq!(mtp_after_6, base_ts + min_offset_secs);
     assert!(
         validate_future_drift(mtp_after_6 + 1, local_time_at_tip).is_err(),
         "6th shifted block forces MTP past local future drift window"

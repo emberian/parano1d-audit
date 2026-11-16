@@ -27,18 +27,18 @@ mod tests {
             Block, BlockApplyError,
         },
         consensus::{
-            asert::AsertAnchor,
-            checks::{validate_block_slot_conflicts, TxError},
+            checks::validate_block_slot_conflicts,
             development_allocation::miner_subsidy_at_height,
             emission::block_reward,
             fees::{claimable_fee_for_tx_body, fee_breakdown, required_fee_for_tx_body},
             forks::{ForkSchedule, V2Activation},
             genesis::genesis_header,
             params::{
-                coinbase_creation_id, creation_id_within_boundary, tx_epoch_anchor_height_for_child,
-                TX_EPOCH_BLOCKS, V2_1_ACTIVATION_HEIGHT, V2_ACTIVATION_HEIGHT,
+                coinbase_creation_id, creation_id_within_boundary, TX_EPOCH_BLOCKS,
+                V2_1_ACTIVATION_HEIGHT, V2_ACTIVATION_HEIGHT,
             },
-            validation::validate_block_checks,
+            tx_epoch_anchor_height_for_child,
+            validation::{validate_block_checks, AnchorInfo},
             ConsensusError,
         },
         exact_state_hash::{slot_leaf_hash, state_node_hash, zero_slot_roots, StateHash},
@@ -54,16 +54,21 @@ mod tests {
         spine_statement::spine_inputs_from_body, state_leaf_killshot::SlotLeafInputs,
     };
     use noid_ivc_core::{
-        challenger::FsLaneChallenger,
+        challenger::{Challenger, FsLaneChallenger},
         deep_chain::{
             prove_deep_chain_walk,
-            relations::{prove_column_relation, verify_column_relation, RelationColumns},
-            schedule::flat_of_tower_u128,
+            relations::{
+                claimed_refs, prove_column_relation, prove_shift_discharge,
+                prove_shift_discharge_pow2, verify_column_relation, verify_shift_discharge,
+                verify_shift_discharge_pow2, ColRef, RelationColumns,
+            },
+            schedule::{carry_selection_terms, flat_of_tower_u128},
             verify_deep_chain_walk, LaneClaimGroup,
         },
         field::F128,
         field_circuit::{flat_const, FieldR1csBuilder, LinExpr, Wire},
         field_r1cs::FieldR1cs,
+        lincheck::build_eq_table,
     };
     use noid_mempool::{config::MempoolConfig, view::ChainView, AsyncMempool};
     use noid_poseidon2b::{
@@ -77,7 +82,6 @@ mod tests {
                 v2::{capacity_banked, V2Config, V2Error},
             },
             trace::{
-                accepted_claim_batch::select_child_tx_epoch_anchor,
                 action_compaction::{
                     bind_mint_packed_values_body_order, compact_action_rows, CompactedActionTrace,
                 },
@@ -97,7 +101,6 @@ mod tests {
                     financial_kernel::bind_financial_sequential_headers,
                     financial_operation::FINANCIAL_OPERATION_CODES,
                     header::bind_financial_native_headers,
-                    profile,
                 },
                 paged_spend::{bind_financial_paged_spend_stream, PagedSpendGroupTrace},
                 paired_merkle_update::{
@@ -112,6 +115,7 @@ mod tests {
                 range_check_bits,
                 segment_compaction::{bind_segment_upper_chain, compact_segment_updates},
                 tx_body_spine::SpineInputsTrace,
+                tx_epoch::constrain_tx_epoch_boundary,
                 alloc_block, flat_of,
             },
         },
@@ -120,12 +124,12 @@ mod tests {
     use noid_tx::{
         experimental_object::applications::refundable_payment,
         native_assets::{
-            financial::{FinancialOperation, ParentControlRef},
+            financial::{FinancialOperation, NativeParentRef},
             launch::{
                 launch_supply_from_whole, LaunchDefinition, LaunchOpening, LaunchRequest,
                 LaunchSide, LaunchState, LAUNCH_PROFILE,
             },
-            market::sequential::TradeKernelConfig as _,
+            native_creation_id,
             nft_market::NftRoundContext,
             profile::{kind_enabled, operation_enabled, sequential_kind_enabled},
             transition::{NativeContext, NativeInputClaim, NativeOperation, NativeOutputClaim},
@@ -169,70 +173,197 @@ mod tests {
         [flat_of_tower_u128(iv[0].0), flat_of_tower_u128(iv[1].0)]
     }
 
-    /// Prove and verify both the `DeepChain` Poseidon2b walk and the paired
-    /// Merkle update consistency + substitution column relations over `columns`.
-    fn verify_paired_merkle_gkr_family(columns: &PairedMerkleUpdateColumns, w_log: usize) {
-        let s0_refs: [&[F128]; 4] = std::array::from_fn(|lane| columns.s0[lane].as_slice());
-        let sout_refs: [&[F128]; 4] = std::array::from_fn(|lane| columns.s_out[lane].as_slice());
-        let claim_point: Vec<F128> = (0..w_log)
-            .map(|i| flat_of_tower_u128((0xA500 + i) as u128))
-            .collect();
+    fn mle_eval(column: &[F128], point: &[F128]) -> F128 {
+        let eq = build_eq_table(point);
+        column
+            .iter()
+            .zip(eq)
+            .fold(F128::ZERO, |acc, (&value, weight)| acc + value * weight)
+    }
 
-        // Evaluate s_out MLE at `claim_point` for the walk output claim.
-        let eval_mle = |col: &[F128]| -> F128 {
-            let mut layer = col.to_vec();
-            for &r in &claim_point {
-                let half = layer.len() / 2;
-                layer = (0..half)
-                    .map(|j| layer[2 * j] + r * (layer[2 * j] + layer[2 * j + 1]))
-                    .collect();
+    #[allow(clippy::too_many_arguments)]
+    fn discharge_relation_claims(
+        committed: &[&[F128]],
+        refs: &[ColRef],
+        values: &[F128],
+        point: &[F128],
+        w_log: usize,
+        prover: &mut FsLaneChallenger,
+        verifier: &mut FsLaneChallenger,
+        pending: &mut Vec<(usize, Vec<F128>, F128)>,
+    ) {
+        for (reference, &value) in refs.iter().zip(values) {
+            match reference {
+                ColRef::Committed(column) => {
+                    pending.push((*column, point.to_vec(), value));
+                }
+                ColRef::CommittedShift(column) => {
+                    let (proof, _) =
+                        prove_shift_discharge(committed[*column], point, value, prover);
+                    let plain_point = verify_shift_discharge(w_log, point, value, &proof, verifier)
+                        .expect("shift discharge must verify");
+                    pending.push((*column, plain_point, proof.final_value));
+                }
+                ColRef::CommittedShift2(column) => {
+                    let (proof, _) =
+                        prove_shift_discharge_pow2(committed[*column], point, value, 1, prover);
+                    let plain_point =
+                        verify_shift_discharge_pow2(w_log, point, value, 1, &proof, verifier)
+                            .expect("shift2 discharge must verify");
+                    pending.push((*column, plain_point, proof.final_value));
+                }
+                ColRef::Internal(_) | ColRef::Fixed(_) | ColRef::Window { .. } => {
+                    panic!("unexpected paired-update terminal reference");
+                }
             }
-            layer[0]
-        };
-        let groups = vec![LaneClaimGroup {
-            point: claim_point,
-            lanes: vec![0, 1, 2, 3],
-            values: (0..4).map(|lane| eval_mle(&columns.s_out[lane])).collect(),
-        }];
+        }
+    }
 
-        let mut prover_ch = FsLaneChallenger::new_c1(b"TESTWALK");
-        let (walk_proof, _) =
-            prove_deep_chain_walk(&s0_refs, &sout_refs, &groups, &mut prover_ch);
-        let mut verifier_ch = FsLaneChallenger::new_c1(b"TESTWALK");
-        assert!(
-            verify_deep_chain_walk(&walk_proof, w_log, &groups, &mut verifier_ch).is_some(),
-            "PairedMerkleUpdate DeepChain walk must verify"
-        );
-
+    /// Prove and verify the complete `PairedMerkleUpdate` GKR protocol:
+    /// consistency column relation, carry selection relation, `DeepChain`
+    /// Poseidon2b walk, substitution column relation, shift discharges, and
+    /// terminal MLE evaluations.
+    fn verify_paired_merkle_gkr_family(columns: &PairedMerkleUpdateColumns, w_log: usize) {
+        assert_eq!(columns.c[0].len(), 1usize << w_log);
         let fixed = paired_merkle_update_fixed_patterns(exstnod_iv_flat());
-        let committed = columns.committed_columns();
-        let rel_cols = RelationColumns {
-            committed: &committed,
-            s0: &s0_refs,
-            fixed: &fixed,
-            w_log,
-        };
         let refs = paired_merkle_update_refs(0, 0);
+        let committed = columns.committed_columns();
+        let internal: Vec<&[F128]> = columns.s_out.iter().map(Vec::as_slice).collect();
+        let mut prover = FsLaneChallenger::new(b"paired-update-dag-test");
+        let mut verifier = FsLaneChallenger::new(b"paired-update-dag-test");
+        let mut pending = Vec::new();
 
-        let consistency =
-            paired_merkle_update_consistency_terms(&refs, flat_of_tower_u128(0x1234_5678));
-        let mut prover_c = FsLaneChallenger::new_c1(b"TESTCONS");
-        let (cons_proof, _, _) = prove_column_relation(&consistency, &rel_cols, &mut prover_c);
-        let mut verifier_c = FsLaneChallenger::new_c1(b"TESTCONS");
-        assert!(
-            verify_column_relation(&consistency, &cons_proof, w_log, &mut verifier_c).is_some(),
-            "PairedMerkleUpdate consistency column relation must verify"
+        let mix = prover.sample_f128();
+        assert_eq!(mix, verifier.sample_f128());
+        let consistency = paired_merkle_update_consistency_terms(&refs, mix);
+        let rho_consistency = prover.sample_f128_vec(w_log);
+        assert_eq!(rho_consistency, verifier.sample_f128_vec(w_log));
+        let (proof, _, _) = prove_column_relation(
+            F128::ZERO,
+            &rho_consistency,
+            &consistency,
+            &RelationColumns {
+                committed: &committed,
+                internal: &[],
+                fixed: &fixed,
+            },
+            &mut prover,
+        );
+        let point = verify_column_relation(
+            w_log,
+            F128::ZERO,
+            &rho_consistency,
+            &consistency,
+            &fixed,
+            &proof,
+            &mut verifier,
+        )
+        .expect("PairedMerkleUpdate consistency column relation must verify");
+        discharge_relation_claims(
+            &committed,
+            &claimed_refs(&consistency),
+            &proof.final_values,
+            &point,
+            w_log,
+            &mut prover,
+            &mut verifier,
+            &mut pending,
         );
 
-        let substitution =
-            paired_merkle_update_substitution_terms(&refs, flat_of_tower_u128(0x9ABC_DEF0));
-        let mut prover_s = FsLaneChallenger::new_c1(b"TESTSUBS");
-        let (subs_proof, _, _) = prove_column_relation(&substitution, &rel_cols, &mut prover_s);
-        let mut verifier_s = FsLaneChallenger::new_c1(b"TESTSUBS");
-        assert!(
-            verify_column_relation(&substitution, &subs_proof, w_log, &mut verifier_s).is_some(),
-            "PairedMerkleUpdate substitution column relation must verify"
+        let beta = prover.sample_f128();
+        assert_eq!(beta, verifier.sample_f128());
+        let selection = carry_selection_terms(&refs.c, beta);
+        let rho_selection = prover.sample_f128_vec(w_log);
+        assert_eq!(rho_selection, verifier.sample_f128_vec(w_log));
+        let (proof, _, _) = prove_column_relation(
+            F128::ZERO,
+            &rho_selection,
+            &selection,
+            &RelationColumns {
+                committed: &committed,
+                internal: &internal,
+                fixed: &fixed,
+            },
+            &mut prover,
         );
+        let selection_point = verify_column_relation(
+            w_log,
+            F128::ZERO,
+            &rho_selection,
+            &selection,
+            &fixed,
+            &proof,
+            &mut verifier,
+        )
+        .expect("PairedMerkleUpdate carry selection column relation must verify");
+        let mut group_values = [F128::ZERO; 4];
+        for (reference, &value) in claimed_refs(&selection).iter().zip(&proof.final_values) {
+            match reference {
+                ColRef::Committed(column) => {
+                    pending.push((*column, selection_point.clone(), value));
+                }
+                ColRef::Internal(lane) => group_values[*lane] = value,
+                _ => panic!("unexpected selection terminal reference"),
+            }
+        }
+
+        let groups = vec![LaneClaimGroup {
+            point: selection_point,
+            values: group_values,
+        }];
+        let (walk, _) = prove_deep_chain_walk(&columns.s0, &groups, &mut prover);
+        let terminal = verify_deep_chain_walk(w_log, &groups, &walk, &mut verifier)
+            .expect("PairedMerkleUpdate DeepChain walk must verify");
+
+        let alpha = prover.sample_f128();
+        assert_eq!(alpha, verifier.sample_f128());
+        let substitution = paired_merkle_update_substitution_terms(&refs, alpha);
+        let mut target = F128::ZERO;
+        let mut alpha_power = F128::ONE;
+        for lane in 0..4 {
+            alpha_power = alpha_power * alpha;
+            target += alpha_power * terminal.values[lane];
+        }
+        let (proof, _, _) = prove_column_relation(
+            target,
+            &terminal.point,
+            &substitution,
+            &RelationColumns {
+                committed: &committed,
+                internal: &[],
+                fixed: &fixed,
+            },
+            &mut prover,
+        );
+        let point = verify_column_relation(
+            w_log,
+            target,
+            &terminal.point,
+            &substitution,
+            &fixed,
+            &proof,
+            &mut verifier,
+        )
+        .expect("PairedMerkleUpdate substitution column relation must verify");
+        discharge_relation_claims(
+            &committed,
+            &claimed_refs(&substitution),
+            &proof.final_values,
+            &point,
+            w_log,
+            &mut prover,
+            &mut verifier,
+            &mut pending,
+        );
+
+        assert_eq!(prover.sample_f128(), verifier.sample_f128());
+        for (column, point, value) in pending {
+            assert_eq!(
+                mle_eval(committed[column], &point),
+                value,
+                "false terminal MLE claim on column {column}"
+            );
+        }
     }
 
     struct PairedCellWires {
@@ -572,7 +703,7 @@ mod tests {
         let txs = vec![coinbase_tx.clone()];
         let timestamp = parent_header.timestamp + 20;
         let difficulty_target = [0xFF; 32]; // trivial target for timeless/ASERT fixture
-        let asert = AsertAnchor {
+        let asert = AnchorInfo {
             anchor_height: 0,
             anchor_timestamp: parent_header.timestamp,
             anchor_target: difficulty_target,
@@ -774,7 +905,7 @@ mod tests {
                 Transaction::new(coinbase_body.clone()),
                 Transaction::new(unaliased_user),
             ]),
-            Err(TxError::InputOutputSlotOverlap),
+            Err(ConsensusError::SlotConflict),
             "native consensus forbids spending a slot minted in the same block"
         );
 
@@ -799,7 +930,7 @@ mod tests {
         let cb_surface = bind_coinbase_action_with_amount(&mut b, &cb_spine);
 
         let user_spine = SpineInputsTrace::alloc(&mut b, &spine_inputs_from_body(&provisional));
-        let tx_live = alloc_block(&mut b, Block128::ONE);
+        let tx_live = alloc_block(&mut b, Block128::from(1u128));
         let user_surface = bind_user_action_surface(&mut b, &user_spine, &tx_live);
         let _user_arith = bind_user_public_arithmetic(&mut b, &user_spine, &user_surface);
 

@@ -1,0 +1,916 @@
+   Compiling libc v0.2.186
+   Compiling proc-macro2 v1.0.106
+   Compiling quote v1.0.45
+   Compiling unicode-ident v1.0.24
+   Compiling cfg-if v1.0.4
+   Compiling serde_core v1.0.228
+   Compiling serde v1.0.228
+   Compiling crossbeam-utils v0.8.21
+   Compiling zerocopy v0.8.48
+   Compiling shlex v1.3.0
+   Compiling rayon-core v1.13.0
+   Compiling find-msvc-tools v0.1.9
+   Compiling glob v0.3.3
+   Compiling either v1.15.0
+   Compiling bech32 v0.11.1
+   Compiling memchr v2.8.1
+   Compiling regex-syntax v0.8.10
+   Compiling clang-sys v1.8.1
+   Compiling minimal-lexical v0.2.1
+   Compiling hex v0.4.3
+   Compiling libloading v0.8.9
+   Compiling nom v7.1.3
+   Compiling equivalent v1.0.2
+   Compiling hashbrown v0.17.1
+   Compiling bindgen v0.72.1
+   Compiling bitflags v2.11.1
+   Compiling itertools v0.13.0
+   Compiling crossbeam-epoch v0.9.18
+   Compiling parking_lot_core v0.9.12
+   Compiling once_cell v1.21.4
+   Compiling syn v2.0.117
+   Compiling jobserver v0.1.35
+   Compiling getrandom v0.2.17
+   Compiling crossbeam-deque v0.8.6
+   Compiling regex-automata v0.4.14
+   Compiling indexmap v2.14.0
+   Compiling cc v1.2.62
+   Compiling rand_core v0.6.4
+   Compiling errno v0.3.14
+   Compiling rustc-hash v2.1.2
+   Compiling cexpr v0.6.0
+   Compiling rayon v1.12.0
+   Compiling unicode-segmentation v1.13.3
+   Compiling smallvec v1.15.1
+   Compiling pkg-config v0.3.33
+   Compiling scopeguard v1.2.0
+   Compiling lock_api v0.4.14
+   Compiling convert_case v0.10.0
+   Compiling rustix v1.1.4
+   Compiling unicode-xid v0.2.6
+   Compiling getrandom v0.4.2
+   Compiling thiserror v2.0.18
+   Compiling regex v1.12.3
+   Compiling zstd-sys v2.0.16+zstd.1.5.7
+   Compiling parking_lot v0.12.5
+   Compiling toml_write v0.1.2
+   Compiling winnow v0.7.15
+   Compiling pin-project-lite v0.2.17
+   Compiling tracing-core v0.1.36
+   Compiling fastrand v2.4.1
+   Compiling zstd-safe v7.2.4
+   Compiling memmap2 v0.9.11
+   Compiling thiserror v1.0.69
+   Compiling signal-hook-registry v1.4.8
+   Compiling mio v1.2.1
+   Compiling socket2 v0.6.4
+   Compiling bytes v1.11.1
+   Compiling ppv-lite86 v0.2.21
+   Compiling tempfile v3.27.0
+   Compiling anyhow v1.0.102
+   Compiling rand_chacha v0.3.1
+   Compiling rand v0.8.6
+   Compiling serde_derive v1.0.228
+   Compiling zeroize_derive v1.4.3
+   Compiling derive_more-impl v2.1.1
+   Compiling zeroize v1.8.2
+   Compiling thiserror-impl v2.0.18
+   Compiling tracing-attributes v0.1.31
+   Compiling sealed v0.6.0
+   Compiling tokio-macros v2.7.0
+   Compiling thiserror-impl v1.0.69
+   Compiling tokio v1.52.3
+   Compiling tracing v0.1.44
+   Compiling derive_more v2.1.1
+   Compiling noid_core v2.1.0 (/Users/ember/dev/parano1d-break/parano1d/noid_core)
+   Compiling bincode v1.3.3
+   Compiling serde_spanned v0.6.9
+   Compiling toml_datetime v0.6.11
+   Compiling toml_edit v0.22.27
+   Compiling mdbx-sys v13.11.0
+   Compiling zstd v0.13.3
+   Compiling toml v0.8.23
+   Compiling noid_poseidon2b v2.1.0 (/Users/ember/dev/parano1d-break/parano1d/noid_poseidon2b)
+   Compiling noid_fri v2.1.0 (/Users/ember/dev/parano1d-break/parano1d/noid_fri)
+   Compiling noid_tx v2.1.0 (/Users/ember/dev/parano1d-break/parano1d/noid_tx)
+   Compiling noid-ivc-core v2.1.0 (/Users/ember/dev/parano1d-break/parano1d/noid_ivc_core)
+   Compiling noid_fri_binius v2.1.0 (/Users/ember/dev/parano1d-break/parano1d/noid_fri_binius)
+   Compiling noid_gkr v2.1.0 (/Users/ember/dev/parano1d-break/parano1d/noid_gkr)
+   Compiling libmdbx v0.6.6
+   Compiling noid_chain v2.1.0 (/Users/ember/dev/parano1d-break/parano1d/noid_chain)
+   Compiling noid-ivc-prover v2.1.0 (/Users/ember/dev/parano1d-break/parano1d/noid_ivc_prover)
+warning: associated function `try_from_locally_built_block` is never used
+  --> /Users/ember/dev/parano1d-break/parano1d/noid_chain/src/accepted_block_bundle.rs:73:19
+   |
+65 | impl AcceptedBlockBundle {
+   | ------------------------ associated function in this implementation
+...
+73 |     pub(crate) fn try_from_locally_built_block(
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `encode_body` is never used
+   --> /Users/ember/dev/parano1d-break/parano1d/noid_chain/src/block/payload.rs:297:15
+    |
+297 | pub(crate) fn encode_body<'a>(block_bytes: &'a [u8], openings: &[Native...
+    |               ^^^^^^^^^^^
+
+   Compiling noid_recursive v2.1.0 (/Users/ember/dev/parano1d-break/parano1d/noid_recursive)
+   Compiling noid_mempool v2.1.0 (/Users/ember/dev/parano1d-break/parano1d/noid_mempool)
+warning: unused import: `FsChannelOps`
+ --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/acceptance/history_step/v2/capacity_banked/shared_parent.rs:9:36
+  |
+9 | use noid_ivc_core::field_circuit::{FsChannelOps, RecordedChannel};
+  |                                    ^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `pin_eq`
+ --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/acceptance/trace/native_assets/financial_inventory_scan.rs:7:25
+  |
+7 | use super::super::{mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128};
+  |                         ^^^^^^
+
+warning: unused import: `flat_const`
+ --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/acceptance/trace/native_assets/financial_launch_context.rs:7:18
+  |
+7 |     alloc_block, flat_const, mul, pin_eq, pin_zero, FieldR1csBuilder, Lin...
+  |                  ^^^^^^^^^^
+
+warning: unused import: `F128`
+ --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/acceptance/trace/native_assets/financial_launch_effects_shared.rs:8:32
+  |
+8 |     FieldR1csBuilder, LinExpr, F128,
+  |                                ^^^^
+
+warning: unused import: `flat_const`
+ --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/acceptance/trace/native_assets/financial_nft_funding.rs:6:20
+  |
+6 | use super::super::{flat_const, mul, pin_eq, pin_zero, FieldR1csBuilder, L...
+  |                    ^^^^^^^^^^
+
+warning: unused import: `duplex_substitution_terms_selected`
+  --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/region_sidecar/recording_duplex.rs:36:5
+   |
+36 |     duplex_substitution_terms_selected, duplex_substitution_terms_select...
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `prove_c1_duplex_walk_suffix_selected`, `verify_c1_duplex_walk_suffix_selected_trace`, and `verify_c1_duplex_walk_suffix_selected`
+  --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/region_sidecar/recording_duplex.rs:40:63
+   |
+40 |     prove_c1_duplex_walk_prefix, prove_c1_duplex_walk_suffix, prove_c1_duplex_walk_suffix_selected,
+   |                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+43 |     verify_c1_duplex_walk_suffix_selected, verify_c1_duplex_walk_suffix_selected_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+44 |     verify_c1_duplex_walk_suffix_selected_trace, verify_c1_duplex_walk_suffix_selected_trace_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `noid_chain` (lib) generated 2 warnings
+warning: function `prove_c1_duplex_walk_suffix_selected` is never used
+    --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/acceptance/trace/region_source_binding_c1.rs:1587:15
+     |
+1587 | pub(crate) fn prove_c1_duplex_walk_suffix_selected<C: Challenger>(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `verify_c1_duplex_walk_suffix_selected` is never used
+    --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/acceptance/trace/region_source_binding_c1.rs:1728:15
+     |
+1728 | pub(crate) fn verify_c1_duplex_walk_suffix_selected<C: Challenger>(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `verify_c1_duplex_walk_suffix_selected_trace` is never used
+   --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/acceptance/trace/region_source_binding_c1/trace_impl.rs:346:15
+    |
+346 | pub(crate) fn verify_c1_duplex_walk_suffix_selected_trace<C: FsChannelO...
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+   Compiling noid_block v2.1.0 (/Users/ember/dev/parano1d-break/parano1d/noid_block)
+   Compiling noid_miner v2.1.0 (/Users/ember/dev/parano1d-break/parano1d/noid_miner)
+   Compiling comp-consensus-diff v0.1.0 (/Users/ember/dev/parano1d-break/experiments/comp-consensus-diff)
+warning: `noid_recursive` (lib) generated 10 warnings (run `cargo fix --lib -p noid_recursive` to apply 7 suggestions)
+error[E0432]: unresolved imports `noid_chain::consensus::asert`, `noid_chain::consensus::checks::TxError`, `noid_chain::consensus::params::tx_epoch_anchor_height_for_child`
+  --> src/lib.rs:30:13
+   |
+30 | ...   asert::AsertAnchor,
+   |       ^^^^^ could not find `asert` in `consensus`
+31 | ...   checks::{validate_block_slot_conflicts, TxError},
+   |                                               ^^^^^^^ no `TxError` in `consensus::checks`
+...
+38 | ...       coinbase_creation_id, creation_id_within_boundary, tx_epoch_anchor_height_for_child,
+   |                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `tx_epoch_anchor_height_for_child` in `consensus::params`
+
+error[E0432]: unresolved import `noid_recursive::acceptance::trace::accepted_claim_batch::select_child_tx_epoch_anchor`
+  --> src/lib.rs:80:17
+   |
+80 |                 accepted_claim_batch::select_child_tx_epoch_anchor,
+   |                 ^^^^^^^^^^^^^^^^^^^^^^----------------------------
+   |                                       |
+   |                                       no `select_child_tx_epoch_anchor` in `acceptance::trace::accepted_claim_batch`
+
+error[E0432]: unresolved import `noid_tx::native_assets::financial::ParentControlRef`
+   --> src/lib.rs:122:45
+    |
+122 |             financial::{FinancialOperation, ParentControlRef},
+    |                                             ^^^^^^^^^^^^^^^^ no `ParentControlRef` in `native_assets::financial`
+
+error[E0425]: cannot find function `apply_checked_native` in module `noid_chain::state::native_assets`
+    --> src/lib.rs:1443:47
+     |
+1443 |             noid_chain::state::native_assets::apply_checked_native(
+     |                                               ^^^^^^^^^^^^^^^^^^^^ not found in `noid_chain::state::native_assets`
+
+error[E0425]: cannot find function `apply_checked_native` in module `noid_chain::state::native_assets`
+    --> src/lib.rs:1603:47
+     |
+1603 |             noid_chain::state::native_assets::apply_checked_native(
+     |                                               ^^^^^^^^^^^^^^^^^^^^ not found in `noid_chain::state::native_assets`
+
+error[E0425]: cannot find function `apply_checked_native` in module `noid_chain::state::native_assets`
+    --> src/lib.rs:1961:47
+     |
+1961 |             noid_chain::state::native_assets::apply_checked_native(
+     |                                               ^^^^^^^^^^^^^^^^^^^^ not found in `noid_chain::state::native_assets`
+
+error[E0560]: struct `LaneClaimGroup` has no field named `lanes`
+   --> src/lib.rs:192:13
+    |
+192 |             lanes: vec![0, 1, 2, 3],
+    |             ^^^^^ `LaneClaimGroup` does not have this field
+    |
+    = note: all struct fields are already assigned
+
+error[E0277]: an array of type `[F128; 4]` cannot be built directly from an iterator
+    --> src/lib.rs:193:71
+     |
+ 193 | ...&columns.s_out[lane])).collect(),
+     |                           ^^^^^^^ try collecting into a `Vec<F128>`, then using `.try_into()`
+     |
+     = help: the trait `FromIterator<F128>` is not implemented for `[F128; 4]`
+note: the method call chain might not have had the expected associated types
+    --> src/lib.rs:193:28
+     |
+ 193 | ...alues: (0..4).map(|lane| eval_mle(&columns.s_out[lane])).collect(),
+     |           ------ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Iterator::Item` is `F128` here
+     |           |
+     |           this expression has type `Range<usize>`
+note: required by a bound in `collect`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/core/src/iter/traits/iterator.rs:2077:19
+     |
+2077 |     fn collect<B: FromIterator<Self::Item>>(self) -> B
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Iterator::collect`
+
+error[E0061]: this function takes 3 arguments but 4 arguments were supplied
+   --> src/lib.rs:198:13
+    |
+198 |             prove_deep_chain_walk(&s0_refs, &sout_refs, &groups, &mut p...
+    |             ^^^^^^^^^^^^^^^^^^^^^           ---------- unexpected argument #2 of type `&[&[F128]; 4]`
+    |
+note: expected `&[Vec<F128>; 4]`, found `&[&[F128]; 4]`
+   --> src/lib.rs:198:35
+    |
+198 | ...   prove_deep_chain_walk(&s0_refs, &sout_refs, &groups, &mut prover_...
+    |                             ^^^^^^^^
+    = note: expected reference `&[Vec<F128>; 4]`
+               found reference `&[&[F128]; 4]`
+note: function defined here
+   --> /Users/ember/dev/parano1d-break/parano1d/noid_ivc_core/src/deep_chain.rs:926:8
+    |
+926 | pub fn prove_deep_chain_walk<Ch: Challenger>(
+    |        ^^^^^^^^^^^^^^^^^^^^^
+help: remove the extra argument
+    |
+198 -             prove_deep_chain_walk(&s0_refs, &sout_refs, &groups, &mut prover_ch);
+198 +             prove_deep_chain_walk(/* &[Vec<F128>; 4] */, &groups, &mut prover_ch);
+    |
+
+error[E0308]: arguments to this function are incorrect
+    --> src/lib.rs:201:13
+     |
+ 201 | ...       verify_deep_chain_walk(&walk_proof, w_log, &groups, &mut ver...
+     |           ^^^^^^^^^^^^^^^^^^^^^^ -----------  -----  ------- expected `&DeepChainWalkProof`, found `&Vec<LaneClaimGroup>`
+     |                                  |            |
+     |                                  |            expected `&[LaneClaimGroup]`, found `usize`
+     |                                  expected `usize`, found `&DeepChainWalkProof`
+     |
+note: function defined here
+    --> /Users/ember/dev/parano1d-break/parano1d/noid_ivc_core/src/deep_chain.rs:1812:8
+     |
+1812 | pub fn verify_deep_chain_walk<Ch: Challenger>(
+     |        ^^^^^^^^^^^^^^^^^^^^^^
+help: reorder these arguments
+     |
+ 201 -             verify_deep_chain_walk(&walk_proof, w_log, &groups, &mut verifier_ch).is_some(),
+ 201 +             verify_deep_chain_walk(w_log, &groups, &walk_proof, &mut verifier_ch).is_some(),
+     |
+
+error[E0599]: no method named `is_some` found for enum `Result<T, E>` in the current scope
+   --> src/lib.rs:201:83
+    |
+201 | ...g, &groups, &mut verifier_ch).is_some(),
+    |                                  ^^^^^^^
+    |
+help: there is a method `is_ok` with a similar name
+    |
+201 -             verify_deep_chain_walk(&walk_proof, w_log, &groups, &mut verifier_ch).is_some(),
+201 +             verify_deep_chain_walk(&walk_proof, w_log, &groups, &mut verifier_ch).is_ok(),
+    |
+
+error[E0560]: struct `RelationColumns<'_>` has no field named `s0`
+   --> src/lib.rs:209:13
+    |
+209 |             s0: &s0_refs,
+    |             ^^ `RelationColumns<'_>` does not have this field
+    |
+    = note: available fields are: `internal`
+
+error[E0560]: struct `RelationColumns<'_>` has no field named `w_log`
+   --> src/lib.rs:211:13
+    |
+211 |             w_log,
+    |             ^^^^^ `RelationColumns<'_>` does not have this field
+    |
+    = note: available fields are: `internal`
+
+error[E0061]: this function takes 5 arguments but 3 arguments were supplied
+   --> src/lib.rs:218:34
+    |
+218 | ... _, _) = prove_column_relation(&consistency, &rel_cols, &mut prover_c);
+    |             ^^^^^^^^^^^^^^^^^^^^^ ----------------------- two arguments of type `F128` and `&[F128]` are missing
+    |
+note: function defined here
+   --> /Users/ember/dev/parano1d-break/parano1d/noid_ivc_core/src/deep_chain/relations.rs:434:8
+    |
+434 | pub fn prove_column_relation<Ch: Challenger>(
+    |        ^^^^^^^^^^^^^^^^^^^^^
+help: provide the arguments
+    |
+218 |         let (cons_proof, _, _) = prove_column_relation(/* F128 */, /* &[F128] */, &consistency, &rel_cols, &mut prover_c);
+    |                                                        ++++++++++++++++++++++++++
+
+error[E0061]: this function takes 7 arguments but 4 arguments were supplied
+   --> src/lib.rs:221:13
+    |
+221 | ...   verify_column_relation(&consistency, &cons_proof, w_log, &mut verifier_c).is...
+    |       ^^^^^^^^^^^^^^^^^^^^^^---------------------------------------------------
+    |                             ||             |            |
+    |                             ||             |            expected `&[RelationTerm]`, found `usize`
+    |                             ||             two arguments of type `F128` and `&[F128]` are missing
+    |                             |expected `usize`, found `&Vec<RelationTerm>`
+    |                             argument #5 of type `&[FixedPattern]` is missing
+    |
+note: function defined here
+   --> /Users/ember/dev/parano1d-break/parano1d/noid_ivc_core/src/deep_chain/relations.rs:597:8
+    |
+597 | pub fn verify_column_relation<Ch: Challenger>(
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+help: did you mean
+    |
+221 -             verify_column_relation(&consistency, &cons_proof, w_log, &mut verifier_c).is_some(),
+221 +             verify_column_relation(w_log, /* F128 */, /* &[F128] */, &consistency, /* &[FixedPattern] */, &cons_proof, &mut verifier_c).is_some(),
+    |
+
+error[E0599]: no method named `is_some` found for enum `Result<T, E>` in the current scope
+   --> src/lib.rs:221:87
+    |
+221 | ...roof, w_log, &mut verifier_c).is_some(),
+    |                                  ^^^^^^^
+    |
+help: there is a method `is_ok` with a similar name
+    |
+221 -             verify_column_relation(&consistency, &cons_proof, w_log, &mut verifier_c).is_some(),
+221 +             verify_column_relation(&consistency, &cons_proof, w_log, &mut verifier_c).is_ok(),
+    |
+
+error[E0061]: this function takes 5 arguments but 3 arguments were supplied
+   --> src/lib.rs:228:34
+    |
+228 | ... _, _) = prove_column_relation(&substitution, &rel_cols, &mut prover...
+    |             ^^^^^^^^^^^^^^^^^^^^^ ------------------------ two arguments of type `F128` and `&[F128]` are missing
+    |
+note: function defined here
+   --> /Users/ember/dev/parano1d-break/parano1d/noid_ivc_core/src/deep_chain/relations.rs:434:8
+    |
+434 | pub fn prove_column_relation<Ch: Challenger>(
+    |        ^^^^^^^^^^^^^^^^^^^^^
+help: provide the arguments
+    |
+228 |         let (subs_proof, _, _) = prove_column_relation(/* F128 */, /* &[F128] */, &substitution, &rel_cols, &mut prover_s);
+    |                                                        ++++++++++++++++++++++++++
+
+error[E0061]: this function takes 7 arguments but 4 arguments were supplied
+   --> src/lib.rs:231:13
+    |
+231 | ...   verify_column_relation(&substitution, &subs_proof, w_log, &mut verifier_s).is...
+    |       ^^^^^^^^^^^^^^^^^^^^^^----------------------------------------------------
+    |                             ||              |            |
+    |                             ||              |            expected `&[RelationTerm]`, found `usize`
+    |                             ||              two arguments of type `F128` and `&[F128]` are missing
+    |                             |expected `usize`, found `&Vec<RelationTerm>`
+    |                             argument #5 of type `&[FixedPattern]` is missing
+    |
+note: function defined here
+   --> /Users/ember/dev/parano1d-break/parano1d/noid_ivc_core/src/deep_chain/relations.rs:597:8
+    |
+597 | pub fn verify_column_relation<Ch: Challenger>(
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+help: did you mean
+    |
+231 -             verify_column_relation(&substitution, &subs_proof, w_log, &mut verifier_s).is_some(),
+231 +             verify_column_relation(w_log, /* F128 */, /* &[F128] */, &substitution, /* &[FixedPattern] */, &subs_proof, &mut verifier_s).is_some(),
+    |
+
+error[E0599]: no method named `is_some` found for enum `Result<T, E>` in the current scope
+   --> src/lib.rs:231:88
+    |
+231 | ...roof, w_log, &mut verifier_s).is_some(),
+    |                                  ^^^^^^^
+    |
+help: there is a method `is_ok` with a similar name
+    |
+231 -             verify_column_relation(&substitution, &subs_proof, w_log, &mut verifier_s).is_some(),
+231 +             verify_column_relation(&substitution, &subs_proof, w_log, &mut verifier_s).is_ok(),
+    |
+
+error[E0061]: this function takes 6 arguments but 7 arguments were supplied
+   --> src/lib.rs:599:28
+    |
+599 |         let native_check = validate_block_checks(
+    |                            ^^^^^^^^^^^^^^^^^^^^^
+...
+606 |             false,
+    |             ----- unexpected argument #7 of type `bool`
+    |
+note: expected `u64`, found `Option<u64>`
+   --> src/lib.rs:604:13
+    |
+604 |             Some(timestamp),
+    |             ^^^^^^^^^^^^^^^
+    = note: expected type `u64`
+               found enum `Option<u64>`
+note: function defined here
+   --> /Users/ember/dev/parano1d-break/parano1d/noid_chain/src/consensus/validation.rs:381:8
+    |
+381 | pub fn validate_block_checks(
+    |        ^^^^^^^^^^^^^^^^^^^^^
+help: remove the extra argument
+    |
+604 ~             /* u64 */,
+605 ~             &asert,
+    |
+
+error[E0599]: no associated function or constant named `ONE` found for struct `Block128` in the current scope
+   --> src/lib.rs:800:53
+    |
+800 |         let tx_live = alloc_block(&mut b, Block128::ONE);
+    |                                                     ^^^ associated function or constant not found in `Block128`
+    |
+    = help: items from traits can only be used if the trait is in scope
+help: trait `TowerField` which provides `ONE` is implemented but not in scope; perhaps you want to import it
+    |
+ 16 +     use noid_core::TowerField;
+    |
+
+error[E0369]: binary operation `==` cannot be applied to type `Result<Config, V2Error>`
+    --> src/lib.rs:1298:9
+     |
+1298 | / ...   assert_eq!(
+1299 | | ...       capacity_banked::Config::new(small_cfg, large_cfg, non_seq...
+1300 | | ...       Err(V2Error::Runtime),
+1301 | | ...       "v2.1 capacity_banked::Config forbids non-sequential Class...
+1302 | | ...   );
+     | |       ^
+     | |       |
+     | |_______Result<Config, V2Error>
+     |         Result<Config, V2Error>
+     |
+note: `V2Error` does not implement `PartialEq`
+    --> /Users/ember/dev/parano1d-break/parano1d/noid_recursive/src/acceptance/history_step/v2.rs:34:1
+     |
+  34 | pub enum V2Error {
+     | ^^^^^^^^^^^^^^^^ `V2Error` is defined in another crate
+     = note: the full name for the type has been written to '/Users/ember/dev/parano1d-break/experiments/comp-consensus-diff/target/release/deps/comp_consensus_diff-522d85a0da7db401.long-type-16132789284133789633.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+
+error[E0609]: no field `claimable_by_miner` on type `FeeBreakdown`
+    --> src/lib.rs:1367:14
+     |
+1367 |             .claimable_by_miner;
+     |              ^^^^^^^^^^^^^^^^^^ unknown field
+     |
+     = note: available fields are: `base`, `input`, `output`, `io`, `state_growth` ... and 2 others
+
+error[E0277]: the trait bound `Address: Ord` is not satisfied
+    --> src/lib.rs:1398:14
+     |
+1398 |             .collect();
+     |              ^^^^^^^ the trait `Ord` is not implemented for `Address`
+     |
+help: the trait `FromIterator<(K, V)>` is implemented for `BTreeMap<K, V>`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/collections/btree/map.rs:2539:1
+     |
+2539 | impl<K: Ord, V> FromIterator<(K, V)> for BTreeMap<K, V> {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     = note: required for `BTreeMap<Address, NativeOpening>` to implement `FromIterator<(Address, NativeOpening)>`
+note: required by a bound in `collect`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/core/src/iter/traits/iterator.rs:2077:19
+     |
+2077 |     fn collect<B: FromIterator<Self::Item>>(self) -> B
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Iterator::collect`
+
+error[E0624]: method `claims` is private
+    --> src/lib.rs:1422:45
+     |
+1422 |             let (ins, outs) = launch_intent.claims();
+     |                                             ^^^^^^ private method
+     |
+    ::: /Users/ember/dev/parano1d-break/parano1d/noid_tx/src/native_assets/wire.rs:642:5
+     |
+ 642 |     fn claims(&self) -> (Vec<NativeInputClaim>, Vec<NativeOutputClaim>) {
+     |     ------------------------------------------------------------------- private method defined here
+
+error[E0624]: method `check_owner` is private
+    --> src/lib.rs:1430:18
+     |
+1430 |                   .check_owner(
+     |                    ^^^^^^^^^^^ private method
+     |
+    ::: /Users/ember/dev/parano1d-break/parano1d/noid_chain/src/block/native_assets/financial.rs:148:5
+     |
+ 148 | /     pub(crate) fn check_owner(
+ 149 | |         &self,
+ 150 | |         parent_state: &ChainState,
+ 151 | |         context: &NativeContext,
+...    |
+ 155 | |         mut resolve: impl FnMut(Address) -> Option<NativeOpening>,
+ 156 | |     ) -> Result<NativeTransitionFacts, FinancialBlockError> {
+     | |___________________________________________________________- private method defined here
+
+error[E0277]: the trait bound `Address: Ord` is not satisfied
+    --> src/lib.rs:1440:38
+     |
+1440 |                     |r| openings_map.get(&r).copied(),
+     |                                      ^^^ the trait `Ord` is not implemented for `Address`
+     |
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/collections/btree/map.rs:719:24
+     |
+ 717 |     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+     |            --- required by a bound in this associated function
+ 718 |     where
+ 719 |         K: Borrow<Q> + Ord,
+     |                        ^^^ required by this bound in `BTreeMap::<K, V, A>::get`
+
+error[E0277]: the trait bound `Address: Ord` is not satisfied
+    --> src/lib.rs:1440:42
+     |
+1440 |                     |r| openings_map.get(&r).copied(),
+     |                                      --- ^^ the trait `Ord` is not implemented for `Address`
+     |                                      |
+     |                                      required by a bound introduced by this call
+     |
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/collections/btree/map.rs:720:12
+     |
+ 717 |     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+     |            --- required by a bound in this associated function
+...
+ 720 |         Q: Ord,
+     |            ^^^ required by this bound in `BTreeMap::<K, V, A>::get`
+
+error[E0277]: the trait bound `Address: Ord` is not satisfied
+    --> src/lib.rs:1457:30
+     |
+1457 |             |r| openings_map.get(&r).copied(),
+     |                              ^^^ the trait `Ord` is not implemented for `Address`
+     |
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/collections/btree/map.rs:719:24
+     |
+ 717 |     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+     |            --- required by a bound in this associated function
+ 718 |     where
+ 719 |         K: Borrow<Q> + Ord,
+     |                        ^^^ required by this bound in `BTreeMap::<K, V, A>::get`
+
+error[E0277]: the trait bound `Address: Ord` is not satisfied
+    --> src/lib.rs:1457:34
+     |
+1457 |             |r| openings_map.get(&r).copied(),
+     |                              --- ^^ the trait `Ord` is not implemented for `Address`
+     |                              |
+     |                              required by a bound introduced by this call
+     |
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/collections/btree/map.rs:720:12
+     |
+ 717 |     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+     |            --- required by a bound in this associated function
+...
+ 720 |         Q: Ord,
+     |            ^^^ required by this bound in `BTreeMap::<K, V, A>::get`
+
+error[E0277]: the trait bound `Address: Ord` is not satisfied
+    --> src/lib.rs:1495:22
+     |
+1495 |         openings_map.insert(req_native.root(), req_native);
+     |                      ^^^^^^ the trait `Ord` is not implemented for `Address`
+     |
+note: required by a bound in `BTreeMap::<K, V, A>::insert`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/collections/btree/map.rs:1047:12
+     |
+1045 |     pub fn insert(&mut self, key: K, value: V) -> Option<V>
+     |            ------ required by a bound in this associated function
+1046 |     where
+1047 |         K: Ord,
+     |            ^^^ required by this bound in `BTreeMap::<K, V, A>::insert`
+
+error[E0277]: the trait bound `Address: Ord` is not satisfied
+    --> src/lib.rs:1556:30
+     |
+1556 |             |r| openings_map.get(&r).copied(),
+     |                              ^^^ the trait `Ord` is not implemented for `Address`
+     |
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/collections/btree/map.rs:719:24
+     |
+ 717 |     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+     |            --- required by a bound in this associated function
+ 718 |     where
+ 719 |         K: Borrow<Q> + Ord,
+     |                        ^^^ required by this bound in `BTreeMap::<K, V, A>::get`
+
+error[E0277]: the trait bound `Address: Ord` is not satisfied
+    --> src/lib.rs:1556:34
+     |
+1556 |             |r| openings_map.get(&r).copied(),
+     |                              --- ^^ the trait `Ord` is not implemented for `Address`
+     |                              |
+     |                              required by a bound introduced by this call
+     |
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/collections/btree/map.rs:720:12
+     |
+ 717 |     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+     |            --- required by a bound in this associated function
+...
+ 720 |         Q: Ord,
+     |            ^^^ required by this bound in `BTreeMap::<K, V, A>::get`
+
+error[E0609]: no field `claimable_by_miner` on type `FeeBreakdown`
+    --> src/lib.rs:1567:14
+     |
+1567 |             .claimable_by_miner;
+     |              ^^^^^^^^^^^^^^^^^^ unknown field
+     |
+     = note: available fields are: `base`, `input`, `output`, `io`, `state_growth` ... and 2 others
+
+error[E0624]: method `claims` is private
+    --> src/lib.rs:1597:43
+     |
+1597 |             let (ins, outs) = op49_intent.claims();
+     |                                           ^^^^^^ private method
+     |
+    ::: /Users/ember/dev/parano1d-break/parano1d/noid_tx/src/native_assets/wire.rs:642:5
+     |
+ 642 |     fn claims(&self) -> (Vec<NativeInputClaim>, Vec<NativeOutputClaim>) {
+     |     ------------------------------------------------------------------- private method defined here
+
+error[E0624]: method `check_owner` is private
+    --> src/lib.rs:1599:18
+     |
+1599 |                   .check_owner(&state, &ctx2, op49, &ins, &outs, |r| {
+     |                    ^^^^^^^^^^^ private method
+     |
+    ::: /Users/ember/dev/parano1d-break/parano1d/noid_chain/src/block/native_assets/financial.rs:148:5
+     |
+ 148 | /     pub(crate) fn check_owner(
+ 149 | |         &self,
+ 150 | |         parent_state: &ChainState,
+ 151 | |         context: &NativeContext,
+...    |
+ 155 | |         mut resolve: impl FnMut(Address) -> Option<NativeOpening>,
+ 156 | |     ) -> Result<NativeTransitionFacts, FinancialBlockError> {
+     | |___________________________________________________________- private method defined here
+
+error[E0277]: the trait bound `Address: Ord` is not satisfied
+    --> src/lib.rs:1600:34
+     |
+1600 |                     openings_map.get(&r).copied()
+     |                                  ^^^ the trait `Ord` is not implemented for `Address`
+     |
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/collections/btree/map.rs:719:24
+     |
+ 717 |     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+     |            --- required by a bound in this associated function
+ 718 |     where
+ 719 |         K: Borrow<Q> + Ord,
+     |                        ^^^ required by this bound in `BTreeMap::<K, V, A>::get`
+
+error[E0277]: the trait bound `Address: Ord` is not satisfied
+    --> src/lib.rs:1600:38
+     |
+1600 |                     openings_map.get(&r).copied()
+     |                                  --- ^^ the trait `Ord` is not implemented for `Address`
+     |                                  |
+     |                                  required by a bound introduced by this call
+     |
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/collections/btree/map.rs:720:12
+     |
+ 717 |     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+     |            --- required by a bound in this associated function
+...
+ 720 |         Q: Ord,
+     |            ^^^ required by this bound in `BTreeMap::<K, V, A>::get`
+
+error[E0277]: the trait bound `Address: Ord` is not satisfied
+    --> src/lib.rs:1657:30
+     |
+1657 |             |r| openings_map.get(&r).copied(),
+     |                              ^^^ the trait `Ord` is not implemented for `Address`
+     |
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/collections/btree/map.rs:719:24
+     |
+ 717 |     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+     |            --- required by a bound in this associated function
+ 718 |     where
+ 719 |         K: Borrow<Q> + Ord,
+     |                        ^^^ required by this bound in `BTreeMap::<K, V, A>::get`
+
+error[E0277]: the trait bound `Address: Ord` is not satisfied
+    --> src/lib.rs:1657:34
+     |
+1657 |             |r| openings_map.get(&r).copied(),
+     |                              --- ^^ the trait `Ord` is not implemented for `Address`
+     |                              |
+     |                              required by a bound introduced by this call
+     |
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/collections/btree/map.rs:720:12
+     |
+ 717 |     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+     |            --- required by a bound in this associated function
+...
+ 720 |         Q: Ord,
+     |            ^^^ required by this bound in `BTreeMap::<K, V, A>::get`
+
+error[E0277]: `HistoryStepBlockInput<32>` doesn't implement `Debug`
+    --> src/lib.rs:1710:77
+     |
+1710 | ...op-49 LaunchRequest: {cand_res:?}"
+     |                         ^^^^^^^^^^^^ `HistoryStepBlockInput<32>` cannot be formatted using `{:?}` because it doesn't implement `Debug`
+     |
+     = help: the trait `Debug` is not implemented for `HistoryStepBlockInput<32>`
+help: the trait `Debug` is implemented for `Result<T, E>`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/core/src/result.rs:552:16
+     |
+ 552 | #[derive(Copy, Debug, Hash)]
+     |                ^^^^^
+     = note: required for `Result<HistoryStepBlockInput<32>, ...>` to implement `Debug`
+     = note: the full name for the type has been written to '/Users/ember/dev/parano1d-break/experiments/comp-consensus-diff/target/release/deps/comp_consensus_diff-522d85a0da7db401.long-type-17799812558333427216.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+
+error[E0599]: no associated function or constant named `ONE` found for struct `Block128` in the current scope
+    --> src/lib.rs:1723:56
+     |
+1723 |                 .map(|_| alloc_block(&mut b, Block128::ONE))
+     |                                                        ^^^ associated function or constant not found in `Block128`
+     |
+     = help: items from traits can only be used if the trait is in scope
+help: trait `TowerField` which provides `ONE` is implemented but not in scope; perhaps you want to import it
+     |
+  16 +     use noid_core::TowerField;
+     |
+
+error[E0277]: the trait bound `Address: Ord` is not satisfied
+    --> src/lib.rs:1888:30
+     |
+1888 |                 openings_map.insert(o.root(), *o);
+     |                              ^^^^^^ the trait `Ord` is not implemented for `Address`
+     |
+note: required by a bound in `BTreeMap::<K, V, A>::insert`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/collections/btree/map.rs:1047:12
+     |
+1045 |     pub fn insert(&mut self, key: K, value: V) -> Option<V>
+     |            ------ required by a bound in this associated function
+1046 |     where
+1047 |         K: Ord,
+     |            ^^^ required by this bound in `BTreeMap::<K, V, A>::insert`
+
+error[E0624]: method `claims` is private
+    --> src/lib.rs:1945:38
+     |
+1945 |             let (ins, outs) = intent.claims();
+     |                                      ^^^^^^ private method
+     |
+    ::: /Users/ember/dev/parano1d-break/parano1d/noid_tx/src/native_assets/wire.rs:642:5
+     |
+ 642 |     fn claims(&self) -> (Vec<NativeInputClaim>, Vec<NativeOutputClaim>) {
+     |     ------------------------------------------------------------------- private method defined here
+
+error[E0624]: method `check_owner` is private
+    --> src/lib.rs:1957:18
+     |
+1957 |                   .check_owner(&state, &ctx, op, &ins, &outs, |r| {
+     |                    ^^^^^^^^^^^ private method
+     |
+    ::: /Users/ember/dev/parano1d-break/parano1d/noid_chain/src/block/native_assets/financial.rs:148:5
+     |
+ 148 | /     pub(crate) fn check_owner(
+ 149 | |         &self,
+ 150 | |         parent_state: &ChainState,
+ 151 | |         context: &NativeContext,
+...    |
+ 155 | |         mut resolve: impl FnMut(Address) -> Option<NativeOpening>,
+ 156 | |     ) -> Result<NativeTransitionFacts, FinancialBlockError> {
+     | |___________________________________________________________- private method defined here
+
+error[E0277]: the trait bound `Address: Ord` is not satisfied
+    --> src/lib.rs:1958:34
+     |
+1958 |                     openings_map.get(&r).copied()
+     |                                  ^^^ the trait `Ord` is not implemented for `Address`
+     |
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/collections/btree/map.rs:719:24
+     |
+ 717 |     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+     |            --- required by a bound in this associated function
+ 718 |     where
+ 719 |         K: Borrow<Q> + Ord,
+     |                        ^^^ required by this bound in `BTreeMap::<K, V, A>::get`
+
+error[E0277]: the trait bound `Address: Ord` is not satisfied
+    --> src/lib.rs:1958:38
+     |
+1958 |                     openings_map.get(&r).copied()
+     |                                  --- ^^ the trait `Ord` is not implemented for `Address`
+     |                                  |
+     |                                  required by a bound introduced by this call
+     |
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/collections/btree/map.rs:720:12
+     |
+ 717 |     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+     |            --- required by a bound in this associated function
+...
+ 720 |         Q: Ord,
+     |            ^^^ required by this bound in `BTreeMap::<K, V, A>::get`
+
+error[E0277]: the trait bound `Address: Ord` is not satisfied
+    --> src/lib.rs:2021:34
+     |
+2021 |                 |r| openings_map.get(&r).copied(),
+     |                                  ^^^ the trait `Ord` is not implemented for `Address`
+     |
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/collections/btree/map.rs:719:24
+     |
+ 717 |     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+     |            --- required by a bound in this associated function
+ 718 |     where
+ 719 |         K: Borrow<Q> + Ord,
+     |                        ^^^ required by this bound in `BTreeMap::<K, V, A>::get`
+
+error[E0277]: the trait bound `Address: Ord` is not satisfied
+    --> src/lib.rs:2021:38
+     |
+2021 |                 |r| openings_map.get(&r).copied(),
+     |                                  --- ^^ the trait `Ord` is not implemented for `Address`
+     |                                  |
+     |                                  required by a bound introduced by this call
+     |
+note: required by a bound in `BTreeMap::<K, V, A>::get`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/alloc/src/collections/btree/map.rs:720:12
+     |
+ 717 |     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&V>
+     |            --- required by a bound in this associated function
+...
+ 720 |         Q: Ord,
+     |            ^^^ required by this bound in `BTreeMap::<K, V, A>::get`
+
+error[E0277]: `HistoryStepBlockInput<32>` doesn't implement `Debug`
+    --> src/lib.rs:2090:151
+     |
+2090 | ...d of ResourceLimit): {cand_res:?}"
+     |                         ^^^^^^^^^^^^ `HistoryStepBlockInput<32>` cannot be formatted using `{:?}` because it doesn't implement `Debug`
+     |
+     = help: the trait `Debug` is not implemented for `HistoryStepBlockInput<32>`
+help: the trait `Debug` is implemented for `Result<T, E>`
+    --> /Users/ember/.rustup/toolchains/nightly-aarch64-apple-darwin/lib/rustlib/src/rust/library/core/src/result.rs:552:16
+     |
+ 552 | #[derive(Copy, Debug, Hash)]
+     |                ^^^^^
+     = note: required for `Result<HistoryStepBlockInput<32>, ...>` to implement `Debug`
+     = note: the full name for the type has been written to '/Users/ember/dev/parano1d-break/experiments/comp-consensus-diff/target/release/deps/comp_consensus_diff-522d85a0da7db401.long-type-17799812558333427216.txt'
+     = note: consider using `--verbose` to print the full type name to the console
+
+Some errors have detailed explanations: E0061, E0277, E0308, E0369, E0425, E0432, E0560, E0599, E0609...
+For more information about an error, try `rustc --explain E0061`.
+error: could not compile `comp-consensus-diff` (lib test) due to 50 previous errors

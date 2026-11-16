@@ -49,11 +49,12 @@ use noid_recursive::region_sidecar::{
     MerkleRegionFamily, MerkleRegionVk, MERKLE_REGION_COMMITTED_COLUMNS,
 };
 
-/// Forwarding challenger wrapper that logs absorbed byte slices (Merkle roots)
-/// and sampled challenges during native `basefold::verify` / `verify_c1`.
+/// Forwarding challenger wrapper that logs absorbed `F128` lanes (including
+/// `observe_root`'s two LE `F128` halves) and sampled challenges during native
+/// `basefold::verify` / `verify_c1`.
 struct TranscriptAuditChallenger {
     inner: FsLaneChallenger,
-    observed_roots: Vec<Vec<u8>>,
+    observed_f128: Vec<F128>,
     sampled_f128: Vec<F128>,
     sampled_f256: Vec<F256>,
 }
@@ -62,7 +63,7 @@ impl TranscriptAuditChallenger {
     fn new(domain: &[u8]) -> Self {
         Self {
             inner: FsLaneChallenger::new(domain),
-            observed_roots: Vec::new(),
+            observed_f128: Vec::new(),
             sampled_f128: Vec::new(),
             sampled_f256: Vec::new(),
         }
@@ -71,7 +72,7 @@ impl TranscriptAuditChallenger {
     fn new_c1(domain: &[u8]) -> Self {
         Self {
             inner: FsLaneChallenger::new_c1(domain),
-            observed_roots: Vec::new(),
+            observed_f128: Vec::new(),
             sampled_f128: Vec::new(),
             sampled_f256: Vec::new(),
         }
@@ -84,10 +85,12 @@ impl Challenger for TranscriptAuditChallenger {
     }
 
     fn observe_f128(&mut self, value: F128) {
+        self.observed_f128.push(value);
         self.inner.observe_f128(value);
     }
 
     fn observe_f128_slice(&mut self, values: &[F128]) {
+        self.observed_f128.extend_from_slice(values);
         self.inner.observe_f128_slice(values);
     }
 
@@ -100,7 +103,6 @@ impl Challenger for TranscriptAuditChallenger {
     }
 
     fn observe_bytes(&mut self, bytes: &[u8]) {
-        self.observed_roots.push(bytes.to_vec());
         self.inner.observe_bytes(bytes);
     }
 
@@ -262,9 +264,9 @@ fn audit_1_c0_vs_c1_basefold_t2_transcript_binding() {
         &make_c0_fixture(t2_root_a),
         &initial_root,
         &ntt,
-        log_batch_size,
-        log_inv_rate,
         log_msg_len,
+        log_inv_rate,
+        log_batch_size,
         &mut c0_ch_a,
     );
     let _ = basefold::verify(
@@ -272,14 +274,18 @@ fn audit_1_c0_vs_c1_basefold_t2_transcript_binding() {
         &make_c0_fixture(t2_root_b),
         &initial_root,
         &ntt,
-        log_batch_size,
-        log_inv_rate,
         log_msg_len,
+        log_inv_rate,
+        log_batch_size,
         &mut c0_ch_b,
     );
 
+    let t2_lanes_a = fs_pack_bytes_lanes(&t2_root_a);
     assert!(
-        !c0_ch_a.observed_roots.contains(&t2_root_a.to_vec()),
+        !c0_ch_a
+            .observed_f128
+            .windows(2)
+            .any(|w| w == t2_lanes_a.as_slice()),
         "C0 native basefold::verify unexpectedly absorbed post_row_batch_commit at log_batch_size=0"
     );
     assert_eq!(
@@ -302,7 +308,6 @@ fn audit_1_c0_vs_c1_basefold_t2_transcript_binding() {
     };
     let (c0_trace_data_a, c0_trace_chals_a) = run_c0_trace(t2_root_a);
     let (_, c0_trace_chals_b) = run_c0_trace(t2_root_b);
-    let t2_lanes_a = fs_pack_bytes_lanes(&t2_root_a);
     assert!(
         !c0_trace_data_a
             .windows(2)
@@ -321,9 +326,9 @@ fn audit_1_c0_vs_c1_basefold_t2_transcript_binding() {
         &make_c1_fixture(t2_root_a),
         &initial_root,
         &ntt,
-        log_batch_size,
-        log_inv_rate,
         log_msg_len,
+        log_inv_rate,
+        log_batch_size,
         &mut c1_ch_a,
     );
     let _ = basefold::verify_c1(
@@ -331,13 +336,16 @@ fn audit_1_c0_vs_c1_basefold_t2_transcript_binding() {
         &make_c1_fixture(t2_root_b),
         &initial_root,
         &ntt,
-        log_batch_size,
-        log_inv_rate,
         log_msg_len,
+        log_inv_rate,
+        log_batch_size,
         &mut c1_ch_b,
     );
     assert!(
-        c1_ch_a.observed_roots.contains(&t2_root_a.to_vec()),
+        c1_ch_a
+            .observed_f128
+            .windows(2)
+            .any(|w| w == t2_lanes_a.as_slice()),
         "C1 native basefold::verify_c1 must absorb post_row_batch_commit before round 0"
     );
     assert_ne!(
@@ -377,11 +385,9 @@ fn audit_1_c0_vs_c1_basefold_t2_transcript_binding() {
 
     println!(
         "  [CONFIRMED FINDING 1] C0 native (`basefold.rs:1281-1283`) & trace (`self_verify.rs:2292-2297`) \
-         absorb {} roots at `log_batch_size=0` (T2 omitted; challenges invariant).\n\
+         omit T2 root lanes at `log_batch_size=0` (challenges invariant).\n\
          \x20                       C1 native (`basefold.rs:1915-1917`) & trace (`self_verify.rs:2527-2530`) \
-         absorb {} root(s) pre-round-0 (T2 bound; all {} challenges diverge).",
-        c0_ch_a.observed_roots.len(),
-        c1_ch_a.observed_roots.len(),
+         absorb T2 root lanes `[0..2]` pre-round-0 (all {} challenges diverge).",
         log_msg_len
     );
 }
@@ -1077,6 +1083,7 @@ fn audit_7_c1_matrix_fold_and_boolean_gated_pin() {
         (true, F128::new(99, 77), false),
     ] {
         let mut bg = FieldR1csBuilder::new();
+        bg.enable_fused_boolean_pins();
         let g = LinExpr::from_wire(bg.alloc_bool(gate_bool));
         let e = LinExpr::from_wire(bg.alloc_f128(expr_val));
         bg.pin_boolean_gated_zero(&g, &e);
