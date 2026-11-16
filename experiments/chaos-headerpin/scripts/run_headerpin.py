@@ -197,9 +197,13 @@ def phase_setup(args):
 def phase_attack(args):
     if not load_state().get("setup_done"):
         raise ChaosError("run --phase setup first")
-    h0 = load_state()["h0"]
-    if VICTIM.height() != h0:
-        raise ChaosError(f"victim moved (h{VICTIM.height()} != h{h0}); rerun setup")
+    # The fork point is the victim's CURRENT tip: the producer keeps mining a
+    # few blocks past the genesis-height milestone during V/T sync, so the
+    # state's h0 can lag the true paused tip. Re-derive and re-save.
+    h0 = VICTIM.height()
+    if TWIN.height() < h0 or PRODUCER.height() < h0:
+        raise ChaosError("victim ahead of producer/twin; sync not settled")
+    save_state(h0=h0)
     argv = [
         chaoslib.AGGRESSOR_BIN,
         VICTIM.p2p_addr,
@@ -249,6 +253,7 @@ def phase_mine(args):
     started = time.time()
     deadline = started + args.max_wait_secs
     pin_seen_at = None
+    pin_producer_h = None
     while time.time() < deadline:
         time.sleep(args.sample_interval)
         try:
@@ -272,14 +277,16 @@ def phase_mine(args):
         )
         if pins > 0 and pin_seen_at is None:
             pin_seen_at = time.time()
+            pin_producer_h = p_h
             print(
                 f"[mine] *** PIN OBSERVED at t+{pin_seen_at - started:.0f}s: "
                 f"victim frozen at h{v_h}, producer h{p_h}, pin_lines={pins} ***"
             )
         if pin_seen_at is not None:
             # Sustain: >=2 honest blocks mined after the pin while the victim
-            # stays frozen.
-            if p_h - samples[0]["producer"][0] >= 2 and v_h == h0:
+            # stays frozen. Measured from the pin-observation producer height,
+            # not the mine-phase start.
+            if p_h - pin_producer_h >= 2 and v_h == h0:
                 print(
                     f"[mine] sustained across >=2 honest blocks "
                     f"(producer h{p_h}); pausing producer worker"
@@ -295,6 +302,8 @@ def phase_mine(args):
     evidence = {
         "h0": h0,
         "pin_observed": pin_seen_at is not None,
+        "pin_seen_at_t": (pin_seen_at - started) if pin_seen_at else None,
+        "pin_producer_height": pin_producer_h,
         "pin_lines": pin_line_count(),
         "capacity_errors": capacity_line_count(),
         "final": samples[-1] if samples else None,
@@ -312,7 +321,7 @@ def phase_recover(args):
         raise ChaosError("run --phase attack first")
     if not worker_alive():
         start_producer_worker()
-        print("[recover] producer worker resumed")
+        print("[recover] producer worker resumed (to generate fresh honest children)")
     # Stop the aggressor by PID.
     aggr_pid = RUN / f"{AGGRESSOR_NAME}.pid"
     if aggr_pid.exists():
@@ -327,11 +336,13 @@ def phase_recover(args):
             pass
         aggr_pid.unlink(missing_ok=True)
         print(f"[recover] aggressor stopped (pid {pid})")
-    # Restart the victim with the same data dir.
+    pins_before = pin_line_count()
+    caps_before = capacity_line_count()
+    # Restart the victim with the SAME data dir: the spam stays in its DAG, so
+    # the pin should SURVIVE the restart (fresh capacity lines on new children).
     vic_pid = RUN / "hp-victim.pid"
     if vic_pid.exists():
         pid = int(vic_pid.read_text().strip())
-        rpc(VICTIM.rpc_url, "stop", method="paranoid_stop", raw_error=True) if False else None
         try:
             result = rpc(VICTIM.rpc_url, "stop")
             print(f"[recover] paranoid_stop: {result}")
@@ -345,29 +356,64 @@ def phase_recover(args):
         except ProcessLookupError:
             pass
         vic_pid.unlink(missing_ok=True)
-    print("[recover] restarting victim with the same data dir")
+    print("[recover] restarting victim with the SAME data dir (pin expected to persist)")
     VICTIM.managed = None
     VICTIM.start()
-    p_tip = PRODUCER.tip()
+    # Wait for the post-restart pin: a NEW capacity line on a fresh honest child
+    # while the victim stays below the producer.
+    try:
+        wait_until(
+            "post-restart capacity rejection (pin survived restart)",
+            lambda: (pin_line_count() + capacity_line_count())
+            if (pin_line_count() > pins_before or capacity_line_count() > caps_before)
+            else False,
+            timeout=420,
+            interval=10,
+        )
+        survived = True
+    except ChaosError:
+        survived = False
+    v_h, _ = VICTIM.tip()
+    p_h, _ = PRODUCER.tip()
+    print(
+        f"[recover] pin survived restart: {survived} "
+        f"(pins {pins_before}->{pin_line_count()}, caps {caps_before}->{capacity_line_count()}, "
+        f"V h{v_h} vs P h{p_h})"
+    )
+    # Fresh-state recovery: stop the worker, wipe the lane's own victim data
+    # dir, restart, and sync cleanly from the producer.
+    stop_producer_worker()
+    import shutil
+
+    shutil.rmtree(VICTIM.data_dir, ignore_errors=True)
+    print(f"[recover] victim data dir wiped ({VICTIM.data_dir}); fresh restart")
+    VICTIM.managed = None
+    VICTIM.start()
     synced = wait_until(
-        "victim re-synced to producer after restart",
+        "victim fresh-synced to producer",
         lambda: VICTIM.tip() if VICTIM.tip() == PRODUCER.tip() else False,
         timeout=600,
         interval=5,
     )
-    print(f"[recover] victim recovered WITHOUT the spam: {synced} (producer {p_tip})")
+    print(f"[recover] victim recovered with fresh state: {synced}")
     # Let the producer advance and show the victim follows.
-    if not worker_alive():
-        start_producer_worker()
+    start_producer_worker()
     wait_until(
-        "victim follows one more honest block after restart",
+        "victim follows one more honest block after fresh sync",
         lambda: VICTIM.height() if VICTIM.height() > synced[0] else False,
-        timeout=120,
+        timeout=180,
         interval=5,
     )
     stop_producer_worker()
-    save_state(recovered=True)
-    print("[recover] done: restart recovered the victim; control chain intact")
+    save_state(
+        recovered=True,
+        pin_survived_restart=survived,
+        pins_before_restart=pins_before,
+        caps_before_restart=caps_before,
+        pins_after_restart=pin_line_count(),
+        caps_after_restart=capacity_line_count(),
+    )
+    print("[recover] done: restart-persistence and fresh-state recovery both documented")
 
 
 def phase_status(_args):

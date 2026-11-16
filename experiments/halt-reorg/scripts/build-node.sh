@@ -16,7 +16,7 @@ export NOID_RETIREMENT_KEYS_DIR="$P/downloads/v2-pack/history-step-pack-v2/retir
 export NOID_RETIREMENT_KEY_0_PIN=0651ce507810b61213cbdc0e9f99436aec3a7922cc662bfba6128b466453c8b2
 export NOID_RETIREMENT_KEY_1_PIN=c301274d50dc02fd5c383f2e71629075729a954a768f5051388ec2040bce0267
 cd "$LANE/source"
-cargo build --locked --release -p noid_node --bin parano1d --bin parano1d-cli -p noid-extminer
+cargo build --locked --release -p noid_node -p noid-extminer
 mkdir -p "$LANE/bin"
 cp -f "$CARGO_TARGET_DIR/release/parano1d" "$LANE/bin/parano1d"
 cp -f "$CARGO_TARGET_DIR/release/parano1d-cli" "$LANE/bin/parano1d-cli"

@@ -1,6 +1,106 @@
+diff -ru --exclude=target --exclude=.git parano1d/noid_chain/src/consensus/params.rs experiments/shared-early-finance/tree/noid_chain/src/consensus/params.rs
+--- parano1d/noid_chain/src/consensus/params.rs	2026-11-15 22:15:18
++++ experiments/shared-early-finance/tree/noid_chain/src/consensus/params.rs	2026-11-15 22:13:42
+@@ -16,11 +16,11 @@
+ /// Nominal activation estimate for 2026-10-10 23:59 PDT (October 11 06:59 UTC).
+ /// Two mainnet seeds agreed on H139327, timestamp 1790277759, on September 24.
+ /// H = 139327 + ceil((1791701940 - 1790277759) / 20). Actual time may differ.
+-pub const MAINNET_V2_ACTIVATION_HEIGHT: u64 = 10;
++pub const MAINNET_V2_ACTIVATION_HEIGHT: u64 = 10; // chaos-latch: early-finance devnet (was 210_537)
+ 
+ /// Unified v2.1 activation, estimated for November 4, 2026 at 04:00 UTC.
+ /// H246421 at timestamp 1792776344 plus 32949 target intervals of 30 seconds.
+-pub const MAINNET_V2_1_ACTIVATION_HEIGHT: Option<u64> = Some(24);
++pub const MAINNET_V2_1_ACTIVATION_HEIGHT: Option<u64> = Some(24); // chaos-latch: early-finance devnet (was 279_370)
+ pub const ISOLATED_V2_1_FORK_TESTNET: bool = cfg!(feature = "isolated-v2-1-fork-testnet");
+ pub const V2_1_ACTIVATION_HEIGHT: Option<u64> = if ISOLATED_V2_1_FORK_TESTNET {
+     Some(24)
+diff -ru --exclude=target --exclude=.git parano1d/noid_miner/src/history_protocol.rs experiments/shared-early-finance/tree/noid_miner/src/history_protocol.rs
+--- parano1d/noid_miner/src/history_protocol.rs	2026-11-15 01:00:06
++++ experiments/shared-early-finance/tree/noid_miner/src/history_protocol.rs	2026-11-15 23:14:21
+@@ -62,7 +62,12 @@
+             return Err("no history bank configured".into());
+         }
+         if let Some(runtime) = v2.as_ref() {
+-            if runtime.bank().config().schedule() != ACTIVE_SCHEDULE
++            // chaos-latch early-finance devnet: authenticated packs pin the
++            // mainnet V2 activation height while this executable activates V2
++            // early. Only the V2 activation height may differ.
++            let pack = runtime.bank().config().schedule();
++            if (pack.v1_1_height(), pack.v2().map(|a| a.block_time()))
++                != (ACTIVE_SCHEDULE.v1_1_height(), ACTIVE_SCHEDULE.v2().map(|a| a.block_time()))
+                 || runtime
+                     .bank()
+                     .config()
+@@ -136,12 +141,28 @@
+         if let Some(updated) = &runtime {
+             let previous = self.v2()?;
+             let config = updated.bank().config();
+-            if config.schedule() != ACTIVE_SCHEDULE
+-                || config.class(v21::Class::Small).authorization_activation()
+-                    != params::OWNER_AUTHORIZATION_ACTIVATION_HEIGHT
++            // chaos-latch early-finance devnet: as above, only the V2
++            // activation height may differ between pack and executable —
++            // and the shipped v2.1 pack additionally encodes the mainnet
++            // authorization activation (279_370) in its class banks while
++            // this executable activates early (24). The executable drives
++            // activation through params, so only require that it schedules
++            // one; warn on the differing pack value like build.rs does.
++            let pack = config.schedule();
++            if (pack.v1_1_height(), pack.v2().map(|a| a.block_time()))
++                != (ACTIVE_SCHEDULE.v1_1_height(), ACTIVE_SCHEDULE.v2().map(|a| a.block_time()))
+                 || params::OWNER_AUTHORIZATION_ACTIVATION_HEIGHT.is_none()
+             {
+                 return Err("native runtime differs from the executable schedule".into());
++            }
++            if config.class(v21::Class::Small).authorization_activation()
++                != params::OWNER_AUTHORIZATION_ACTIVATION_HEIGHT
++            {
++                tracing::warn!(
++                    pack = ?config.class(v21::Class::Small).authorization_activation(),
++                    executable = ?params::OWNER_AUTHORIZATION_ACTIVATION_HEIGHT,
++                    "v2.1 pack authorization activation differs from the executable (early-finance devnet fixture)"
++                );
+             }
+             for (old_class, new_class) in [
+                 (v2::Class::Small, v21::Class::Small),
+diff -ru --exclude=target --exclude=.git parano1d/noid_miner/src/miner.rs experiments/shared-early-finance/tree/noid_miner/src/miner.rs
+--- parano1d/noid_miner/src/miner.rs	2026-11-15 01:00:06
++++ experiments/shared-early-finance/tree/noid_miner/src/miner.rs	2026-11-15 22:13:36
+@@ -419,10 +419,25 @@
+             let _ = *self.nonce_network_ready.borrow_and_update();
+ 
+             // --- Build template ---
+-            let now = std::time::SystemTime::now()
+-                .duration_since(std::time::UNIX_EPOCH)
+-                .unwrap_or_default()
+-                .as_secs();
++            // DEVNET-CHAOS phase-8 poison miner ONLY: an attacker chooses its
++            // own block timestamps. Env-gated offset (default 0 = pinned
++            // behaviour) shifts the mined template timestamp into the far
++            // future, which floors descendant difficulty (ASERT) and makes the
++            // headers honest-rejecting by the drift rule while an unmodified
++            // victim's TIMELESS snapshot staging still accepts them (C26).
++            let now = {
++                let base = std::time::SystemTime::now()
++                    .duration_since(std::time::UNIX_EPOCH)
++                    .unwrap_or_default()
++                    .as_secs();
++                match std::env::var("NOID_POISON_CLOCK_OFFSET_SECS") {
++                    Ok(v) => v
++                        .parse::<i64>()
++                        .ok()
++                        .map_or(base, |off| (base as i64 + off).max(0) as u64),
++                    Err(_) => base,
++                }
++            };
+ 
+             // Resolve payout under the same chain guard that captures the
+             // template snapshot. Account activation takes `chain -> wallet`
+diff -ru --exclude=target --exclude=.git parano1d/noid_node/build.rs experiments/shared-early-finance/tree/noid_node/build.rs
 --- parano1d/noid_node/build.rs	2026-11-15 01:32:58
-+++ experiments/shared-early-finance/tree/noid_node/build.rs	2026-11-15 22:31:10
-@@ -174,11 +174,22 @@
++++ experiments/shared-early-finance/tree/noid_node/build.rs	2026-11-15 22:39:09
+@@ -174,27 +174,55 @@
              let metadata = read_bounded(&metadata_path, V21_METADATA_MAX_BYTES as u64);
              let runtime_metadata = decode_v21_runtime_metadata_pinned(&metadata, bank)
                  .expect("pinned v2.1 runtime metadata");
@@ -26,7 +126,47 @@
              let activation = noid_chain::consensus::params::V2_1_ACTIVATION_HEIGHT;
              assert!(
                  activation.is_some(),
-@@ -276,11 +287,25 @@
+                 "v2.1 artifacts require a scheduled activation"
+             );
++            // chaos-latch early-finance devnet (root follow-up 2026-11-16):
++            // the shipped v2.1 pack encodes its own mainnet activation
++            // (279_370) inside every class bank; this executable activates
++            // early (24). Only that height may differ — warn instead of
++            // assert, exactly like the schedule relaxations above.
++            let pack_activation = runtime_metadata
++                .bank()
++                .config()
++                .class(Class::ALL[0])
++                .authorization_activation();
+             for class in Class::ALL {
++                let class_activation = runtime_metadata
++                    .bank()
++                    .config()
++                    .class(class)
++                    .authorization_activation();
+                 assert_eq!(
+-                    runtime_metadata
+-                        .bank()
+-                        .config()
+-                        .class(class)
+-                        .authorization_activation(),
+-                    activation,
+-                    "v2.1 artifact activation differs from the executable profile"
++                    class_activation,
++                    pack_activation,
++                    "v2.1 artifact class activations disagree with each other"
+                 );
+             }
++            if pack_activation != activation {
++                println!(
++                    "cargo:warning=v2.1 pack authorization activation {:?} differs from executable {:?} (early-finance devnet fixture)",
++                    pack_activation, activation,
++                );
++            }
+             println!("cargo:rerun-if-changed={}", metadata_path.display());
+             let staged = out_directory.join("embedded-v21");
+             fs::create_dir_all(&staged).expect("v2.1 staging directory");
+@@ -276,11 +304,25 @@
              let metadata = read_bounded(&metadata_path, V2_METADATA_MAX_BYTES as u64);
              let runtime_metadata = decode_v2_runtime_metadata_pinned(&metadata, bank)
                  .expect("pinned v2 runtime metadata");
@@ -55,48 +195,30 @@
              assert_eq!(
                  runtime_metadata
                      .bank()
---- parano1d/noid_miner/src/history_protocol.rs	2026-11-15 01:00:06
-+++ experiments/shared-early-finance/tree/noid_miner/src/history_protocol.rs	2026-11-15 22:31:16
-@@ -62,7 +62,12 @@
-             return Err("no history bank configured".into());
-         }
-         if let Some(runtime) = v2.as_ref() {
--            if runtime.bank().config().schedule() != ACTIVE_SCHEDULE
-+            // chaos-latch early-finance devnet: authenticated packs pin the
-+            // mainnet V2 activation height while this executable activates V2
-+            // early. Only the V2 activation height may differ.
-+            let pack = runtime.bank().config().schedule();
-+            if (pack.v1_1_height(), pack.v2().map(|a| a.block_time()))
-+                != (ACTIVE_SCHEDULE.v1_1_height(), ACTIVE_SCHEDULE.v2().map(|a| a.block_time()))
-                 || runtime
-                     .bank()
-                     .config()
-@@ -136,7 +141,11 @@
-         if let Some(updated) = &runtime {
-             let previous = self.v2()?;
-             let config = updated.bank().config();
--            if config.schedule() != ACTIVE_SCHEDULE
-+            // chaos-latch early-finance devnet: as above, only the V2
-+            // activation height may differ between pack and executable.
-+            let pack = config.schedule();
-+            if (pack.v1_1_height(), pack.v2().map(|a| a.block_time()))
-+                != (ACTIVE_SCHEDULE.v1_1_height(), ACTIVE_SCHEDULE.v2().map(|a| a.block_time()))
-                 || config.class(v21::Class::Small).authorization_activation()
-                     != params::OWNER_AUTHORIZATION_ACTIVATION_HEIGHT
-                 || params::OWNER_AUTHORIZATION_ACTIVATION_HEIGHT.is_none()
---- parano1d/noid_chain/src/consensus/params.rs	2026-11-15 22:15:18
-+++ experiments/shared-early-finance/tree/noid_chain/src/consensus/params.rs	2026-11-15 22:13:42
-@@ -16,11 +16,11 @@
- /// Nominal activation estimate for 2026-10-10 23:59 PDT (October 11 06:59 UTC).
- /// Two mainnet seeds agreed on H139327, timestamp 1790277759, on September 24.
- /// H = 139327 + ceil((1791701940 - 1790277759) / 20). Actual time may differ.
--pub const MAINNET_V2_ACTIVATION_HEIGHT: u64 = 10;
-+pub const MAINNET_V2_ACTIVATION_HEIGHT: u64 = 10; // chaos-latch: early-finance devnet (was 210_537)
+diff -ru --exclude=target --exclude=.git parano1d/noid_node/src/main.rs experiments/shared-early-finance/tree/noid_node/src/main.rs
+--- parano1d/noid_node/src/main.rs	2026-11-15 01:00:06
++++ experiments/shared-early-finance/tree/noid_node/src/main.rs	2026-11-15 22:13:36
+@@ -16086,8 +16086,21 @@
+ }
  
- /// Unified v2.1 activation, estimated for November 4, 2026 at 04:00 UTC.
- /// H246421 at timestamp 1792776344 plus 32949 target intervals of 30 seconds.
--pub const MAINNET_V2_1_ACTIVATION_HEIGHT: Option<u64> = Some(24);
-+pub const MAINNET_V2_1_ACTIVATION_HEIGHT: Option<u64> = Some(24); // chaos-latch: early-finance devnet (was 279_370)
- pub const ISOLATED_V2_1_FORK_TESTNET: bool = cfg!(feature = "isolated-v2-1-fork-testnet");
- pub const V2_1_ACTIVATION_HEIGHT: Option<u64> = if ISOLATED_V2_1_FORK_TESTNET {
-     Some(24)
+ fn unix_now() -> u64 {
+-    std::time::SystemTime::now()
++    // DEVNET-CHAOS phase-8 poison node ONLY: an attacker-controlled miner
++    // chooses its own block timestamps. A real attacker needs no patch — it
++    // simply mines far-future-timestamp blocks (attacker-chosen data). Here an
++    // env-gated offset shifts this node's CONSENSUS clock (block-production
++    // timestamps + its own tip-only drift gate), leaving its libp2p transport
++    // clock (SystemTime::now directly) untouched so it still serves. Default
++    // (env unset) = byte-for-byte the pinned behaviour.
++    let base = std::time::SystemTime::now()
+         .duration_since(std::time::UNIX_EPOCH)
+         .unwrap_or_default()
+-        .as_secs()
++        .as_secs();
++    match std::env::var("NOID_POISON_CLOCK_OFFSET_SECS") {
++        Ok(v) => v.parse::<i64>().ok().map_or(base, |off| {
++            (base as i64 + off).max(0) as u64
++        }),
++        Err(_) => base,
++    }
+ }

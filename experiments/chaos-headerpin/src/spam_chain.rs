@@ -9,12 +9,14 @@
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use anyhow::{bail, Context, Result};
 use noid_chain::block_header::{block_id, BlockHeader};
 use noid_chain::consensus::header::validate_header_timeless_prehashed_parent;
-use noid_chain::consensus::params::{EXPANSION_WINDOW, MEDIAN_TIME_BLOCKS};
+use noid_chain::consensus::params::{
+    block_time_at_height, EXPANSION_WINDOW, MAX_FUTURE_DRIFT, MEDIAN_TIME_BLOCKS,
+};
 use noid_chain::consensus::pow::{pow_header_fields, PowHeaderFields, PowNonceBatchHasher};
 use noid_chain::consensus::{
     asert_anchor_height, expected_child_log_slots, finalized_expansion_window, next_target,
@@ -89,11 +91,15 @@ fn parallel_search(
 impl SpamChain {
     /// Build the chain from the honest suffix (oldest first, ending at the
     /// intended fork parent = the last honest header) plus `count` spam
-    /// children, all stamped with the constant `timestamp`.
+    /// children. Child stamps advance one block-time per height from the fork
+    /// parent's timestamp (minus a half-second per header; see `child_stamp`),
+    /// which keeps every child's ASERT target at the fork-parent target level.
+    /// The grind is paced against the future-drift bound: a child may not be
+    /// built while its stamp is more than MAX_FUTURE_DRIFT ahead of wall
+    /// clock, so the spam chain takes ~block_time per header of wall time.
     pub fn build(
         honest_suffix: Vec<BlockHeader>,
         count: u64,
-        timestamp: u64,
         threads: usize,
         progress: impl Fn(u64),
     ) -> Result<Self> {
@@ -108,10 +114,30 @@ impl SpamChain {
             }
         }
         let fork_height = headers.last().expect("checked non-empty").height;
+        let fork_ts = headers.last().expect("checked non-empty").timestamp;
+        println!(
+            "[aggressor] stamp plan: fork parent h{fork_height} ts {fork_ts}; \
+             children advance one block-time per height, drift-paced"
+        );
 
         let started = Instant::now();
         for i in 0..count {
-            let child = Self::next_header(&headers, timestamp, threads)
+            let stamp = Self::child_stamp(fork_ts, fork_height, fork_height + i + 1);
+            // Drift pacing: the stamp must be within MAX_FUTURE_DRIFT of wall
+            // clock at build time. Waiting only relaxes the bound afterwards
+            // (wall clock keeps moving), so a long grind cannot violate it.
+            while stamp > unix_now() + MAX_FUTURE_DRIFT {
+                let wait_secs = stamp - unix_now() - MAX_FUTURE_DRIFT;
+                if wait_secs > 5 {
+                    println!(
+                        "[aggressor] drift pacing: header {i} stamp {stamp} is \
+                         {wait_secs}s ahead; waiting"
+                    );
+                }
+                let nap = wait_secs.min(30).max(1);
+                std::thread::sleep(Duration::from_secs(nap));
+            }
+            let child = Self::next_header(&headers, stamp, threads)
                 .with_context(|| format!("building spam header {i}"))?;
             headers.push(child);
             if (i + 1) % 25 == 0 || i + 1 == count {
@@ -128,6 +154,18 @@ impl SpamChain {
             base_height,
             fork_height,
         })
+    }
+
+    /// The stamp for a spam child at `child_height`: one block-time per height
+    /// above the fork parent, minus half a second per header. The block-time
+    /// step keeps ASERT (which under v2 reads the PARENT's stamp against the
+    /// epoch anchor) at the fork-parent target level; the half-second backoff
+    /// tightens the spam target by 2^(0.5/180) per header (~2.7x over 511),
+    /// a work margin over the honest chain's equilibrium level so the spam tip
+    /// stays best well past the DAG fill point.
+    fn child_stamp(fork_ts: u64, fork_height: u64, child_height: u64) -> u64 {
+        let n = child_height - fork_height;
+        fork_ts + block_time_at_height(child_height) * n - n / 2
     }
 
     /// The header at `height`, if tracked.

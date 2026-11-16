@@ -1,0 +1,23 @@
+[package]
+name = "spamtool"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+anyhow = "1"
+hex = "0.4"
+# Built against the SAME tree as the halt-reorg devnet binaries
+# (experiments/shared-early-finance/tree on the Mac;
+# /othersys/lanes/parano1d/halt-reorg/source on hbox): pin + V2@10/V2.1@24,
+# m24 genesis. The GKR statement binds the logical txid (which hashes the
+# epoch anchor and every page body), so a foreign tree build would produce
+# proofs the devnet rejects.
+noid_chain = { path = "../../shared-early-finance/tree/noid_chain" }
+noid_gkr = { path = "../../shared-early-finance/tree/noid_gkr" }
+noid_poseidon2b = { path = "../../shared-early-finance/tree/noid_poseidon2b" }
+noid_tx = { path = "../../shared-early-finance/tree/noid_tx" }
+reqwest = { version = "0.12", features = ["blocking", "json"] }
+serde_json = "1"
