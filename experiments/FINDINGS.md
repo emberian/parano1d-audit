@@ -658,9 +658,10 @@ check is cryptographic or conventional) is the citable summary.
 
 Two populations live in this section. (a) Kimi-era items (U1-U9) whose root verification was
 interrupted (02:43-03:03 quota death) or never started — **none of these may be cited as
-root-confirmed**; they keep [AR]/[PC]. (b) U10-U35 (takeover-completed lanes: wallet-safety,
+root-confirmed**; they keep [AR]/[PC]. (b) U10-U36 (takeover-completed lanes: wallet-safety,
 prover-unsafe, dex-economics, rpc-api, storage-reorg, nft-marketplace, tx-admission,
-dex-games, sequencing, constraint-systems, creation-spam, dark-surface, malicious-node):
+dex-games, sequencing, constraint-systems, creation-spam, dark-surface, malicious-node,
+nft-races):
 takeover-completed lanes reclassified **[RV-T]** by ember's 2026-11-15 ruling that a
 takeover-completed lane with a tee'd `results.txt` on disk counts as verified — the evidence is
 the lane's own run output ("the subagents just ran it"). They keep their U-IDs here for continuity.
@@ -728,7 +729,7 @@ template behavior and all six controls. Now recorded as **C15** with certainty *
 this lane). Severity/preconditions unchanged from the lane README: Medium, requires mining
 credential or local owner.
 
-### U6-U35 — further reported results (U6-U9 kimi-era unverified; U10-U35 [RV-T] by ruling)
+### U6-U36 — further reported results (U6-U9 kimi-era unverified; U10-U36 [RV-T] by ruling)
 
 - **U6** state-consensus 20-case adversarial UTXO/state-machine matrix — all rejected
   (`/Users/ember/dev/parano1d-break/experiments/state-consensus/output.txt`, agent-11). The root
@@ -1090,6 +1091,21 @@ than degrading.
   consumer (UTXO scan, history, RPC) was found. The defect stays bounded to C6's original
   scope: valid once per fork, fork choice decides.
 
+### nft-races — wash-trip economics **[RV-T]**
+
+- **U36** nft-races, **Informational (wash-trading economics, for the price list)** **[RV-T]**
+  (takeover lane `/Users/ember/dev/parano1d-break/experiments/nft-races/`, same run): a
+  self-list -> self-buy round trip costs **16,400 µNOID per cycle at floor geometry**
+  (list 6,600 + buy 9,800), of which 2,500 is burned and 13,900 miner-claimable — a
+  self-mining washer recaptures the claimable share and nets 2,500/cycle. The 100,000 µNOID
+  escrow credit is returned on purchase and the ask round-trips, so the marginal wash cost is
+  exactly the two fees; and the schedule is state-pressure-indexed (the nft lane measured the
+  8x multiplier), so sustained wash volume raises its own cost per cycle. **Not free
+  volume.** No listing/creation fee exists beyond the spend-lane fee: listing spam feeds the
+  creation-spam lane's measurement rather than adding a new mechanism. The lane's other
+  results (op-80 first execution clean; listing races seam closed; settlement circuit
+  doubly-dead as shipped but sound-shaped in intended configuration) are in §4.
+
 ---
 
 ## 4. Verified negatives — where the system held
@@ -1129,6 +1145,9 @@ noted per row.
 | Creation-side value extraction; CPU-asymmetric creation spam; arbitrary-data channel | Extraction check CLEAN NO (F4: hash-derived ids from a genesis anchor — no namespace to squat, no lookalike/identity surface committed on-chain, launch backing parked in `TokenReserve` and redeemable, no refund race); NO CPU asymmetry on creation — node ~59 µs/item apply is CHEAPER than attacker ~106 µs construct (the axis is economically defended, not CPU-defended); creation txs are ordinary fee-paying valid payloads (no C17/C22 amplification — they compete for admission honestly); batch minting amortizes to one receipt per 248 items (C19 grows sublinearly); raw owner index never sees native beneficiaries (measured: victim `get_verified_utxos_by_owner` returns 0); no arbitrary-data channel (fixed-size digests throughout, exact-length encoding enforced) | [RV-T] (takeover creation-spam lane, tee'd `results.txt`) |
 | Hidden maintenance/diagnostic backdoors; credential fallback; p2p control from RPC | No admin socket, no signal-triggered dumps, no secret material in any log (Authorization stripped before jsonrpsee tracing, `server.rs:3759-3767`); no RPC method exposes p2p dial/ban/announce; wrong/duplicate credentials 401 before dispatch with NO fallback to Local; browser `Origin` -> 403 pre-dispatch; mining credential hard-restricted to the two template methods; `--purge-state` refuses genesis-matching/unmarked DBs; disabled native ops unreachable at ALL three gates; isolated fork-test builds refuse non-namespaced non-loopback runs; pack-missing builds fail closed; wallet-maintenance flags refuse combination with mining/node actions | [RV-T] (takeover dark-surface lane, tee'd `results.txt` + live credential matrix; negative gates named in its README §8) |
 | Cross-dialect artifact acceptance (asymmetric version-confusion pairs) | Every artifact class dies on a schedule-bound check at every EXECUTABLE layer: cross-build measured targets diverge (`…ccb2070000` vs `…1864050000` at h24) -> `BadDifficultyTarget`; owner-auth version dispatch V4 vs V3 by schedule; HistoryStep terminal dispatch by schedule (`history_protocol.rs:727-766`); the boundary layer itself is schedule-blind but the dispatch behind it rejects; poisoned-history demonstration is schedule-independent (both builds pass chain A); terminal metadata admission schedule-agnostic but full terminals require the exact proof bank and verified origin | [RV-T] (takeover malicious-node lane, tee'd `results.txt`/`results-isolated.txt`; one layer OPEN — the recursive verifier under a mismatched schedule (pack-gated, not executed): conventional code, a regression surface, not a proven wall — see §7) |
+| Operation 80 (`ExecuteTrades`) — executed for the first time anywhere, through the real State apply path | Clean: honest 3-policy batch on a mid-flight launch curve conserves µNOID exactly (inputs = payouts + successor + fee), burns exactly the batch fee, consumes parent and installs successor correctly; batch-internal ordering FULLY re-derived, never caller-supplied (`TradeBatch::new` re-sorts by `authorization_id`, `SequencingPlan` re-sorts by `funding_priority`; scrambled caller order -> identical root/fills/charges/outputs); one declinable fill rejects the batch WHOLESALE (`Batch(Unfilled)`, state-root-identical twin proves zero mutation; the dex miner pre-filter keeps those out of templates, consensus itself refuses them); the kernel CANNOT touch NFT state (listing/item openings rejected as funding; no listing parent variant — disjoint opening families); wire round-trip agrees on every field | [RV-T] (takeover nft-races lane, tee'd `results.txt`, 15/15 tests) |
+| **Listing races on the live marketplace surface (every interleaving) — THE MARKETPLACE/STORAGE SEAM IS CLOSED** | One structural invariant decides every race: the listing escrow is a single UTXO that exactly one transition can consume per inclusion, and stale cross-fork consumption dies on the authenticated parent-ref state read. Two instant-buys: exactly one wins, loser cash untouched (canonical fee-desc/txid at template; slot-conflict at mempool). Cancel-vs-buy: no interleaving moves the item and preserves the payment. Same-block double-buy: each alone valid, both together abort template build `SlotConflict` — no partial block, miner-side build loss only. **Stale listing across a REAL reorg** (real MDBX, real PoW, native op blocks then fork): losing-fork listing VANISHES with rollback (slot EMPTY, nothing carries forward), attacker transfer survives, stale instant-buy dies at admission (`financial block: Read`). Failed buys cost the submitter nothing at admission. Zero inconsistent outcomes in any interleaving, three independent layers | [RV-T] (takeover nft-races lane, tee'd `results.txt` + reorg binary, `ALL CONTROLS AND RACES COMPLETE`) |
+| Listing-settlement circuit (`bind_financial_listing_settlement`) second-witness exposure | **Doubly dead as shipped**: no caller in the tree (the one function taking seeds names the parameter `_listing_seeds`, never invokes the binder, and its sole call site passes `&[]`), and the shipped `kind_enabled` profile makes any `NftPurchase` opening unsatisfiable by construction (selector is the zero constant — `pin_eq(selected,1)` fails; demonstrated by execution), so no live settlement witness exists at this commit. **Intended-configuration witness BUILT** (three verbatim helper copies, one line changed — `NftPurchase` admitted; fidelity byte-asserted against production for profile-admitted kinds): honest settlement SATISFIES the real binder; all FIVE adversarial variants UNSATISFIABLE (wrong-winner recipient, settle-too-early, settle-too-late, queue commitment off by one bit, any payout off by one µNOID); winner-rule agreement exact (circuit 768-bit key = native byte order with `payer_priority` most significant, matching native `min_by_key((priority, root, key))`). Residual: the day the profile flips and the binder is wired, it enters service having never executed in CI against a populated witness — this PoC is the first and only executed witness | [RV-T] (takeover nft-races lane; sound-shaped in intended configuration, dead as shipped — the "no second witness" claim is relative to the five variants tested, not an exhaustive proof) |
 | Fresh-request forgery (all lanes) | Owner/Phase-A/Phase-B adaptive ordering; queries derived only after all commitments; no accepted unauthorized statement anywhere | [RV] (root, cumulative: "no unauthorized spend, invalid accepted block, owner-key recovery, or fresh-request forgery", 01:58:28) |
 
 ---
@@ -1277,14 +1296,26 @@ gadget algebra) plus the 8,870-configuration directed battery, with assurance li
 (structural + directed battery, NOT an exhaustive witness-space search of the full HistoryStep
 relation; no end-to-end recursive prove/verify cycle was run). The sequential-trade and
 listing-settlement witness legs keep their earlier cross-references (dex-economics
-honest-witness agreement + the ordering map; listing-settlement circuit still code-read only);
+honest-witness agreement + the ordering map; listing-settlement circuit now ANSWERED by the
+nft-races lane — the intended-configuration witness was built and satisfies with all five
+adversarial variants unsatisfiable, while AS SHIPPED the binder is doubly dead (no caller;
+`NftPurchase` openings unsatisfiable under the shipped profile), correcting the earlier
+"wired for op 71" framing);
 the collision-composition leg is closed by the confinement paragraph above; the **listing-settlement circuit's native-vs-recursive
 consistency is code-read only** (winner rule, ordering, fee-split arithmetic, timelocks match by
-reading; the `bind_financial_listing_settlement` witness was not built) — same cross-reference,
-constraint-systems lane; the **sequential-trade route (operation 80, `ExecuteTrades`, the live
-trading kernel)** — now **ANSWERED** by the dex-games and sequencing lanes: the ordering/priority
+reading; the `bind_financial_listing_settlement` witness was not built) — **now ANSWERED by the
+nft-races lane**: the intended-configuration witness was built (honest settlement satisfies the
+real binder; all five adversarial variants unsatisfiable; winner-rule agreement exact), while
+as shipped the binder is doubly dead (no caller — the seed plumbing terminates in an ignored
+parameter; `NftPurchase` openings unsatisfiable under the shipped profile), correcting the
+earlier "wired for op 71" framing; the **sequential-trade route (operation 80, `ExecuteTrades`,
+the live trading kernel)** — now **ANSWERED** by the dex-games and sequencing lanes: the
+ordering/priority
 map is complete (U22-U27; execution order is the funding-priority digest, the builder owns every
-consensus-level race, and no fee- or value-based priority path exists in the native paths); the
+consensus-level race, and no fee- or value-based priority path exists in the native paths) —
+and **EXECUTED for the first time anywhere by the nft-races lane**: op-80 ran through the real
+State apply path clean (conservation exact, ordering fully re-derived, atomic wholesale
+rejection, NFT-state isolation, wire round-trip agreement — see §4); the
 **tx-admission cost-asymmetry
 question is now ANSWERED** — C22 (62x CPU discount, anonymous occupancy of all bounded
 admission resources) plus U21 (gossip-window exhaustion), both from the tx-admission lane;
@@ -1300,11 +1331,11 @@ adversarials (dex-games), fee-schedule fairness, and NFT accounting (nft-marketp
 
 ## 6. Lane status table
 
-All 36 experiment directories under `/Users/ember/dev/parano1d-break/experiments/` — the kimi
+All 37 experiment directories under `/Users/ember/dev/parano1d-break/experiments/` — the kimi
 swarm's 25 plus takeover-opened lanes (`leaf-reachability`, `tx-admission`, `dex-games`,
 `sequencing`, `constraint-systems`, `typed-bind-verdict`, `external-consumers`,
-`wallet-vs-node`, `creation-spam`, `dark-surface`, `malicious-node`, and later additions).
-"Completed" = lane returned a final result the root processed
+`wallet-vs-node`, `creation-spam`, `dark-surface`, `malicious-node`, `nft-races`, and later
+additions). "Completed" = lane returned a final result the root processed
 (verification status per §2/§3). All 8 lanes the kimi swarm left dead-with-partial-code have now
 been completed by the takeover swarm (wallet-safety, prover-unsafe, p2p-resources, dex-economics,
 rpc-api, storage-reorg, nft-marketplace, token-accounting — [RV-T] per the 2026-11-15 ruling:
@@ -1329,6 +1360,7 @@ pending.
 | `creation-spam` | (takeover, new) | **completed [RV-T]** | C25 (mint-into-victim: 248 attacker items into a non-signing victim's owner index through the real block-commit path); U29 (creation axis defended purely economically, flat-forever price; zero-burn occupancy-invisible CreateCollection; saturation math ~71 MB/day state + ~700 MB/day node-local forever); §4 extraction-clean/CPU-symmetry/no-amplification negatives; §5 composition note (real on-chain junk × C24 rendering); evidence `README.md`/`results.txt`, `ALL PHASES COMPLETED` |
 | `dark-surface` | (takeover, new) | **completed [RV-T]** | U30 headline (Swap/LaunchRequest provable-but-unconstructable, 740-commit git-log proof; mirror: 17 dead ops), U31 (11 RPC methods dark to every shipped client), U32 (5 hidden CLI flags incl. KEY-MATERIAL export/import), U33 (`NOID_GUI_NODE_BIN` arbitrary-node-binary), U34 (39-op profile table extending U20); danger-class counts; live curl/`paranoid_stop` kill; §4 maintenance-clean negatives; §5 `--genesis`/operator-token crossovers; evidence `README.md`/`results.txt`/`method-matrix.txt`/`demo/help.txt` |
 | `malicious-node` | (takeover, new) | **completed [RV-T]** | C26 (snapshot poisoning: rule-invalid history committed AND finalized, permanent estrangement, self-propagating re-serve, difficulty-collapse bonus; escalates U4), U35 (replay publication = by-design, closes C6 scoping), §4 dialect-confusion negatives (one layer OPEN, §7); blocker table (crypto-vs-conventional) cited; evidence `README.md`/`results.txt`/`results-isolated.txt`/`run.sh`, both schedules `all_local_assertions=passed` |
+| `nft-races` | (takeover, new) | **completed [RV-T]** | Op-80 EXECUTED for the first time anywhere — clean (§4); listing races across blocks/templates/mempool AND a real reorg — seam closed, zero inconsistent outcomes (§4 prominent); settlement circuit verdict: doubly dead as shipped, sound-shaped in intended configuration (§4; corrects "wired for op 71"); U36 wash-trip economics (16,400 µNOID/cycle floor, self-mining washer nets 2,500; not free volume); §5 residuals closed; bind_trade_kernel witness = new §7 successor task; evidence `README.md`/`results.txt` (15/15) + `reorg/` (`ALL CONTROLS AND RACES COMPLETE`) |
 | `external-miner` | agent-20 | **completed [RV-T, C15]** | Template-consumption finding (Medium); reproduced by the takeover root 2026-11-15 (`verify-run.txt`); kimi root never verified this lane |
 | `fork-replay` | agent-7 | **completed [RV]** | C6: same-anchor fork replay, byte-identical reruns |
 | `identity-encoding` | agent-16 | **completed [RV/AR]** | C13 root-verified; proof-identity/terminal-id/Bech32 results agent-reported (U8) |
@@ -1400,7 +1432,8 @@ coverage map, not a critique of lane quality.
 | ledger-fairness | Do the liveness behaviors hold with real authorization execution and production-size state (accept-all executor + small fixtures used)? | devnet-chaos | — |
 | leaf-reachability | Is there an out-of-tree consumer of the public raw APIs (`verify_source_batched_merkle_proof_to_cap`, `hash_pair`, serialized `MerkleCap`)? | answered (external-consumers probe, 2026-11-15): zero external consumers of the cross-domain surface; Jetsam fork caveat recorded | — |
 | leaf-reachability | Can an unrelated flaw in the affine LCH code or fold algebra beat the leaf wall (outside the dominated aligned-lift routes)? | constraint-systems | — |
-| nft-marketplace | Does the listing-settlement circuit hold as an executed witness (code-read only), and does op 80 `ExecuteTrades` hold under adversarial sequencing? | constraint-systems; dex-games + sequencing | — |
+| nft-marketplace | Does the listing-settlement circuit hold as an executed witness (code-read only), and does op 80 `ExecuteTrades` hold under adversarial sequencing? | answered (nft-races): settlement witness built in intended configuration (sound-shaped; doubly dead as shipped); op-80 executed through the real State apply path, clean | — |
+| nft-races | Is the full recursive trade kernel (`bind_trade_kernel`, op 80's circuit, ~3,100 lines of sub-binders) sound as a witnessed R1CS? Only the two-derivation native agreement exists; the trace shapes are undocumented. | — (named successor task; entry point in the lane README's assurance limits) | **LIVE** |
 | nft-marketplace | Is round-context binding to real header windows (`FinancialHeaderWindow`) sound beyond synthetic anchors? | devnet-chaos | — |
 | native-intents | Do market-state games beyond the tested fixtures exist (adverse parent-state construction)? | dex-games | — |
 | p2p-resources | Do C17/C18 hold against a live libp2p swarm (negotiated yamux windows, measured timeouts), and do eclipse/Sybil topologies beyond the diversity caps change reachability? | devnet-chaos | — |
