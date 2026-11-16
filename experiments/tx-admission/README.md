@@ -1,12 +1,12 @@
-# Admission-cost asymmetry at the transaction-admission layer (tx-admission lane)
+# Cost of rejecting invalid transaction proofs
 
 Source: `/Users/ember/dev/parano1d-break/parano1d` at `52938433a30b185ab007afaa15166a632cf2e82e` (read-only).
 
-All created files are confined to this directory. The PoC drives the real `noid_mempool::AsyncMempool` — real bounded wire decoder, real state/fee/anchor/slot admission checks, real 4-permit verification semaphore, real AuthGKR (`noid_gkr`) authorization verification — against synthetic chain state (real `ChainState`/`ChainView`, real genesis-derived epoch anchor). No live node, peer, or external network was contacted; synthetic keys only.
+The experiment drives `noid_mempool::AsyncMempool`, including its decoder, admission checks, four-permit verification semaphore, and AuthGKR authorization verifier. It uses a synthetic `ChainState`/`ChainView`, a genesis-derived epoch anchor, and synthetic keys. It does not start a node or connect to a peer.
 
-The question this lane owned: can an attacker cheaply keep the bounded verification queues occupied with many distinct, state-valid transactions carrying invalid proofs — i.e. is the attacker's marginal cost per queue-occupying tx lower than the node's marginal cost to reject it?
+Question: Can distinct transactions with valid public state claims and invalid authorization proofs occupy the bounded verification queue at less attacker CPU cost than the node spends rejecting them?
 
-**Answer: yes. Measured 62x CPU-time asymmetry per transaction, with zero marginal state cost to the attacker (failed proofs reserve nothing, inputs are freely recyclable, state-validity needs only public data), and the transport caps do not close the gap: 128 anonymous inbound connections offer 640 tx/s against a measured 415 tx/s four-worker drain. On the code's own 84ms-class verify hardware the same attack saturates with 10 identities at 4.6 MB/s.**
+The local experiment measured 134.3 µs to construct each distinct payload and 8.34 ms for the node to reject it: a 62× ratio in CPU time. A rejected proof spends no fee and reserves no input, so the same public input can be claimed again. Combining these measurements with the configured 50 transactions per peer per 10 seconds and 128 inbound connections gives a *modeled* maximum offer of 640 transactions/s against the measured four-worker drain of 415.5/s. That calculation does not establish that a live swarm can sustain the offer rate or starve other protocols.
 
 ## The admission pipeline, measured (order from code, costs measured)
 
@@ -27,39 +27,39 @@ P2P delivery (gossip `network.rs:6542-6631` and direct Push `network.rs:8879-893
 
 Production (`noid_node/src/main.rs:2146-2160`) uses `MempoolConfig::default()`: `auth_verify_workers = 4`, capacity 1024, 384 MiB byte cap. The executor routes verification onto the shared Rayon CPU pool as a **work-conserving** `InboundVerify` phase beside PoW and HistoryStep (`noid_miner/src/cpu_budget.rs:324-331`).
 
-## Finding 1: sustained anonymous occupancy of all bounded admission resources at a ~62x CPU discount
+## Finding 1: invalid proofs are expensive to reject and leave no input reservation
 
-**Severity: Medium availability. Reachability: anonymous P2P — any number of free libp2p identities over TCP (noise handshake needs no credential); direct Push requires only an established connection (the MempoolSync request handler is the one request-response arm with no `is_dispatchable` profile gate, `network.rs:8810-8932`); gossip requires mesh grafting, which peer scores do not block (no app scoring; only >8-identities-per-IP colocation penalties, `behaviour.rs:255-273`). NOT reachable via RPC: `paranoid_submitTxIntent`/`paranoid_walletSend` are operator-credential or loopback (server.rs:3850-3872; reusing the rpc-api lane's reachability result).**
+**Availability risk: medium, conditional on sufficient P2P delivery.** Direct Push is handled for an established peer without an `is_dispatchable` profile gate (`network.rs:8810-8932`); gossip requires mesh delivery. The Noise handshake does not require an application credential. Peer colocation penalties and connection limits still apply (`behaviour.rs:255-273`). RPC submission is operator-credential or loopback restricted (`server.rs:3850-3872`). The experiment did not establish the number of identities that a live node would admit concurrently or the rate they could deliver.
 
-Mechanism — every piece the attacker needs is public and nothing is consumed:
+The rejection path has four relevant properties:
 
 1. **State-validity needs no ownership.** `check_input_slots` (`pool.rs:1362-1408`) only compares the *claimed* `(amount, creation_id, owner)` against the on-chain slot value — all readable by anyone with a synced state. Ownership is established solely by the 8 ms proof check. The fee is *declared*, never collectible on rejection. The epoch anchor is deterministic from public tip height.
 2. **Failed verification reserves nothing.** `pool.admit` and `admitted_input_slots` insertion happen only after proof success (`pool.rs:495-542`). The same input slot can be re-spent by the next garbage tx immediately — measured: 300+ rejections on one slot, all reaching verification, pool empty afterwards.
-3. **No rejection cache.** Byte-identical resubmission re-verifies every time (measured 3/3). The only dedup is the transport-layer byte-exact in-flight coalescer; varying the fee by 1 produces a new payload and new txid for ~134 µs of construction.
-4. **One real proof is a perpetual template.** The attacker generates one valid wallet proof once (measured 675-683 ms locally, public prover), then flips a byte at different positions: every variant decodes, passes all cheap checks, and burns a full verify before failing.
+3. **No rejection cache.** Byte-identical resubmission re-verifies every time (measured 3/3). The transport coalesces byte-exact payloads only while in flight; varying the fee by 1 produces a new payload and txid for ~134 µs of construction.
+4. **A valid proof supplies a reusable template.** The public prover generated one valid wallet proof in 675–683 ms locally. Byte changes at selected positions produced variants that decoded, passed cheap checks, and reached the full verifier before failing.
 
 Measured numbers (M-series laptop, release, real verifier; V4 tip-300000 profile quoted, V3 tip-0 within 10%):
 
 - Node cost per max-cost reject: **8.34 ms** of one verify worker (drain: 415.5 tx/s at 4 permits; single worker 122 tx/s; peak concurrency pinned at exactly 4).
-- Attacker cost per payload: **134.3 µs** construction, 90,414 B on the wire. **CPU-time asymmetry: 62x.** Minimal decode-fail payload is 394 B but costs the node only ~190 µs (that variant is capped at 0.12 core by the rate limits and cannot saturate — the cheap-attack version of this finding is genuinely blocked by check ordering: bundle decode happens before transcript replay).
-- Saturation arithmetic: 128 inbound connections (`behaviour.rs:539`) x 5 tx/s per PeerId = **640 tx/s offered vs 415.5 tx/s drain (1.5x)** → ~84 identities at ~58 MB/s saturate this laptop. The code comment itself budgets ~84 ms per verification (`main.rs:10701`); at that cost 10 identities at 4.6 MB/s saturate. Occupancy is structural; only its price is hardware-dependent.
+- Attacker cost per payload: **134.3 µs** construction, 90,414 B on the wire. **CPU-time ratio: 62×.** A 394 B decode-failing payload costs the node only ~190 µs; at the configured rate limit, even 128 peers offer only ~0.12 CPU-core of this work. Bundle decoding precedes transcript replay.
+- Rate model: 128 inbound connections (`behaviour.rs:539`) × 5 tx/s per PeerId = **640 tx/s offered**, if every connection delivers at its limit. Against the measured 415.5 tx/s drain, ~84 identities at ~58 MB/s would match this laptop's drain. The code comment budgets ~84 ms per verification (`main.rs:10701`); using that estimate gives 10 identities at 4.6 MB/s. Neither scenario was measured on a live node.
 
-Effects while saturated (from measured latencies + code bounds):
+Predicted effects if the offered rate exceeds the drain (derived from measurements and code bounds, not observed in a live swarm):
 
-- The 1024 non-evictable delivery slots fill in ~4.6 s; **new honest txs are then dropped** at `TxDeliveries::start` on both paths (`network.rs:6595-6605`, `8913-8915`).
-- The 64 MiB process-global inbound budget (Push path) is held by ~742 in-admission 90 KB payloads for their whole queue stay (~2.5 s at saturation) — **block-body, HistoryStep and state-segment inbound responses share this one byte domain** (`inbound_budget.rs`) and stall behind tx garbage.
-- Honest *and local* wallet admissions queue on the same semaphore: the RPC wallet path is `mempool.clone()` with a different executor but the **same `Arc<Semaphore>`** (`server.rs:3529-3538`), and wallet-priority CPU admission does not preempt inbound verification (`cpu_budget.rs:325-331`). Uncontended admission is 24.4 ms; at a 256-deep queue the measured p50 is already 303 ms; at 1024-deep it exceeds 2 s.
-- Four permanently busy verify permits are 4 of ~10 workers of the node's shared proof Rayon pool — a standing ~40% tax on block-production CPU on the default plan.
+- If that net arrival rate reaches the delivery tracker, its 1024 non-evictable slots fill in ~4.6 s; new transactions are then dropped at `TxDeliveries::start` (`network.rs:6595-6605`, `8913-8915`). Push traffic also faces the inbound byte budget, so this slot calculation cannot simply be applied to 1024 simultaneous Push payloads.
+- On the Push path, 64 MiB permits can hold roughly 742 in-admission 90,414 B payloads. Block-body, HistoryStep, and state-segment inbound responses share this byte domain (`inbound_budget.rs`). They would wait if Push submissions held all permits; the PoC did not demonstrate this composition on a live node.
+- Local wallet admissions use a clone of the mempool with the same verification `Arc<Semaphore>` (`server.rs:3529-3538`); wallet-priority CPU scheduling does not preempt ongoing inbound verification (`cpu_budget.rs:325-331`). The PoC measured 24.4 ms uncontended admission, p50 303 ms with a 256-deep queue, and more than 2 s at 1024 depth. Those are local queue measurements, not wallet latency on a live mining node.
+- Four continuously busy verify permits can occupy 4 of ~10 workers in the default shared proof Rayon pool. The effect on block production was not measured.
 
 ### Recommended correction
 
-Make rejection cost scale for the repeat offender: (a) a bounded negative cache keyed by `(logical_txid, authorization bytes hash)` with short TTL, so byte-near-identical resubmission cannot re-verify; (b) charge the per-peer rate budget *by verification cost class* (e.g. a decodable full-size proof costs 10 tokens, decode-fail costs 1) instead of by count; (c) reserve input slots from first *reach-verification*, not first *admission*, releasing on reject — this makes input recycling cost real UTXOs; (d) give the shared inbound byte domain a tx-only sub-budget so tx pushes cannot starve block/state sync. (a) alone removes the 62x discount for the observed attack shape.
+Bound verifier work per peer and keep a short-lived negative cache for repeated authorization bytes. A cache keyed by `(logical_txid, authorization bytes hash)` catches exact retries but fee changes alter the logical transaction, so its effectiveness against variants must be tested. A cost-weighted peer rate limit would charge more for transactions that reach AuthGKR than for decode failures. A separate tx ingress byte budget would protect block and state responses from Push traffic. Reserving inputs before verification would also slow recycling, but would let invalid submissions temporarily lock honest inputs; it needs an explicit fairness design.
 
-## Finding 2: the global gossip byte window is exhaustible by ~5 identities of pure garbage, dropping honest tx AND block gossip
+## Finding 2: the gossip byte window is shared across peers and message classes
 
 **Severity: Low-Medium availability, anonymous P2P.**
 
-`admit_tx_gossip_ingress` (`network.rs:5174-5187`) admits gossip bytes from a **single process-global** 64 MiB / 10 s window shared with block announcements (`network.rs:6491-6495`), checked *before* decode and before any per-payload work beyond the per-peer count. Undecodable 303,495 B payloads (the wire cap) pass the size check and consume the window. Five identities at 50 tx/10 s each ship 75.8 MB per window against the 64 MB budget (~6.4 MB/s of garbage, no state validity, no proofs): from that point every further gossip message — honest transactions *and block announcements* — is `Ignore`-dropped for the rest of the window. `Ignore` carries no gossipsub peer-score penalty (`behaviour.rs` scoring has no app-specific behaviour scores), so the exhaustion is sustainable and unpenalized. This is reasoned from the code paths and libp2p constants, not executed against a live swarm (see limits).
+`admit_tx_gossip_ingress` (`network.rs:5174-5187`) charges transaction gossip bytes against a **single process-global** 64 MiB / 10 s window shared with block announcements (`network.rs:6491-6495`). It does so before decoding, after the per-peer count check. An undecodable payload of 303,495 B, the wire cap, passes the size check and consumes the window. Five identities sending 50 such payloads each would offer 75.8 MB per window against the 64 MiB budget. If those payloads reach this ingress path, later gossip, including block announcements, receives `Ignore` until the window resets. The source configures no application-specific gossipsub score for this `Ignore` result. Delivery and identity retention have not been measured in a live swarm.
 
 ### Recommended correction
 
@@ -67,7 +67,7 @@ Make the byte window per-peer (like the count limit), or deduct bytes only after
 
 ## Negative and control results
 
-- **The cheap-attack variant is blocked.** Garbage/framing-random/truncated classes cost ~190 µs (decode fails inside the verification task before transcript replay) and cannot saturate: 640/s offered x 190 µs = 0.12 core. The expensive class requires a real-proof-shaped bundle.
+- **Decode failures are cheap to reject.** Garbage, random framing, and truncated classes cost ~190 µs because decoding fails before transcript replay. Even the modeled 640/s offer consumes ~0.12 core; the expensive class requires a real-proof-shaped bundle.
 - **Cheap checks really do run pre-verification, at near-zero cost, with zero verify executions**: fee-below-floor 116 µs, wrong epoch anchor 174 µs, input-not-in-state 174 µs, and slot-conflict-after-admission 338 µs — all `verify_exec=0` (executor-observed).
 - **Zero residue after a 300+-rejection storm**: pool length 0, no reserved input/output slots, dynamic fee floor still `MIN_FEE_BASE` — rejected txs cannot poison the floor, the pool, or the slot index.
 - **No replacement/churn vector**: admission is strictly first-seen-wins (`SlotConflict` for competing spends, `AlreadyAdmitted` idempotent); there is no fee-based replacement to reset eviction, and eviction is block-driven only (`on_new_block`, `pool.rs:736-846`).
@@ -108,10 +108,10 @@ ALL ASSERTIONS PASSED
 
 ## Assurance limits
 
-- One laptop, one release build, 4 async workers; per-item costs will differ on other hardware. The 8.34 ms verify is this machine's cost — the audited code itself budgets ~84 ms (`main.rs:10701`), which would make every occupancy conclusion easier (10 identities instead of 84); no configuration was found where the direction reverses.
+- One laptop, one release build, four async workers; per-item costs will differ on other hardware. The 8.34 ms verify is this machine's measurement. The ~84 ms figure in `main.rs:10701` is a code comment, not a benchmark of the deployed network.
 - The production executor runs verification on the shared Rayon pool (work-conserving beside PoW/HistoryStep). The PoC's inline executor measures the verification cost itself; the 4-of-10-worker CPU-share figure for production is derived from `cpu_budget.rs` plans, not measured against a mining node.
 - Transport-level effects (1024 delivery slots, 64 MiB inbound semaphore, 64-byte event lanes, 64 MiB/10 s gossip window, connection caps) are established from the pinned code, libp2p configuration, and the crate's own unit tests (`tx_delivery.rs` tests pin the non-evictable in-flight behaviour), then combined with measured per-tx costs in a rate model. No multi-peer swarm was run; a live demonstration would need the full swarm harness and is the natural follow-up.
 - Finding 2 (gossip window exhaustion) is a code-path argument with constants, not an executed attack; the per-window arithmetic (5 identities x 50 x 303,495 B > 64 MiB) uses the pinned limits.
 - V3 and V4 authorization profiles measured identically here (8.1-8.3 ms); trade and native intent classes were not measured (they share the same semaphore and AuthGKR verify per `trade.rs:44-53`/`native.rs:65-74`; construction cost is higher, so they cannot be cheaper attack vectors).
 - Whether a maximum-shape (256 KiB) decodable-but-invalid bundle costs meaningfully more than 8.34 ms to reject was not explored; PCS verification uses a fixed 65 queries, so we do not expect payload size to change verify cost, but this was not measured.
-- Attacker bandwidth is the binding constraint on fast hardware (~58 MB/s to saturate this laptop's 4 workers); this is what keeps Finding 1 at Medium rather than High severity. The 62x ratio is CPU-time-only and ignores bandwidth, memory, and connection setup on both sides.
+- The modeled offer needs ~58 MB/s to saturate this laptop's four workers. The 62× ratio compares CPU time only; bandwidth, connection setup, peer retention, and scheduling could change the outcome.

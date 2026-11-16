@@ -1,43 +1,46 @@
-# Independent verification: agent-25 HIGH — legacy matrix bytes unauthenticated in the standalone release builder
+# Legacy matrix authentication in the standalone release builder
 
-Verifier: fresh session (independent of the dead agent-25 lane and the dead root).
-Target: `/Users/ember/dev/parano1d-break/parano1d` at pinned commit
-`52938433a30b185ab007afaa15166a632cf2e82e` (verified with `git rev-parse HEAD`).
-The checkout's pre-existing dirty files were checked: the `noid_node/build.rs`
-diff is rustfmt-only reformatting of the v2/v2.1 pack sections; the legacy
-`stage_leaf` section cited by the finding is the pinned commit's code. The other
-dirty files are unrelated. All probe code here runs against `pinned-src/`
-(exact-copy of the pinned commit for the relevant files — verified by diff
-against `git show HEAD:<file>`) or against `fixture/` scripts verified
-byte-identical to `parano1d/scripts/`.
+Target: `/Users/ember/dev/parano1d-break/parano1d` at
+`52938433a30b185ab007afaa15166a632cf2e82e`. The probes use copies of the
+relevant pinned source in `pinned-src/` and release scripts in `fixture/`;
+these were compared against the target commit. The target checkout's existing
+`noid_node/build.rs` diff only reformats v2/v2.1 sections and does not change
+the legacy `stage_leaf` path discussed here.
 
-## 1. The claim, restated precisely
+## Result and scope
 
-> Substituting a legacy HistoryStep matrix file (`v1/history-step-c*.field-r1cs.zst`)
-> with different valid zstandard bytes of the same decompressed length does not
-> change the pack's approved metadata identity, and `scripts/build_release.sh`
-> (standalone release builder) still reaches Cargo and embeds those foreign bytes
-> sealed with the canonical, pin-approved shape and statement digest. No later
-> stage — build script, `build.rs`, or runtime decoder — ever hashes the matrix
-> bytes.
+The standalone `scripts/build_release.sh` validates the legacy pack layout and
+metadata pin, but does not verify each legacy matrix against its digest. A
+same-shape substituted matrix can pass the build script's checks while the
+approved metadata remains unchanged. The build-script path seals the substituted
+bytes with the approved shape and statement digest, and the runtime decoders
+accept bytes under that seal without recomputing the matrix digest.
+
+The release-script probe replaced one matrix and confirmed that the script
+reached Cargo with the same metadata pin. It used a Cargo stub, so that run did
+not produce a binary. A separate decoder probe compiled from pinned source
+confirmed that the embedded and cache decoders accept a foreign same-shape
+matrix under the approved digest. The source path connects those two results;
+the combined substitution-to-running-node sequence was not executed end to end.
 
 Preconditions:
 
 - The build uses the legacy-embedding profile: `scripts/build_release.sh`
-  invoked WITHOUT `--retired-history` (which is that script's *default*), or any
+  without `--retired-history` (that script's default), or any
   build exporting `NOID_HISTORY_STEP_PACK_DIR` + the metadata digest without the
   `retired-history` Cargo feature.
-- The attacker controls the legacy pack *directory contents* as seen by the
-  builder (re-hosted pack, tampered archive extraction, or local tamper), but
-  does NOT need to touch `pins.env`, `SHA256SUMS`, or the metadata file.
+- The attacker can alter the legacy pack directory consumed by the builder,
+  through a substituted archive or local files. The attack does not require
+  editing `pins.env`, `SHA256SUMS`, or the metadata file. The official release
+  workflow has additional checks described below.
 
-## 2. Reproduction (mine, independent)
+## Reproduction
 
 ### Run 1 — release-script substitution probe
 
-Script: `verify/probe_release_inputs_verify.py` (mine; adds two controls the
-original lacked: an unsubstituted run, and a log scan for any hash/manifest
-activity). Command (from `experiments/build-artifacts`):
+`verify/probe_release_inputs_verify.py` runs an unsubstituted control, a
+substituted pack, and an explicit manifest-verifier control. From
+`experiments/build-artifacts`:
 
 ```
 python3 verify/probe_release_inputs_verify.py 2>&1 | tee verify-output.txt
@@ -57,21 +60,19 @@ Result (exact lines from `verify-output.txt`):
 "explicit_manifest_verifier_stderr": "error: SHA-256 mismatch for .../legacy/v1/history-step-c00.field-r1cs.zst"
 ```
 
-- Exit 91 is the probe's cargo stub, i.e. "Cargo was reached". Both the pristine
-  control and the substituted run reach Cargo with the identical exported
-  metadata pin; the substituted `c00` (`309fd906…`) differs from the original
-  (`12f89b9b…`, both decompress to 1024 bytes) — digests match agent-25's run
-  exactly (deterministic fixture).
-- The build log contains zero hash/manifest verification lines.
-- The same pack is REJECTED by the existing-but-unwired
-  `release_verify_sha256_manifest` when invoked explicitly — the check exists in
-  `release_common.sh` and simply is not called by `build_release.sh`.
+- Exit 91 is the probe's Cargo stub: both runs reached Cargo with the same
+  metadata pin. The substituted `c00` has SHA-256 `309fd906…`, versus
+  `12f89b9b…` for the original; both decompress to 1024 bytes.
+- The build-script log contains no hash or manifest-verification line. The
+  explicitly invoked `release_verify_sha256_manifest` rejects the substituted
+  file. This proves the manifest check exists and catches this fixture, while
+  the standalone builder does not call it.
 
 ### Run 2 — decoder probe (runtime half, compiled from pinned source)
 
-`verify/decoder-probe/` builds two valid same-shape, same-canonical-length
-relations differing in one coefficient (different structural Poseidon digests),
-then exercises the exact decoders the node uses. Command:
+`verify/decoder-probe/` builds two same-shape, same-length relations differing
+in one coefficient and hence in structural Poseidon digest. It then calls the
+decoders used by the node:
 
 ```
 cd verify/decoder-probe && CARGO_NET_OFFLINE=true cargo run --quiet --release
@@ -83,18 +84,15 @@ Result (exact line):
 safe_loader_rejected=true embedded_decoder_foreign_accepted=true cache_decoder_foreign_accepted=true ... canonical_len=210
 ```
 
-- `open_packed` (safe API) REJECTS the foreign relation under the approved
-  digest — this is the check that would catch the substitution if anything
-  performed it.
-- `open_build_authenticated` — the exact decoder `rebuild_from_canonical`
-  applies to the binary's EMBEDDED matrix bytes — ACCEPTS the foreign canonical
-  bytes and returns a relation whose `statement_digest()` equals the APPROVED
-  digest (artifact bytes are the foreign bytes). This leg the original report
-  only inferred from code; it is empirically confirmed here.
-- `open_build_authenticated_packed_image` (runtime cache path) — same: accepts,
-  labels with approved digest. This matches agent-25's cache probe output.
+- `open_packed` rejects the foreign relation under the approved digest. This
+  API performs the missing structural check.
+- `open_build_authenticated`, used by `rebuild_from_canonical` for embedded
+  bytes, accepts the foreign bytes and returns a relation labeled with the
+  approved statement digest.
+- `open_build_authenticated_packed_image`, used for the runtime cache, also
+  accepts the foreign bytes under that label.
 
-## 3. Code-level chain (all line numbers at the pinned commit)
+## Code path at the pinned commit
 
 1. `scripts/build_release.sh:143-149` — legacy branch calls
    `release_validate_pack_layout "$PACK_DIR" 1` (layout only: names, regular,
@@ -112,101 +110,77 @@ safe_loader_rejected=true embedded_decoder_foreign_accepted=true cache_decoder_f
    metadata bank. `stage_leaf` (`build.rs:442-470`) zstd-decodes to a sink,
    measures decoded length, and seals `{shape, statement_digest, canonical_bytes}`.
    It never hashes the matrix bytes (compressed or decompressed).
-4. Metadata IS genuinely authenticated:
+4. The metadata is authenticated:
    `decode_history_step_runtime_metadata_pinned`
    (`noid_miner/src/history_step_artifacts.rs:170-239`) requires the Poseidon
    hash of the metadata body to equal both the in-file trailer and the exported
    pin (`ReleasePin` error otherwise), and the body carries the per-class
-   `matrix_digests` — the bank KNOWS the correct matrix digests; `stage_leaf`
-   just never compares. (The bank is additionally bound to the external
-   `--v2-pins` retirement-key pins via `PinnedRetirementKeys::from_release`.)
-5. Runtime offers no backstop:
+   `matrix_digests`. The bank contains the expected matrix digests, but
+   `stage_leaf` does not compare them. The bank is also bound to the external
+   `--v2-pins` retirement-key pins via `PinnedRetirementKeys::from_release`.
+5. The runtime does not repeat the structural check:
    `noid_miner/src/history_step_artifacts.rs:423-469` — `rebuild_from_canonical`
    uses `open_build_authenticated`; `load_cached_image` uses
    `open_build_authenticated_packed_image`. Both are documented as deliberately
    omitting the structural Poseidon pass; both install `seal.statement_digest`.
    The source comment in `rebuild_from_canonical` states the design assumption:
    "anyone able to swap the embedded leaves can swap the embedded pins beside
-   them". That argument does not cover this finding's asymmetric case: swapping
-   ONLY matrix bytes leaves every pin and manifest pristine-looking, so any
-   existing verifier would flag it — the script just runs none.
+   them". Here the matrix bytes change while the pins remain unchanged; the
+   explicit manifest verifier would detect the change, but the standalone
+   builder does not invoke it.
 6. Consensus relevance: the embedded pack drives history-step verification
    (`noid_node/src/main.rs:2018-2021`); the runtime cache is keyed by the
-   metadata digest only (`main.rs:1002-1008`), so a cache minted by a
-   substituted build survives a corrected binary (agent-25 medium#2; code
-   confirmed).
-7. Asymmetry inside the same file: v2/v2.1 embedding DOES bind payload hash,
+   metadata digest only (`main.rs:1002-1008`). The code does not invalidate a
+   cache solely because a later binary has corrected matrix bytes. Cache
+   persistence across such a binary replacement was not exercised in this probe.
+7. The v2/v2.1 embedding path binds payload hash,
    bank, shape, statement digest and runs semantic preflight
    (`matrix_checks::authenticate` + `preflight_build_matrix`,
-   `noid_node/build.rs:201-320`). The fix pattern for legacy already exists
-   in-repo.
+   `noid_node/build.rs:201-320`). This check offers an implementation pattern
+   for the legacy path.
 
-## 4. Adversarial analysis — what would have to be true for this to be refuted, and what I found
+## Checks and compensating controls
 
-- "A foreign matrix would fail framing/shape checks" — REFUTED empirically
-  (run 2): same-shape relations pass both build-authenticated decoders; only the
-  never-invoked safe loader rejects.
-- "The decompressed-length check catches substitution" — REFUTED: same-shape
-  relations have the same canonical length; and `stage_leaf` measures the length
-  of the foreign payload itself, so the seal adapts.
-- "`--prechecked-matrices` covers it" — REFUTED: it exports only
-  `NOID_V2/V21_MATRIX_CHECKS_SHA256`; nothing exists for legacy (grep of
-  `build_release.sh:297-311`).
-- "CI always uses the safe path" — PARTIAL: `.github/workflows/release.yml:328-337`
-  adds `--prechecked-matrices` only in the RETIRED branch; transition
-  (`--with-legacy-history`) builds run `build_release.sh` without any legacy
-  input check. CI's `release_material.py extract` verifies the ARCHIVE digest
-  against `PACK_SHA256`, a `workflow_dispatch` input (line 60) supplied by the
-  publisher — the inner per-file manifest is never checked in CI.
-- "No real channel exists" — the official chain (publish → GitHub draft →
-  dispatch CI) has two compensating anchors outside the script: publisher-side
-  `release_authenticate_pack` (`publish_release.sh:223`, transition mode only)
-  and the dispatch-pinned archive digest. The gap bites anyone who runs the
-  standalone builder with a pack directory from any other provenance — which is
-  precisely the mode the script's own usage text advertises ("The node build
-  authenticates the matrix packs" — for legacy matrices it does not).
+- Framing and length checks do not establish matrix identity. The probe's
+  same-shape relations pass the build-authenticated decoders, and `stage_leaf`
+  records the substituted payload's own decompressed length in its seal.
+- `--prechecked-matrices` exports `NOID_V2/V21_MATRIX_CHECKS_SHA256`; it does
+  not add a legacy matrix check (`build_release.sh:297-311`).
+- In the official transition release path, `publish_release.sh:223` calls
+  `release_authenticate_pack`. CI then checks the archive digest against the
+  publisher-supplied `PACK_SHA256` (`release_material.py extract`,
+  `.github/workflows/release.yml:60,328-337`). These controls protect the
+  official publish chain as scripted. CI does not independently run the inner
+  per-file manifest check for the transition build. A standalone builder using
+  a pack from another source lacks the publisher-side controls.
+- `--retired-history` does not embed the legacy matrices. V2/v2.1 matrices
+  have separate payload-hash and semantic authentication. The two scripts
+  have different defaults: `publish_release.sh` defaults to retired history,
+  while `build_release.sh` defaults to the legacy-embedding profile.
 
-## 5. Verdict
+## Conclusion
 
-**CONFIRMED-WITH-NARROWER-SCOPE** (technically confirmed in full; severity
-depends on the pack-acquisition channel).
+The legacy matrix identity check is missing from the standalone builder's
+default path. The measured substitution reached Cargo with unchanged metadata;
+the separate decoder test accepted a foreign relation under the approved seal.
+A build from an unverified legacy pack could therefore use a different
+HistoryStep relation while presenting the approved metadata identity. That
+could change local proof acceptance, but this report did not build such a
+binary or show consensus divergence between nodes.
 
-Scope sentence: *Legacy matrix bytes sealed under the pins.env-approved metadata
-identity can be substituted without detection whenever a node is built via
-`scripts/build_release.sh` without `--retired-history` (that script's default —
-the transition/current-generation profile) from a pack whose integrity is not
-independently verified out-of-band; but NOT in `--retired-history` builds (no
-matrix bytes embedded), NOT for v2/v2.1 matrices (payload-hash + semantic
-authentication against external bank pins), NOT in bare `cargo` builds, and NOT
-in the official publish chain as scripted, where the publisher-side
-`release_authenticate_pack` and the dispatch-input archive digest compensate —
-controls that live entirely outside the standalone builder whose documented
-posture claims matrix authentication.*
+Authenticate each legacy matrix against the digest already present in the
+metadata bank during `stage_leaf`. Calling
+`release_verify_sha256_manifest` from `build_release.sh` would also detect
+tampered pack files, provided the manifest itself has an authenticated origin.
+The official publisher-side authentication and archive pin should remain in
+place; the standalone builder must enforce its own advertised boundary.
 
-Severity under the realistic attack model: **High for the standalone builder as
-an authentication boundary; Medium as a defect of the official release chain**
-(which retains two independent compensating controls). Blast radius if
-exercised: a node verifying/proving v1 HistoryStep against a foreign relation
-under the canonical pinned identity — invalid local acceptance or rejection of
-canonical proofs (consensus divergence), silently, with pins.env/SHA256SUMS
-looking pristine and the runtime cache keyed so the poisoned artifacts survive a
-corrected binary. Recommended fix unchanged from agent-25 (authenticate legacy
-matrices in `stage_leaf` via the seal's bank digest — the bank already carries
-`matrix_digest` — and/or wire `release_verify_sha256_manifest` into
-`build_release.sh`).
+## Artifacts
 
-One precision note on the original report's wording: "not the default
-`retired-history` profile" is correct for `publish_release.sh` (its default is
-retired), but `build_release.sh`'s OWN default is the affected legacy-embedding
-profile — the flag `--retired-history` is opt-in there. The two scripts'
-defaults differ; a rebuttal should say so explicitly.
-
-## 6. Artifacts
-
-- `verify/probe_release_inputs_verify.py` — run-1 probe (mine).
-- `verify/decoder-probe/` — run-2 probe source (extends agent-25's cache probe
-  with the embedded-path decoder `open_build_authenticated`).
+- `verify/probe_release_inputs_verify.py` — release-script probe.
+- `verify/decoder-probe/` — decoder probe source, including the embedded-path
+  `open_build_authenticated` call.
 - `verify/release-inputs-verify.json` — run-1 structured result.
-- `verify-output.txt` — tee'd final runs of both probes (lane root).
-- agent-25's originals (`probe_release_inputs.py`, `probes/`, `fixture/`,
-  `pinned-src/`, `tmp/` cases) left untouched.
+- `verify-output.txt` — captured output of both probes.
+- `probe_release_inputs.py`, `probes/`, `fixture/`, `pinned-src/`, and `tmp/` —
+  prior fixtures and probe files.
