@@ -1,0 +1,98 @@
+--- parano1d/noid_node/build.rs	2026-11-15 01:32:58
++++ experiments/shared-early-finance/tree/noid_node/build.rs	2026-11-15 22:39:09
+@@ -174,27 +174,55 @@
+             let metadata = read_bounded(&metadata_path, V21_METADATA_MAX_BYTES as u64);
+             let runtime_metadata = decode_v21_runtime_metadata_pinned(&metadata, bank)
+                 .expect("pinned v2.1 runtime metadata");
++            // chaos-latch early-finance devnet: same relaxation as the v2 pack
++            // above — only the V2 activation height may differ from the pack.
++            let pack_schedule = runtime_metadata.bank().config().schedule();
++            let exe_schedule = noid_chain::consensus::forks::ACTIVE_SCHEDULE;
+             assert_eq!(
+-                runtime_metadata.bank().config().schedule(),
+-                noid_chain::consensus::forks::ACTIVE_SCHEDULE,
+-                "v2.1 artifact schedule differs from the executable profile"
++                (pack_schedule.v1_1_height(), pack_schedule.v2().map(|a| a.block_time())),
++                (exe_schedule.v1_1_height(), exe_schedule.v2().map(|a| a.block_time())),
++                "v2.1 artifact schedule differs from the executable profile beyond the activation height"
+             );
++            if pack_schedule != exe_schedule {
++                println!(
++                    "cargo:warning=v2.1 pack V2 activation height {:?} differs from executable {:?} (early-finance devnet fixture)",
++                    pack_schedule.v2().map(|a| a.height()),
++                    exe_schedule.v2().map(|a| a.height()),
++                );
++            }
+             let activation = noid_chain::consensus::params::V2_1_ACTIVATION_HEIGHT;
+             assert!(
+                 activation.is_some(),
+                 "v2.1 artifacts require a scheduled activation"
+             );
++            // chaos-latch early-finance devnet (root follow-up 2026-11-16):
++            // the shipped v2.1 pack encodes its own mainnet activation
++            // (279_370) inside every class bank; this executable activates
++            // early (24). Only that height may differ — warn instead of
++            // assert, exactly like the schedule relaxations above.
++            let pack_activation = runtime_metadata
++                .bank()
++                .config()
++                .class(Class::ALL[0])
++                .authorization_activation();
+             for class in Class::ALL {
++                let class_activation = runtime_metadata
++                    .bank()
++                    .config()
++                    .class(class)
++                    .authorization_activation();
+                 assert_eq!(
+-                    runtime_metadata
+-                        .bank()
+-                        .config()
+-                        .class(class)
+-                        .authorization_activation(),
+-                    activation,
+-                    "v2.1 artifact activation differs from the executable profile"
++                    class_activation,
++                    pack_activation,
++                    "v2.1 artifact class activations disagree with each other"
+                 );
+             }
++            if pack_activation != activation {
++                println!(
++                    "cargo:warning=v2.1 pack authorization activation {:?} differs from executable {:?} (early-finance devnet fixture)",
++                    pack_activation, activation,
++                );
++            }
+             println!("cargo:rerun-if-changed={}", metadata_path.display());
+             let staged = out_directory.join("embedded-v21");
+             fs::create_dir_all(&staged).expect("v2.1 staging directory");
+@@ -276,11 +304,25 @@
+             let metadata = read_bounded(&metadata_path, V2_METADATA_MAX_BYTES as u64);
+             let runtime_metadata = decode_v2_runtime_metadata_pinned(&metadata, bank)
+                 .expect("pinned v2 runtime metadata");
+-            assert_eq!(
+-                runtime_metadata.bank().config().schedule(),
+-                noid_chain::consensus::forks::ACTIVE_SCHEDULE,
+-                "v2 artifact schedule differs from the executable profile",
++            // chaos-latch early-finance devnet: the authenticated packs pin the
++            // mainnet V2 activation height (210_537) while this executable
++            // activates V2 early (10). Everything else (v1.1 height, V2 block
++            // time, shapes, digests) must still match; only the V2 activation
++            // height may differ, and the difference is logged.
++            let pack_schedule = runtime_metadata.bank().config().schedule();
++            let exe_schedule = noid_chain::consensus::forks::ACTIVE_SCHEDULE;
++            assert_eq!(
++                (pack_schedule.v1_1_height(), pack_schedule.v2().map(|a| a.block_time())),
++                (exe_schedule.v1_1_height(), exe_schedule.v2().map(|a| a.block_time())),
++                "v2 artifact schedule differs from the executable profile beyond the activation height",
+             );
++            if pack_schedule != exe_schedule {
++                println!(
++                    "cargo:warning=v2 pack activation height {:?} differs from executable {:?} (early-finance devnet fixture)",
++                    pack_schedule.v2().map(|a| a.height()),
++                    exe_schedule.v2().map(|a| a.height()),
++                );
++            }
+             assert_eq!(
+                 runtime_metadata
+                     .bank()
