@@ -105,7 +105,34 @@ python3 scripts/collapse.py <stage>`):
    subsequent ASERT re-tightening.
 7. Write `REPORT.md`, commit named files (branch dev, no push).
 
-State as of last update (UPDATE THIS EACH MILESTONE):
+State as of last update (UPDATE THIS EACH MILESTONE) — 22:41 PST 2026-11-15:
+- Raise DONE (tip h43, ratio_log2 2.07 at tip). Freeze DONE (T=h44, anchor
+  h42 ratio_log2 1.799 = R 3.48, delta 420s).
+- Fork BUILT AND SERVED: poison miner mined h45..h67 (23 blocks) under clock
+  +420s, then was stopped by PID and the same data dir is served by S (poison
+  binary, --mode node, +420, ports 21106/21107, pid file poison-server.pid).
+  Fork envelope: 16/23 blocks at the EXACT 2^238 floor; the 7 above-floor
+  blocks are exactly the epoch-start pairs (h49/50, 55/56, 61/62, 67 —
+  heights ≡ 1,2 mod 6) at ratio 0.283-0.362 — the rule's own epoch-start
+  envelope, identical signature to honest mining (h7/h8 of the raise were
+  0.299/0.362). Every epoch-boundary anchor (h48/54/60/66) is at the exact
+  floor. LESSON (falsifies the first runbook): a larger delta cannot remove
+  the epoch-start pairs — fork-anchored epochs key off fork timestamps, so
+  the +Δ cancels within them; the shift eases only the first epoch (vs the
+  honest raised anchor h42) and every new anchor lands at floor. The
+  fork-stage check in collapse.py now asserts this corrected criterion.
+- **SPONTANEOUS ADOPTION MEASURED LIVE**: without any restart, honest
+  relays n1/n2 adopted the fork's admissible prefix as wall clock aged it
+  in — both now at h62 (hash 3054073226... == the fork's h62), after 81
+  BadTimestamp drift-gate rejections each during the wait. Fork choice
+  followed the heavier admissible prefix in real time.
+- Remaining timeline SELF-DRIVING via `scripts/finish_run2.sh` (pid in
+  `run/stage-finish2.pid`, log `logs/stage-finish2.log`): `wait` (until
+  fork_tip_ts 1794811991 − 120 + 15, then +60s), `adopt` (relays likely
+  already at tip h67 by then — the spontaneous window will record it;
+  restarts only if needed), `produce --blocks 15` (n2 → honest stock miner
+  on the collapsed chain). Completion marker: "RUN COMPLETE" at the end of
+  `logs/stage-finish2.log`.
 - Raise DONE 22:28 PST 2026-11-15: tip h43 at mining end (44 sampled), final
   block ratio_log2 2.07 (R≈4.2 at the tip), plateau cadence median 16.1s
   under load ~100-140. Summary line in `logs/stage-raise.log`.
