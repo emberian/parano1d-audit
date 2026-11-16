@@ -1,0 +1,15 @@
+Phase-8 release-node verdict, extracted from the saved local run
+
+poison offer selected: 02:43:59  INFO bounded snapshot candidate selection settled from=12D3KooWPpbo1vq7kWyszhTZHZCnMUjLmeNJjKeiSaZ9ZkYA6LZR tip=42 bridge_tip=42 providers=1 responses_considered=2
+poison inventory rejected: 02:43:53  WARN header inventory failed native validation peer=12D3KooWPpbo1vq7kWyszhTZHZCnMUjLmeNJjKeiSaZ9ZkYA6LZR error=snapshot header candidate rejected at h=1: BadTimestamp
+poison terminal rejected: 02:43:59  WARN snapshot candidate rejected; retiring only its immutable plan boundary=42 terminal_from=12D3KooWPpbo1vq7kWyszhTZHZCnMUjLmeNJjKeiSaZ9ZkYA6LZR tip=42 err=HistoryStep target tip exceeds local future drift: BadTimestamp
+honest state installed: 02:44:06  INFO snapshot boundary State installed snapshot_height=12 applied_height=12 segments=1
+honest suffix selected: 02:44:06  INFO post-snapshot exact tail pinned to authenticated HeaderDAG target boundary_height=12 target_height=31
+second joiner installed state: 02:48:06  INFO snapshot boundary State installed snapshot_height=12 applied_height=12 segments=1
+second joiner verified suffix: 02:48:06  INFO exact suffix terminal verified outside the chain writer height=31 elapsed_ms=196
+
+[phase8] victim final tip (31, 'd6fc8017364927c8') vs honest (31, 'd6fc8017364927c8') vs poison (61, 'f5421d87e3f3e5a5')
+[phase8] second joiner final tip (31, 'd6fc8017364927c8') -> poison RE-SERVED by the victim: False
+[phase8] RESULT: victim_on_poison=False reserved_to_next=False
+
+PASS: both fresh joiners adopted honest height 31; poison acceptance and re-serve were false.

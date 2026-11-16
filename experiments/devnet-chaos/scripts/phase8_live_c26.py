@@ -1,25 +1,21 @@
 #!/usr/bin/env python3
-"""Phase 8 — the live C17 -> C26 chain (LOW-HASHPOWER MECHANISM DEMO).
+"""Phase 8 — release-node control for an all-future competing fork.
 
-Honestly scoped: this demonstrates the poisoning MECHANISM on a small devnet at
-genesis-floor difficulty, against a fresh/eclipsed victim whose DAG is
-genesis-only (the exact population also vulnerable on mainnet). It is NOT a
-demonstration of out-hashing the real ~912 GH/s network; established nodes and
-finalized mainnet history remain protected by fork choice.
+This script tests a genuine terminal and competing snapshot offers on a small
+loopback devnet. The poison node's clock is ten years ahead throughout its
+chain, including the tip. It therefore does not test C26's narrower case of a
+future-dated intermediate header under a present-day tip. The saved first run
+is reviewed in ../PHASE8_REVIEW.md.
 
 Topology:
   honest:  n1 (genesis miner) -> n2 (relay)              real clock, honest chain
   poison:  P = bin/parano1d-poison, NOID_POISON_CLOCK_OFFSET_SECS=+10y, genesis
            miner, ISOLATED from honest (seeds none) -> a competing fork whose
-           headers carry far-future timestamps (honest native admission rejects
-           them by rule; the floored difficulty makes the fork cheap).
+           headers carry far-future timestamps, including at the tip.
   attack:  bin/anon-mempool-pin pins n2 (the honest relay's serving domain).
-  victim:  V = fresh node seeded to [n2 (pinned), P]. Eclipsed from honest, it
-           snapshot-syncs from P and commits the poison as FINALIZED history.
-  spread:  V2 = fresh node seeded to [V] -> re-syncs the poison from the victim.
-
-Permanent consequences shown: (a) V is estranged from honest (its finalized tip
-is the poison fork, which honest rejects); (b) V re-serves the poison to V2.
+  victim:  V = fresh node seeded to [n2 (pinned), P]. Observe its selected
+           candidate, terminal verdict, and final installed tip.
+  spread:  V2 = fresh node seeded to [V]. Observe what V actually re-serves.
 """
 
 import os
@@ -92,10 +88,7 @@ def main():
         w1 = start_worker("p8-w1", n1, threads=6, key=MINING_KEY_N1); started.append(w1)
         wait_until("honest chain >= 30", lambda: n1.height() if n1.height() >= 30 else False,
                    timeout=900, interval=3, quiet=True)
-        # Freeze the honest chain at low work (this is the regime the attack needs
-        # and the only one it reaches: a fresh victim with ~no honest work to
-        # protect it; on mainnet honest work is 912 GH/s x 313k blocks and the
-        # poison fork cannot out-work it).
+        # Freeze the honest chain for a controlled competing-offer comparison.
         stop_worker_safe(started, "p8-w1")
         honest = chain_view(n1.rpc_url)
         print(f"[phase8] honest chain frozen at low work: {honest}", flush=True)
@@ -166,8 +159,8 @@ def main():
         )
         on_poison = v_final[1] == poison_tip
         print(
-            f"[phase8] VICTIM COMMITTED: {'POISON fork (far-future, honest-rejecting)' if on_poison else 'honest or neither'}"
-            f" -> C17->C26 chain {'DEMONSTRATED' if on_poison else 'partial (see log)'}",
+            f"[phase8] VICTIM FINAL TIP: {'all-future poison fork' if on_poison else 'honest or neither'}"
+            " (see terminal and selected-work logs)",
             flush=True,
         )
         for line in grep_log(victim.managed.log_path,
@@ -203,13 +196,11 @@ def main():
         print(
             f"[phase8] RESULT: victim_on_poison={on_poison} reserved_to_next={v2_got_poison}", flush=True)
         print(
-            "[phase8] SCOPE: demonstrated the poisoning MECHANISM on a floor-difficulty devnet"
-            " against fresh/eclipsed victims (genesis-only DAG); NOT a claim about out-hashing"
-            " the live ~912 GH/s network. Established nodes / finalized mainnet history remain"
-            " protected by fork choice.",
+            "[phase8] SCOPE: all-future-tip fork on a local floor-difficulty devnet;"
+            " the C26 middle-timestamp case and public-network attack cost are untested.",
             flush=True,
         )
-        print("PHASE8 OK", flush=True)
+        print("PHASE8 COMPLETE", flush=True)
     finally:
         stop_all(started)
         print("[phase8] topology shut down by PID files", flush=True)

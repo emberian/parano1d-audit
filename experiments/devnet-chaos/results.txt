@@ -509,3 +509,36 @@ PHASE7 OK
 [stop] p8-w1 pid=97458
 [phase8] honest chain frozen at low work: (31, 'd6fc8017364927c8')
 [start] p8-poison: pid=7444 log=p8-poison.log
+[phase8] poison fork built (isolated, far-future ts): (61, 'f5421d87e3f3e5a5')
+[phase8] honest h10 unix ts = 1794796059
+[phase8] poison h10 unix ts = 2110156481 (=+~10y)
+[start] p8-anon: pid=15652 log=p8-anon.log
+[phase8] anonymous C17 pin engaged on honest relay n2
+[start] p8-victim: pid=15700 log=p8-victim.log
+[phase8] fresh victim joined, seeded to pinned-honest-relay + poison
+[phase8] victim tip progression: [(0, 0, '860e70453390bf81'), (8, 0, '860e70453390bf81'), (16, 31, 'd6fc8017364927c8'), (24, 31, 'd6fc8017364927c8'), (32, 31, 'd6fc8017364927c8'), (40, 31, 'd6fc8017364927c8'), (48, 31, 'd6fc8017364927c8'), (56, 31, 'd6fc8017364927c8'), (64, 31, 'd6fc8017364927c8'), (72, 31, 'd6fc8017364927c8'), (80, 31, 'd6fc8017364927c8'), (88, 31, 'd6fc8017364927c8'), (96, 31, 'd6fc8017364927c8'), (104, 31, 'd6fc8017364927c8'), (112, 31, 'd6fc8017364927c8'), (120, 31, 'd6fc8017364927c8'), (128, 31, 'd6fc8017364927c8'), (136, 31, 'd6fc8017364927c8'), (144, 31, 'd6fc8017364927c8'), (152, 31, 'd6fc8017364927c8'), (160, 31, 'd6fc8017364927c8'), (168, 31, 'd6fc8017364927c8'), (176, 31, 'd6fc8017364927c8'), (184, 31, 'd6fc8017364927c8'), (192, 31, 'd6fc8017364927c8'), (200, 31, 'd6fc8017364927c8'), (208, 31, 'd6fc8017364927c8'), (216, 31, 'd6fc8017364927c8'), (224, 31, 'd6fc8017364927c8'), (232, 31, 'd6fc8017364927c8')]
+[phase8] victim final tip (31, 'd6fc8017364927c8') vs honest (31, 'd6fc8017364927c8') vs poison (61, 'f5421d87e3f3e5a5')
+[phase8] VICTIM COMMITTED: honest or neither -> C17->C26 chain partial (see log)
+    [victim] 02:44:06 DEBUG recursive suffix block profile height=25 checks_ms=0 preload_undo_ms=0 materialize_ms=2 commit_ms=0 total_ms=3
+    [victim] 02:44:06 DEBUG recursive suffix block profile height=26 checks_ms=0 preload_undo_ms=2 materialize_ms=1 commit_ms=3 total_ms=7
+    [victim] 02:44:06 DEBUG recursive suffix block profile height=27 checks_ms=0 preload_undo_ms=0 materialize_ms=1 commit_ms=1 total_ms=3
+    [victim] 02:44:06 DEBUG recursive suffix block profile height=28 checks_ms=0 preload_undo_ms=0 materialize_ms=2 commit_ms=2 total_ms=4
+    [victim] 02:44:06 DEBUG recursive suffix block profile height=29 checks_ms=0 preload_undo_ms=0 materialize_ms=2 commit_ms=4 total_ms=7
+    [victim] 02:44:06 DEBUG recursive suffix block profile height=30 checks_ms=0 preload_undo_ms=0 materialize_ms=1 commit_ms=1 total_ms=3
+    [victim] 02:44:06 DEBUG recursive suffix block profile height=31 checks_ms=0 preload_undo_ms=0 materialize_ms=2 commit_ms=4 total_ms=6
+    [victim] 02:44:06 DEBUG retired post-snapshot exact-tail allowance at bootstrap completion local_height=31 boundary_height=12 target_height=31
+    [victim] 02:44:23  INFO assembled bounded disk snapshot generation target_height=12 incremental_base_height=None reused_segments=0 rebuilt_segments=1 output_segments=1
+    [victim] 02:44:23  INFO published bounded disk snapshot generation height=12
+[start] p8-victim2: pid=17362 log=p8-victim2.log
+[phase8] second fresh joiner seeded ONLY to the victim (tests self-propagation)
+[phase8] second joiner final tip (31, 'd6fc8017364927c8') -> poison RE-SERVED by the victim: False
+[phase8] RESULT: victim_on_poison=False reserved_to_next=False
+[phase8] SCOPE: demonstrated the poisoning MECHANISM on a floor-difficulty devnet against fresh/eclipsed victims (genesis-only DAG); NOT a claim about out-hashing the live ~912 GH/s network. Established nodes / finalized mainnet history remain protected by fork choice.
+PHASE8 OK
+[stop] p8-victim2 pid=17362
+[stop] p8-victim pid=15700
+[stop] p8-anon pid=15652
+[stop] p8-poison pid=7444
+[stop] p8-n2 pid=96997
+[stop] p8-n1 pid=96566
+[phase8] topology shut down by PID files
