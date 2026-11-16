@@ -10,16 +10,16 @@ comparison.
 
 ## Verdict
 
-**C16 is a real check missing from the standalone builder's legacy-matrix
-path. It is not a remote attack against the published v2.1 release.** A
+**C16 identifies a missing check in the standalone builder's legacy-matrix
+path. The published v2.1 release uses a different path.** A
 builder using untrusted or damaged legacy pack files can embed a same-shape
 foreign matrix while retaining the metadata's approved matrix digest. The
 saved C16 script and decoder probes establish those two halves separately;
 the devnet phase-6 run additionally built a full substituted node. That node
-started but froze at height 144 while an honest node advanced to 149. It did
-not forge a payment or cause honest nodes to accept invalid history.
+started but froze at height 144 while the baseline node advanced to 149. The run
+did not produce a forged payment or make the comparison node accept invalid history.
 
-The official release path has two additional barriers. First, the publisher
+The official release path has two additional checks. First, the publisher
 defaults to **retired legacy history**, so the current build omits the two old
 matrix files (`scripts/publish_release.sh:41-48`,
 `.github/workflows/release.yml:22-27,324-344`; `.github/RELEASING.md:35-43`).
@@ -31,17 +31,17 @@ that function checks the manifest and recomputes matrix pins against
 `scripts/release_common.sh:374-391`). Native CI checks each archived pack's
 publisher-supplied SHA-256 before unpacking and passes the same verified packs
 to the platform builders (`.github/workflows/release.yml:172-207,299-337`).
-Those checks close the demonstrated same-pack substitution in the scripted
-publisher workflow, assuming the publisher's source, pack review, and supplied
-archive digests are trustworthy. We did not independently reproduce every
-published build or inspect its compiled matrix bytes.
+The scripted publisher workflow rejects the demonstrated same-pack
+substitution when its source, pack review, and supplied archive digests are
+held fixed. This review did not independently reproduce every published build
+or inspect its compiled matrix bytes.
 
-| Path | Attacker must control | Observed or source-backed effect |
+| Path | Input or control needed | Observed or source-backed effect |
 | --- | --- | --- |
 | Standalone `build_release.sh` without `--retired-history` | The local legacy pack directory or an archive accepted by its builder | Same-shape foreign matrix passes the shell probe; the legacy Rust build path does not compare its digest with the approved metadata (`../build-artifacts/VERIFY.md`). |
-| Official transition publisher | A way around or control over `release_authenticate_pack`, the approved archive digest, or the publisher host | No such way was found. The scripted preflight rejects the saved substitution. |
-| Official v2.1 retired-history build | Control of the release/tag/CI channel or another defect in v2/v2.1 checks | The C16 legacy matrix is absent. V2 and v2.1 matrix payloads have separate SHA-256 and semantic checks (`noid_node/build.rs:201-320`). |
-| User's GUI using a substituted standalone node | Control of the node binary/build input the user installs | The node may stop following honest blocks and the GUI may display its stale state as locally authenticated. No forged receipt was demonstrated. |
+| Official transition publisher | A change to `release_authenticate_pack`, the approved archive digest, or the publisher's build inputs | With these held fixed, the scripted preflight rejects the saved substitution. |
+| Official v2.1 retired-history build | A change to release/tag/CI inputs, or a defect in v2/v2.1 checks | The C16 legacy matrix is absent. V2 and v2.1 matrix payloads have separate SHA-256 and semantic checks (`noid_node/build.rs:201-320`). |
+| User's GUI using a substituted standalone node | Control of the node binary/build input the user installs | The node may stop following the baseline chain and the GUI may display its stale state as locally authenticated. No forged receipt was demonstrated. |
 
 ## Exact evidence boundary
 
@@ -57,48 +57,46 @@ The existing [C16 probe](../build-artifacts/VERIFY.md) changed a same-shape
 matrix, kept metadata unchanged, reached a Cargo stub, and separately showed
 that the runtime decoder accepted a foreign relation under the old label.
 
-The [phase-6 full-node run](../devnet-chaos/README.md) is more useful for
-impact than the stub. Its `results.txt` records a full release-profile binary
-with a coefficient flipped in the 84 MB legacy matrix. On a copied honest
-database it displayed real old receipts and balance. After the honest chain
-advanced five blocks, the tampered node stayed at height 144. The GUI backend
+The [phase-6 full-node run](../devnet-chaos/README.md) measures the effect on
+chain following. Its `results.txt` records a full release-profile binary
+with a coefficient flipped in the 84 MB legacy matrix. On a copied baseline
+database it displayed real old receipts and balance. After the baseline chain
+advanced five blocks, the substituted node stayed at height 144. The GUI backend
 marked a receipt at height 110 `merkle_valid=true canonical=true
-confirmed=true` against both the tampered and honest nodes. That is a **stale
+confirmed=true` against both the substituted and baseline nodes. That is a **stale
 view of a genuine old receipt**, not an invented payment accepted under the
 foreign matrix. The test never constructed a proof for a false payment or got
-an honest peer to accept the tampered node's alternate history.
+the baseline peer to accept the substituted node's alternate history.
 
 The GUI has a separate trust boundary: it asks its configured node to verify
 receipts rather than checking proofs itself (`../wallet-vs-node/README.md`).
-A scripted RPC impostor can return an invented `verified` verdict to the GUI
-backend. That experiment requires control of the GUI's RPC endpoint and does
-not depend on C16. Combining the two as if one caused the other would inflate
-the build finding. A malicious distributor could ship an arbitrary malicious
-wallet or node; C16 does not grant a distributor power it would otherwise
-lack. The GUI has no automatic binary updater in the reviewed source.
+A scripted stand-in RPC server returned an invented `verified` verdict to the
+GUI backend. That experiment depended on control of the GUI's RPC endpoint,
+not on C16. The two experiments establish distinct boundaries. Distribution
+of a modified wallet or node already permits arbitrary changes to that local
+software; C16 adds a specific input-validation gap for a legacy build. The
+GUI has no automatic binary updater in the reviewed source.
 
 ## Distribution integrity
 
 The workflow generates `SHA256SUMS` for the finished assets and the publisher
 checks it when mirroring (`.github/workflows/release.yml:428-456`,
-`scripts/publish_release.sh:347-368`). That detects damaged downloads against
-the same release channel. It is not an independent signature that protects a
-user from someone able to replace both assets and checksum file on that
-channel. Conversely, the absence of such a signature is not evidence that
-the operator has shipped a malicious binary. The manual publication path
-requires an authorized workflow dispatch and matching annotated tag; the
-review found no lower-trust input through which an ordinary network peer
-could alter a release. An independent reproducible-build or external-signing
-control would reduce publisher/channel trust, but its absence is an
-operational assurance limit, not a demonstrated rugpull mechanism.
+`scripts/publish_release.sh:347-368`). The comparison detects byte differences
+against the published hashes. Because the checksums travel through the same
+release channel as the assets, they do not independently authenticate that
+channel's contents. The manual publication path requires an authorized
+workflow dispatch and matching annotated tag; this review found no lower-trust
+input through which an ordinary network peer could alter a release. Independent
+bit-for-bit rebuilds or external signing would provide a separate check on
+publisher and channel inputs. This study did not perform such a rebuild.
 
 ## Practical disposition
 
 Fix the standalone builder by comparing each decoded legacy matrix's
 structural digest with the authenticated metadata entry during `stage_leaf`.
 This prevents a future nonretired/custom build from trusting substituted pack
-bytes. The public claim should be: **"A custom legacy release build can
-mislabel a tampered matrix if its pack input is changed; the official current
-workflow omits legacy matrices and authenticates the transition path."** Do
-not say that C16 presently lets a remote peer forge a wallet confirmation or
-that the developer has used it to censor holders.
+bytes. The measured result is: **"A custom legacy release build can mislabel
+a substituted matrix if its pack input is changed; the current official
+workflow omits legacy matrices and authenticates the transition path."** The
+saved experiments did not show a remote peer forging wallet confirmation or
+address-specific censorship.

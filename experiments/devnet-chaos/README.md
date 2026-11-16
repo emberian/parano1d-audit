@@ -1,12 +1,12 @@
-# Local devnet composition: measured effects and failed poisoning attempt
+# Local devnet composition: serving pressure and snapshot selection
 
 Target: pinned checkout `52938433a30b185ab007afaa15166a632cf2e82e`. The experiments use synthetic wallets, private data directories, and loopback P2P/RPC. They did not contact the live network. Measurements and complete phase output are in `results.txt`; node logs remain under `logs/`.
 
-The strongest measured anonymous effect was a serving stall. A peer that opened non-reading mempool streams held the target node's 64 MiB outbound byte budget and delayed a fresh joiner's state installation. The joiner still learned honest headers while its installed height was zero: its HeaderDAG selected height 150 ([saved log check](header-progress-review.txt)). The phase-7 run therefore did **not** produce a genesis-only DAG or show a C17-to-C26 snapshot-poisoning chain.
+The largest measured anonymous effect was a serving stall. A peer that opened non-reading mempool streams held one node's 64 MiB outbound byte budget and delayed a fresh joiner's state installation. The joiner still learned reference-chain headers while its installed height was zero: its HeaderDAG selected height 150 ([saved log check](header-progress-review.txt)). Phase 7 therefore measured state-sync delay while header selection continued.
 
-Phase 8 tried the full chain against a small local network. A clock-shifted poison node built a 61-block fork with far-future timestamps; the honest chain stopped at height 31. A fresh victim was seeded to both the pinned honest relay and the poison node. The victim rejected the poison candidate's future-dated tip at the release node's HistoryStep drift gate (`logs/p8-victim.log:218`) and installed the honest chain at height 31, matching its hash. This is a **failed poisoning attempt and a positive control for the tip-drift check**. It does not test the subtler C26 case of a future-dated *intermediate* header followed by an in-drift tip. That case remains a component-level result with a stubbed recursive terminal in `../malicious-node/`.
+Phase 8 compared a clock-shifted 61-block fork with a 31-block reference chain on a small local network. A fresh joining node had both providers as seeds. It rejected the alternate fork's future-dated tip at the release node's HistoryStep drift gate (`logs/p8-victim.log:218`) and installed the reference chain at height 31, matching its hash. This is a **positive control for the tip-drift check**. The related C26 component test uses a future-dated *intermediate* header followed by an in-drift tip and a stubbed recursive terminal (`../malicious-node/`); that release-node configuration remains untested.
 
-Claims about a cheap mainnet poisoning, permanent estrangement, or a self-propagating victim are not supported by these runs. The live network's work estimate does not determine the cost of the missing release-terminal attack.
+These runs establish a bounded serving delay and rejection of the clock-shifted tip. They do not measure the work cost, terminal generation, or peer behavior for the intermediate-header case on the live network.
 
 ## Topology
 
@@ -15,7 +15,7 @@ Claims about a cheap mainnet poisoning, permanent estrangement, or a self-propag
   [anon-mempool-pin] ──▶ ┌──────────────────────────────────────────┐
   anonymous libp2p peer  │  n1-pool  extminer,--genesis, M1+O1 keys │ ◀── [W1 worker]
   (no creds/profile):    │  p2p 19610  rpc 19611                   │     PoW grind
-  4 parked /sync/mempool │  C17 VICTIM (loaded mempool => 11 MB    │
+  4 parked /sync/mempool │  C17 SERVING NODE (loaded => 11 MB      │
   /4 pulls, never reads  │  stalled serves) + chain producer       │
                          │   ▲ p2p seeds                            │
                          │   │                                      │
@@ -25,22 +25,22 @@ Claims about a cheap mainnet poisoning, permanent estrangement, or a self-propag
                          │ n3-syncer / n3b / n3c   fresh joiners    │
                          │                                          │
   [W4 worker]──RPC──────▶│ n4-pool2  extminer, M4 key 19640/19641   │  C15 template
-                         │                                          │  burn victim
+                         │                                          │  template consumer
                          │ n5-tip  throwaway (U19) 19720/19721      │
                          └──────────────────────────────────────────┘
 
-  phase 6 (developer supply chain):
+  phase 6 (controlled build input):
   [bin/parano1d-tampered on a copy of n1's chain] ◀── [bin/wallet-probe]
      foreign HistoryStep matrix (C16) ; GUI backend model reports it authenticated (C24)
 
-  phase 7 (multi-aggressor): 1/2/4 x [anon-mempool-pin] + N x [anon-push-storm] vs n1
+  phase 7 (multiple peers): 1/2/4 x [anon-mempool-pin] + N x [anon-push-storm] vs n1
   phase 4 (docker --network none / hbox): [default-dialect] <-p2p-> [isolated-v2.1-dialect] (C9)
 ```
 
 Roles: n1 produces the chain via the shipped external-miner protocol (start/stop
-the worker = start/stop block production) and is the C17 victim (its own mempool
+the worker = start/stop block production) and serves the C17 fixture (its own mempool
 is loaded directly, so the 11 MB serve responses genuinely stall); n2/n3 are
-ordinary full nodes and downstream peers; the aggressor is a hand-driven libp2p
+ordinary full nodes and downstream peers; the test peer is a hand-driven libp2p
 client (`bin/anon-mempool-pin`) that performs the real noise-XX + yamux handshake
 with a fresh random identity, answers the node's Identify probe to stay
 connected, sends the real 12-byte `Pull` on
@@ -52,11 +52,11 @@ window fills.
 
 The anonymous mempool puller pinned the serving budget, delaying state/segment delivery. Header synchronization uses a separate path and continued. The source-level Busy escalation for other object requests was not observed in the multi-aggressor run (`Busy +0`). The distributed push storm increased control-plane tails at the tested rates, but its live payloads failed at authorization decoding; the 62x full-proof verification cost belongs to the separate direct mempool harness.
 
-The snapshot install check compares a candidate against the HeaderDAG's **selected cumulative work**, not the installed state height (`noid_node/src/main.rs:282-321`). Phase 7.3 sampled the latter. Its pinned joiner was at installed height zero for about 20 seconds, but the saved log records selected honest heights 24 through 150 during that interval. These observations disprove the proposed inference that C17 manufactured a no-work window. A restarted node also retains finalized chainwork; it cannot be grouped with a genesis-only node without evidence.
+The snapshot install check compares a candidate against the HeaderDAG's **selected cumulative work**, not the installed state height (`noid_node/src/main.rs:282-321`). Phase 7.3 sampled the latter. Its pinned joiner was at installed height zero for about 20 seconds, but the saved log records selected honest heights 24 through 150 during that interval. The observed header selection removes the low-work premise from this run. A restarted node also retains finalized chainwork and therefore presents a different case from a fresh node.
 
-The `../malicious-node/` function harness found a real difference between ordinary future-drift validation and timeless historical snapshot staging. Its recursive terminal was stubbed. Phase 8 instead used a poison fork with a far-future **tip**, which the release node rejected before installation. A valid release terminal for an intermediate-drift fork, selection among honest and malicious providers, and any post-installation re-serve still need experiments. DNS seed control is a separate attacker power from anonymous serving pressure: default seeds influence first contact, but candidate selection runs for five seconds and install rechecks current HeaderDAG work (`../snapshot-adversary/REPORT.md`).
+The `../malicious-node/` function harness found a difference between ordinary future-drift validation and timeless historical snapshot staging. Its recursive terminal was stubbed. Phase 8 instead used a fork with a far-future **tip**, which the release node rejected before installation. Genuine-terminal verification for an intermediate-drift fork, selection among competing providers, and post-installation serving remain separate measurements. Default DNS seeds influence first contact, while anonymous serving pressure affects an established connection; candidate selection runs for five seconds and installation rechecks current HeaderDAG work (`../snapshot-adversary/REPORT.md`).
 
-The dated public explorer/pool estimates in `../network-status/REPORT.md` put the observed mainnet work rate near 0.9 TH/s in this chain's own work units. They are not a count of GPUs or a cost estimate for a release-valid poison fork. Phase-8's floor-difficulty local network cannot establish mainnet attack cost. The earlier 24-header poison witness is in the legacy schedule; the separate far-future-parent difficulty-floor example is at a v2 height.
+The dated public explorer/pool estimates in `../network-status/REPORT.md` put the observed mainnet work rate near 0.9 TH/s in this chain's own work units. They are not a count of GPUs or a cost estimate for the alternate fork. Phase 8 used floor difficulty, so its local work cost cannot be transferred to mainnet. The earlier 24-header intermediate-timestamp fixture is in the legacy schedule; the separate far-future-parent difficulty-floor example is at a v2 height.
 
 Other compositions stayed inside their demonstrated bounds. C15 destroyed prepared templates when exercised with a mining token, but the honest worker kept pace. A locally altered supply counter diverged after restart; it required direct DB access. A tampered standalone legacy-matrix build changed the real GUI backend's model fields; that is a controlled build/input and node-trust case, not a remote peer capability. Under simultaneous local availability pressure, honest nodes already carrying the chain advanced together from height 124 to 136 at the sampled times.
 
@@ -68,15 +68,14 @@ real RPC stack, loopback only.
 
 ### Phase 1 — C17: an anonymous peer holds the outbound byte budget
 
-Against a running node, `bin/
-anon-mempool-pin` performs the real noise-XX + yamux handshake with a **fresh
+Against a running node, `bin/anon-mempool-pin` performs the real noise-XX + yamux handshake with a **fresh
 random ed25519 identity, no credentials, no network-profile exchange** (it
 answers the node's Identify probe by advertising the full protocol set, which
 is all the node's capability check requires, then simply never reads its
 streams). It opens 4 `/sync/mempool/4` streams, sends the 12-byte `Pull`, and
 parks them.
 
-- Victim n1 held a 150-intent mempool (each real paged-spend intent is
+- Serving node n1 held a 150-intent mempool (each real paged-spend intent is
   ~89 KB — the GKR authorization bundle dominates — so ~13 MB total).
 - **n1 served the anonymous peer 14 mempool-sync responses of `tx_count=128
   total_bytes=11,488,448` (11.0 MB) each** during the 120 s pin (verbatim from
@@ -86,10 +85,10 @@ parks them.
   reservation. 4 × 16 MiB = the **entire 64 MiB process-global outbound
   domain, pinned and sustained** across 24 s rotations (under the 30 s inbound
   timeout).
-- Collateral on the honest control plane: n1 `getChainInfo` latency went from
+- During the same run, n1 `getChainInfo` latency went from
   **p50 545 µs / max 830 µs (before)** to **p50 2370 µs / max 10183 µs
   (during)** — a 4.3× median and **12× observed maximum** inflation, with zero RPC errors.
-- Cost to the attacker: a 12-byte request per stream, a free libp2p key, and
+- Cost to the requesting peer: a 12-byte request per stream, a free libp2p key, and
   no valid data of any kind. No credential, no mining token, no wallet.
 - On release the pin cleared immediately.
 
@@ -100,7 +99,7 @@ types are `pub(crate)`, so the p2p-resources lane established that leg at the
 codec level. Live, the pin itself (64 MiB held by 11 MB stalled writes to an
 anonymous peer) and the control-plane collateral are demonstrated directly.
 
-### Phase 3 — C15 + C19: credentialed-operator chaos
+### Phase 3 — C15 + C19: credentialed endpoints and local workload
 
 - **C15 (mining token):** `getBlockTemplate` → `submitBlock(template, invalid
   nonce)` **consumed 3 prepared templates in 60 s** — each invalid-PoW
@@ -282,32 +281,32 @@ constraints are analyzed separately in `../eclipse-topology/`.
 
 **7.2 — anonymous push traffic:** 40 pushes over ten seconds were split across one, two, and four identities. The largest observed `getChainInfo` tail in each run was 5.0, 6.4, and 9.4 ms respectively; idle medians stayed near 0.3 ms. Those maxima suggest a connection-count effect but are not a controlled scaling law. The live payloads failed at proof decoding. The separate `../tx-admission/` harness measured the cost of a decodable but invalid proof; that full-cost variant was not run through this P2P traffic test.
 
-**7.3 — fresh joiner:** with one pinned honest relay, installed height remained zero through the 20-second sample and reached 150 by 30 seconds; the free control reached 150 by ten seconds. The pinned joiner's log nevertheless shows HeaderDAG-selected honest heights 24, 49, 74, 99, 124, 149, and 150 while its installed state was zero. The sampler observed state installation, not header work. The result measures a state-sync delay and **does not** establish the low-work precondition for C26. See `header-progress-review.txt` for the log hash and exact lines.
+**7.3 — fresh joiner:** with one pinned reference relay, installed height remained zero through the 20-second sample and reached 150 by 30 seconds; the free control reached 150 by ten seconds. The pinned joiner's log shows HeaderDAG-selected reference heights 24, 49, 74, 99, 124, 149, and 150 while its installed state was zero. The sampler observed state installation, not header work. The measured state-sync delay therefore coexisted with substantial selected work. See `header-progress-review.txt` for the log hash and exact lines.
 
-The 1/2/4-peer budget hold saturated one node at two coordinated identities. Joiners in other phase-7 controls still reached tip through available peers. No phase-7 run changed honest consensus or finalized history.
+The 1/2/4-peer budget hold saturated one node at two coordinated identities. Joiners in other phase-7 controls still reached tip through available peers. No phase-7 run changed reference consensus or finalized history.
 
-### Phase 8 — future-dated poison fork rejected
+### Phase 8 — future-dated tip rejected
 
-The phase-8 script assembled an honest 31-block chain and a separate 61-block fork mined by a clock-shifted node. Height 10 on the poison fork was roughly ten years in the future. An anonymous mempool puller pinned the honest relay's serving budget. The fresh victim had both the relay and poison node as seeds.
+The phase-8 script assembled a 31-block reference chain and a separate 61-block fork mined by a clock-shifted node. Height 10 on the alternate fork was roughly ten years in the future. An anonymous mempool puller held the reference relay's serving budget. The fresh joining node had both providers as seeds.
 
-The victim received a poison manifest and staged its associated headers. Its native header inventory probe rejected the future-dated first header (`BadTimestamp`, `logs/p8-victim.log:125`). The HistoryStep snapshot path then rejected the poison candidate because the **tip** exceeded local future drift (`logs/p8-victim.log:218`). The node retired that snapshot plan, selected and installed the honest chain, and reached height 31 with the honest hash `d6fc8017364927c8` (`results.txt`, phase-8 tip progression and final comparison). It stayed there throughout the 232-second observation window. A second fresh joiner seeded only to the victim also reached honest height 31 with the same hash; no poisoned history was re-served. The script's final `SCOPE` line nevertheless describes this failed run as a poisoning demonstration. The measured tips and `RESULT: victim_on_poison=False reserved_to_next=False` contradict that description.
+The joining node received the alternate manifest and staged its associated headers. Its native header inventory probe rejected the future-dated first header (`BadTimestamp`, `logs/p8-victim.log:125`). The HistoryStep snapshot path then rejected the alternate candidate because the **tip** exceeded local future drift (`logs/p8-victim.log:218`). The node retired that snapshot plan, selected and installed the reference chain, and reached height 31 with reference hash `d6fc8017364927c8` (`results.txt`, phase-8 tip progression and final comparison). It stayed there throughout the 232-second observation window. A second fresh joiner seeded only to the first also reached reference height 31 with the same hash. The script's final `SCOPE` line is a historical, unconditional success label; the recorded `RESULT: victim_on_poison=False reserved_to_next=False` is the run's measured verdict.
 
 This run exercised the release node's snapshot selection path through its
 tip-drift check; rejection happened before cryptographic terminal verification.
-It does **not** reproduce C26's narrower intermediate-header differential. To
-test that, the poison producer must create a valid HistoryStep terminal for a
+The narrower C26 intermediate-header configuration remains untested at this
+release-node boundary. Its producer must create a valid HistoryStep terminal for a
 fork whose intermediate header is too far ahead but whose tip is inside the
 current drift window. The cost of such a fork, offer-selection outcome, and
 any relay to a second node remain unknown.
 
-### What survived the composed runs
+### Results across the composed runs
 
-- Honest nodes already carrying the same chain advanced from height 124 to 136 under the phase-5 mix. No invalid block or unauthorized spend was accepted in that run.
-- Phase 7 held serving budget and delayed one joiner's state installation, while honest headers still entered its HeaderDAG. Its multi-aggressor logs recorded `Busy +0`.
-- Phase 8 rejected the all-future poison fork at both the native header probe and the HistoryStep tip gate. Both the victim and its downstream joiner installed the honest chain.
+- Reference nodes already carrying the same chain advanced from height 124 to 136 under the phase-5 mix. No invalid block or unauthorized spend was accepted in that run.
+- Phase 7 held serving budget and delayed one joiner's state installation, while reference headers still entered its HeaderDAG. Its multiple-peer logs recorded `Busy +0`.
+- Phase 8 rejected the future-dated alternate fork at both the native header probe and the HistoryStep tip gate. Both joiners installed the reference chain.
 - The phase-6 tampered-build test requires control of the standalone legacy-matrix build input. C20/U19 require local DB writes; C15 requires a mining token. These are distinct from anonymous P2P pressure.
 
-The cheapest sustained anonymous degradation shown here is a recurring non-reading mempool pull against one serving node. This result concerns response capacity. It does not show a persistent partition of honest header propagation or finalized-history poisoning.
+The lowest-cost recurring pressure measured here is a non-reading mempool pull against one serving node. It reduces response capacity. Header propagation and finalized history continued in the tested topology.
 
 ## PoC implementation and reproduction
 
@@ -357,14 +356,14 @@ choices):
 - `bin/parano1d-tampered` — a full `--release` node with one HistoryStep matrix
   coefficient flipped at production scale (the C16 substitution), embedded under
   the approved metadata identity because `build.rs` never hashes the matrix.
-- `bin/parano1d-poison` — a full `--release` node built from a copy of the pinned
+- `bin/parano1d-poison` — the clock-offset test binary, a full `--release` node built from a copy of the pinned
   tree (read-only checkout untouched) with one surgical change: `unix_now()` and
   the built-in miner's template timestamp take an env-gated offset
   (`NOID_POISON_CLOCK_OFFSET_SECS`, default 0 = pinned behaviour). Run with
   `+10 years`, it mines a genesis fork whose headers carry far-future timestamps
   that its own shifted clock accepts. The receiving node uses real time and
-  rejected this fork. The offset is a test fixture; it is not evidence of a
-  release-valid intermediate-header poison chain. Transport clock
+  rejected this fork. The offset is a test fixture; it does not exercise the
+  intermediate-header release-verification case. Transport clock
   (`SystemTime::now()`) remains real so the node can serve peers.
 - `bin/parano1d-v21` — isolated-schedule build for phase 4 (Linux-only; see
   below).
@@ -380,7 +379,7 @@ python3 scripts/run_all.py --phases 0,1,2,3,4.5,5 --mempool-intents 150 >> resul
 # (they cannot run concurrently):
 python3 scripts/phase6_supply_chain.py            >> results.txt 2>&1   # tampered build -> wallet
 python3 scripts/phase7_multiaggressor.py          >> results.txt 2>&1   # multi-aggressor table
-python3 scripts/phase8_live_c26.py                >> results.txt 2>&1   # poison-fork negative control
+python3 scripts/phase8_live_c26.py                >> results.txt 2>&1   # future-tip rejection control
 # phase 4 (cross-dialect mesh) needs a loopback-only Linux netns:
 bash   scripts/run_linux_builds.sh                # or build on an x86 Linux box
 bash   scripts/phase4_docker.sh                   # docker --network none

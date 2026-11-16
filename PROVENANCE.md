@@ -1,8 +1,7 @@
-# parano1d-break provenance
+# Parano1d study provenance
 
-Adversarial audit workspace for the "parano1d" L1 (noid_* crates) by @ignotus_nemo.
-Purpose: technically rigorous, honestly-scoped findings for a public rebuttal.
-Discipline: only claim what a PoC actually demonstrates; negative results are results.
+This repository studies the Parano1d protocol and implementation. Reports
+distinguish source analysis, local experiments, and dated public observations.
 
 - Target checkout: `parano1d/` at pinned commit `52938433a30b185ab007afaa15166a632cf2e82e`
   (its worktree may carry unrelated pre-existing modifications — treat as read-only reference).
@@ -11,7 +10,8 @@ Discipline: only claim what a PoC actually demonstrates; negative results are re
   It ran 29 sub-agents; 20 lanes completed, 10 died at 02:43–02:55 on the weekly quota
   (external-miner finished on disk before its report reached the root).
 - `experiments/kimi-agent-reports/` — final message of each kimi agent, extracted from the wire.
-- `experiments/kimi-root-narrative.md` — the root's running-findings summaries, in order.
+- The original Kimi running summary is retained in Git history through
+  `2b7e900`; the current evidence register is `experiments/FINDINGS.md`.
 - `poc/` — TAG_CAPSNODE production collision reproducer (72,274 evals / 0.128 s);
   `poc/src/bin/verify_collision.rs` is hardcoded-inputs-only verification.
 - Lane status at snapshot: completed = address-preimage, basefold-chains, block-validation,
@@ -24,4 +24,6 @@ Discipline: only claim what a PoC actually demonstrates; negative results are re
 - `experiments/*/pinned/`, `pinned-src/`, `source/` are regenerable copies of the target at the
   pinned commit (gitignored).
 
-Taken over 2026-11-15 by Claude Code (glm-5.3) at ember's request.
+Later sessions continued the study through 2026-11-15. The current reports
+are the maintained account of each result; this file records the initial
+source and session lineage.

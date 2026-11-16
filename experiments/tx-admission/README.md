@@ -4,7 +4,7 @@ Source: `/Users/ember/dev/parano1d-break/parano1d` at `52938433a30b185ab007afaa1
 
 The experiment drives `noid_mempool::AsyncMempool`, including its decoder, admission checks, four-permit verification semaphore, and AuthGKR authorization verifier. It uses a synthetic `ChainState`/`ChainView`, a genesis-derived epoch anchor, and synthetic keys. It does not start a node or connect to a peer.
 
-Question: Can distinct transactions with valid public state claims and invalid authorization proofs occupy the bounded verification queue at less attacker CPU cost than the node spends rejecting them?
+Question: Can distinct transactions with valid public state claims and invalid authorization proofs occupy the bounded verification queue while costing the sender less CPU time to construct than the node spends rejecting them?
 
 The local experiment measured 134.3 µs to construct each distinct payload and 8.34 ms for the node to reject it: a 62× ratio in CPU time. A rejected proof spends no fee and reserves no input, so the same public input can be claimed again. For direct Push, combining these measurements with the configured 50 transactions per peer per 10 seconds and 128 inbound connections gives a *modeled* maximum offer of 640 transactions/s against the measured four-worker drain of 415.5/s. Gossip has a separate global byte window that prevents offering this payload rate through gossip alone. Neither calculation establishes a live swarm's sustained delivery rate or cross-protocol impact.
 
@@ -15,7 +15,7 @@ P2P delivery (gossip `network.rs:6542-6631` and direct Push `network.rs:8879-893
 | stage | cost / bound | where |
 |---|---|---|
 | gossip: global byte window | 64 MiB / 10 s **shared with block announcements**, checked before decode | `GOSSIP_ACCEPT_BYTES_PER_WINDOW`, `network.rs:493` |
-| gossip/Push: per-peer rate | 50 tx / 10 s per PeerId (count, before decode — garbage burns attacker's own budget) | `TX_RELAY_RATE_MAX`, `network.rs:484` |
+| gossip/Push: per-peer rate | 50 tx / 10 s per PeerId (count, before decode — malformed payloads also consume the sender's allowance) | `TX_RELAY_RATE_MAX`, `network.rs:484` |
 | Push: shared inbound byte budget | receiver acquires `payload_len` bytes of a process-global 64 MiB semaphore **before reading the payload**; held until admission completes | `mempool_sync_codec.rs:141-157`, `inbound_budget.rs` |
 | delivery slots | 1024 in-flight, non-evictable while unresolved; full → new tx dropped | `tx_delivery.rs:21-22,126-127` |
 | event lanes | gossip broadcast(64); Push `Background` lane(64) `try_send` | `event_dispatch.rs:22-29` |
@@ -69,12 +69,12 @@ Make the byte window per-peer (like the count limit), or deduct bytes only after
 
 - **Decode failures are cheap to reject.** Garbage, random framing, and truncated classes cost ~190 µs because decoding fails before transcript replay. Even the modeled 640/s offer consumes ~0.12 core; the expensive class requires a real-proof-shaped bundle.
 - **Cheap checks really do run pre-verification, at near-zero cost, with zero verify executions**: fee-below-floor 116 µs, wrong epoch anchor 174 µs, input-not-in-state 174 µs, and slot-conflict-after-admission 338 µs — all `verify_exec=0` (executor-observed).
-- **Zero residue after a 300+-rejection storm**: pool length 0, no reserved input/output slots, dynamic fee floor still `MIN_FEE_BASE` — rejected txs cannot poison the floor, the pool, or the slot index.
+- **No retained state after 300+ rejections**: pool length 0, no reserved input/output slots, dynamic fee floor still `MIN_FEE_BASE`; rejected transactions did not change the floor, pool, or slot index.
 - **No replacement/churn vector**: admission is strictly first-seen-wins (`SlotConflict` for competing spends, `AlreadyAdmitted` idempotent); there is no fee-based replacement to reset eviction, and eviction is block-driven only (`on_new_block`, `pool.rs:736-846`).
 - **Oversized-authorization path is unreachable through the decoder**: `PagedSpendIntent::new` enforces the 256 KiB cap at construction and decode re-enforces it; the mempool's `ProofTooLarge` is defense-in-depth (the PoC drops its planned oversized class for this reason).
-- **Valid control admits**: a real proof over the same synthetic state admits in 24.4 ms (one verification + bookkeeping), proving the fixtures are honest and the rejection costs are not artifacts of broken state.
+- **Valid control admits**: a real proof over the same synthetic state admits in 24.4 ms (one verification + bookkeeping), confirming the fixture can accept a valid transaction and the rejection costs are not artifacts of broken state.
 - **Identical-payload resubmission re-verifies 3/3 times** — the mempool itself has no rejection cache; only the transport coalesces byte-exact duplicates while in flight.
-- **The per-peer rate limiter counts before decode** — an attacker's garbage burns its own per-peer budget; the limiter is real, it is just per-identity and there are 128 inbound connection slots.
+- **The per-peer rate limiter counts before decode** — malformed payloads consume the sender's allowance. The limit applies per identity, with 128 inbound connection slots.
 - **RPC submission is not an anonymous surface** (rpc-api lane's result): `paranoid_submitTxIntent` is operator-allowlisted; a non-loopback listener without credentials refuses to start.
 - **No panics or state corruption** on any exercised path; every garbage class surfaces as a typed `SubmitError`.
 
@@ -84,7 +84,7 @@ Make the byte window per-peer (like the count limit), or deduct bytes only after
 
 1. Builds synthetic `ChainView` fixtures exactly as `noid_mempool`'s own tests do (genesis-derived epoch anchor via `tx_epoch_anchor_height_for_child`, `ChainState::with_log_slots`, one live slot), mirroring `noid_node`'s wallet-prover test for owner/witness shape.
 2. Generates one real wallet authorization proof with the public prover (`prove_paged_spend_authorization_for_version`) at both the V3 (tip 0) and V4 (tip 300,000) profiles; derives two decodable corruptions (tail/owner byte-flip found by walking inward until `WalletAuthorizationBundle::from_bytes` still accepts).
-3. Installs a counting executor (inline execution like the default, plus peak-concurrency/executed counters) and measures per-class sequential rejection cost, a 256-tx occupancy burst at 4 and 1 workers, attacker-side construction of 1000 distinct payloads, and all controls above, asserting each expected outcome.
+3. Installs a counting executor (inline execution like the default, plus peak-concurrency/executed counters) and measures per-class sequential rejection cost, a 256-tx occupancy burst at 4 and 1 workers, sender-side construction of 1000 distinct payloads, and all controls above, asserting each expected outcome.
 
 From this directory:
 

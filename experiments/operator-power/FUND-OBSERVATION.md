@@ -1,4 +1,4 @@
-# Public development-fund balances: one dated observation
+# Development-fund payouts and balances: one explorer view
 
 Read-only public explorer queries at about 2026-11-16 03:32 UTC
 (2026-11-15 19:32 PST). The raw JSON responses are in
@@ -28,15 +28,15 @@ The two 500,000-NOID outputs together equal about **8.22%** of the
 explorer's reported 12,158,714.2425 NOID net supply at this tip. They
 remain unspent *in this explorer view*. Their separate recipient addresses
 do not prove one controller, custody by either fund, an exchange deposit,
-an intended dump, or any special network power. They could represent cold
-storage or a transfer to independent parties; the public transactions alone
-do not distinguish those cases. The original payout addresses' smaller live
+or any special network power. They could represent cold storage or transfers
+to independent parties; the public transactions alone do not distinguish
+those cases. The original payout addresses' smaller live
 balances must not be mistaken for the total fund issuance.
 
 The explorer's address history has older coverage gaps and gross
 `total_received`/`total_sent` figures that count change and previously
 unrecorded inputs. This report uses only the cited live-balance fields, the
 two explicit 500,000-NOID transfer records, and the consensus payout total.
-No personal identity was inferred from an address. This observation grounds
-an **economic concentration question**, not the claim that an operator can
-block other holders' deposits while selling these outputs.
+No personal identity was inferred from an address. This observation describes
+the distribution of issued funds in one explorer view. It does not establish
+their custody, trading activity, or an effect on other holders' deposits.

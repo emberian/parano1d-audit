@@ -20,13 +20,13 @@ A peer can open four mempool sync streams within the configured eight per connec
 
 - Later budget-participating writes wait on the same semaphore: exact-object responses (`network.rs:7229` `acquire_with_serving`), history-step terminals (`network.rs:7871`, `history_step_codec.rs:149`), state segments (`state_segment_codec.rs:454`), and fork origins (`fork_origin.rs:240-242`). This is a source-path consequence, not a live-node observation from this lane.
 - The exact-object path takes a data-plane serving slot before the byte permit (`network.rs:7226`). It has six Live-class active slots (`resource_profile.rs:30-39,80-85`). If six such requests wait behind the pinned byte budget, later requests receive `Busy` (`network.rs:7192-7211`). The PoC does not drive this network-layer composition.
-- Verified in the PoC at codec level: four full mempool writes pin the domain; a later 1 KiB budget-participating write blocks until one aggressor finishes; a freed aggressor admits the queued victim in milliseconds.
+- Verified in the PoC at codec level: four full mempool writes reserve the domain; a later 1 KiB budget-participating write blocks until one stalled writer finishes; releasing that writer admits the queued response in milliseconds.
 
-Cost and limits, honestly scoped:
+Cost and limits:
 
 - The request is 12 bytes per stream. The mempool protocol's 30 s timeout (`behaviour.rs:418`) bounds each stalled write: the handler aborts it at `InboundTimeout` (`libp2p-request-response-0.28.0/src/handler.rs:136-155,418`) and releases the permit. Sustained pressure would require repeated pulls timed around those releases; duty cycle was not measured.
 - The node's mempool must hold more than roughly 256 KiB of response data for the write to stall under the default yamux window. Whether that condition holds on a given network, or can be maintained by a particular peer, was not measured here.
-- Four slow readers of full mempool responses can create the same budget contention without malicious traffic.
+- Four slow readers of full mempool responses can create the same budget contention regardless of intent.
 - No invalid data is accepted; consensus is untouched. Purely serving liveness.
 
 ### Recommended correction
@@ -45,7 +45,7 @@ In the codec PoC, 64 concurrent stalled maximum-batch writers retained 75,497,47
 
 The budget exclusion is intentional: header service remains available when bulk data serving is constrained. It also means stalled header buffers can grow with concurrent streams. The source comment says the outbound byte domain is meant to avoid scaling with peer count (`outbound_budget.rs:18-19`); that guarantee does not cover header writes.
 
-The later [loopback node test](../network-abuse/README.md) found that eight non-reading streams on a 150-header chain did **not** delay an honest header read: the ~18 KiB responses fit inside the yamux window. A separate serving-path fixture with 4096 syntactically decodable but consensus-invalid header rows produced a 409,436 B response and showed increased RSS and transient honest-read latency during a 40-request burst. Every honest response still returned `Ready`. That fixture establishes a real wire-stall path, not a persistent header eclipse on a valid chain.
+The later [loopback node test](../network-abuse/README.md) found that eight non-reading streams on a 150-header chain did **not** delay another header read: the ~18 KiB responses fit inside the yamux window. A separate serving-path fixture with 4096 syntactically decodable but consensus-invalid header rows produced a 409,436 B response and showed increased RSS and transient latency for other header reads during a 40-request burst. Every concurrent response still returned `Ready`. That fixture establishes a wire-stall path; it does not show persistent loss of header access on a valid chain.
 
 ### Recommended correction
 

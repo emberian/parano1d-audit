@@ -1,4 +1,4 @@
-# Operator exit and deposit-path audit
+# NOID payment submission and deposit-path behavior
 
 Target: pinned `parano1d/` checkout at `52938433a30b185ab007afaa15166a632cf2e82e`.
 Run: 2026-11-15. `repro.py` and `results.txt` use only loopback, cloned synthetic
@@ -6,9 +6,9 @@ devnet state, synthetic wallets, and the previously built `devnet-chaos/bin` nod
 and CLI. No live-network transaction or exchange interaction occurred. The
 original pinned checkout and another session's devnet were left untouched.
 
-## Confirmed: a wallet can report "TRANSACTION SENT" before any peer receives it
+## Local send acknowledgment before peer delivery
 
-An honest sender and an independent receiver started from identical synthetic
+The sender and an independent receiver started from identical synthetic
 chain state at height 150, with zero connected peers on both sides. The sender
 used `walletSend` to pay 100,000 μNOID to the receiver's address. It returned a
 txid, fee 9,000 μNOID, and successful result while both nodes still had zero
@@ -28,15 +28,15 @@ The code explains the observation:
 - `noid_gui/src/view/present.rs:2066-2071` labels the successful local result
   **"TRANSACTION SENT"**, with recipient and txid shown underneath.
 
-This is a real acknowledgment semantics issue: the user can receive a success
+This is an acknowledgment semantics issue: the user can receive a success
 screen for a transaction known only to their own node. The transaction remains
 valid and the independent receiver sees it after connectivity returns in our
 control. The run does not show final confirmation, fund loss, or permanent
 failure to reach a healthy network.
 
 The code has a stronger readiness gate for miner use (`server.rs:968-975`) and
-wallet address discovery (`server.rs:2790-2804`); the payment path deliberately
-or accidentally does not use those gates. A useful fix would label local
+wallet address discovery (`server.rs:2790-2804`); the payment path does not
+use those gates. A useful fix would label local
 admission as **pending broadcast**, report peer observation separately, and
 require a confirmation before claiming delivery to an exchange.
 
@@ -60,21 +60,21 @@ scheduled v2 HistoryStep runtime for the cloned state. This failed attempt
 is not counted as reproduction evidence. Its copied data under `run/` was
 left in place for inspection; no other session's files were deleted.
 
-## Selective-exit model: feasible only with additional control
+## Asymmetric connectivity model and prerequisites
 
-Suppose an adversary can isolate a *particular* holder's node while retaining
-an independent path to honest producers. That holder can obtain the local
-"sent" result above while their attempted exchange deposit remains unseen;
-the adversary can transmit their own signed payment through the healthy path.
-This asymmetry is straightforward under the stated partition but **this audit
-has not shown that the developer can produce such a sustained partition of
-existing holders on the live network**. Four DNS seeds affect first discovery;
-they do not, by themselves, revoke existing peer connections or remove
-retained HeaderDAG work. Another route or later reconnection defeats the
-demonstrated delivery gap. Deposits also depend on exchange acceptance rules
-which we have not observed. Balances already credited inside SafeTrade need
-no fresh NOID deposit to be traded, so this scenario cannot establish a
-blanket "only the operator can sell" power.
+If one holder's node is isolated while a separate sender retains a path to
+block producers, the isolated holder can obtain the local "sent" result above
+while their attempted exchange deposit remains unseen; the connected sender
+can transmit a signed payment through the healthy path. This result requires a
+targeted, sustained partition across the first holder's usable submission
+paths. The local run measured a temporary zero-peer condition, and the review
+has not measured sustained partitioning of existing holders on the live
+network. Four DNS seeds affect first discovery; they do not, by themselves,
+revoke existing peer connections or remove retained HeaderDAG work. Another
+route or later reconnection closes the observed delivery gap. Deposits also
+depend on exchange acceptance rules, which were not observed. Balances already
+credited inside SafeTrade need no fresh NOID deposit to be traded, so other
+credited accounts remain relevant when assessing who can sell.
 
 There are two related, narrower control points:
 
@@ -82,7 +82,7 @@ There are two related, narrower control points:
    node from its own admitted transactions (`noid_mempool/src/floor.rs:1-102`),
    with an 80% occupancy latch after v1.1 activation. Admission requires
    `actual >= max(local floor, consensus minimum)` (`pool.rs:1243-1271`).
-   Saturation or fee-floor manipulation of a holder's sole node can reject its
+   Saturation or fee-floor changes at a holder's sole node can reject its
    payment while another node accepts an ordinary payment. High-fee valid
    transactions and occupancy are required for the fee-floor route; the
    anonymous invalid-proof flood in the other lane does not by itself raise
@@ -91,17 +91,17 @@ There are two related, narrower control points:
 2. **Producer inclusion.** The consensus validator checks block validity,
    resources and roots, without any maximal-inclusion rule
    (`noid_chain/src/consensus/validation.rs:574-650`). A winning producer
-   can omit a holder's transaction while including its own. This is conditional
-   on enough sustained production control or suppression of honest producers;
-   the auditor has not attributed that power to the developer. A non-colluding
-   producer with the holder's transaction can include it. Existing
-   `ledger-fairness` experiments also show that a first-seen output-slot
-   conflict can force the victim to reprove, but the wallet chooses fresh
-   slots and that is temporary pressure, not a privileged freeze.
+   can omit one holder's transaction while including another valid payment.
+   Sustained exclusion requires enough production or fork-choice control to
+   prevent other producers' inclusion, or suppression before they receive the
+   payment. A separate producer with the holder's transaction can include it.
+   Existing `ledger-fairness` experiments also show that a first-seen output-slot
+   conflict can force a sender to reprove, but the wallet chooses fresh
+   slots and that is temporary pressure rather than a persistent restriction.
 
 The mandatory development-fund outputs are exactly two hardcoded recipients
 of a defined subsidy share (`noid_chain/src/consensus/development_allocation.rs`);
-they are payment recipients, not an admin authority over holder inputs.
+the code assigns them payment receipts without authority over holder inputs.
 The ordinary spend validation examines owner and authorization rather than a
 developer permission bit (`noid_tx/src/paged_spend.rs:377-475`,
 `noid_gkr/src/wallet_authorization.rs:635-671`). This code review did not find
@@ -109,13 +109,14 @@ an address-specific NOID freeze or developer-only transfer opcode. That is
 bounded negative evidence, not a proof over every runtime, release, exchange,
 or alternative client.
 
-## Next discriminating experiment
+## Further measurements
 
-Use three isolated nodes with separately funded sender, adversary, and
-receiver wallets on one common synthetic chain. Let the receiver represent
-an exchange deposit verifier. Compare victim and adversary sends during a
-targeted partition, and repeat with one independent honest peer. Record
+Use three isolated nodes with separately funded first sender, second sender,
+and receiver wallets on one common synthetic chain. Let the receiver represent
+an exchange deposit verifier. Compare both sends during a targeted partition
+of only the first sender, and repeat with one independent reachable peer. Record
 `getPeerCount`, per-node mempool entry, block inclusion, confirmation depth,
 and wallet UI state. This distinguishes transient local acknowledgment from
-actual selective inclusion. Nothing in this run justifies publishing a claim
-that the developer can selectively sell or freeze holders.
+actual selective inclusion. Separately measure current peer and producer
+distribution, and the NOID-specific deposit and trading state at SafeTrade,
+before inferring a live-network transaction asymmetry or its cause.

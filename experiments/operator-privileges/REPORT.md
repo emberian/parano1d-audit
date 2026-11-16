@@ -1,4 +1,4 @@
-# Native NOID operator powers in the pinned source
+# Native NOID issuance and authority in the pinned source
 
 Target: `parano1d/` commit `52938433a30b185ab007afaa15166a632cf2e82e`.
 This is a source review of the current mainnet consensus, transaction, mempool,
@@ -7,29 +7,28 @@ network or establish who controls any address, seed, miner, wallet, or exchange.
 
 ## Result
 
-The code contains a **mandatory development allocation**, not a hidden
-administrator key. Through height **3,223,778**, miners receive 90% of the
-block subsidy, while the O(1) Network Fund and ParanO(1)d Lab each receive
-up to 5%, materialized as two outputs in a mandatory daily system payout.
+The code defines a **mandatory development allocation**. Through height
+**3,223,778**, miners receive 90% of the block subsidy, while the O(1)
+Network Fund and ParanO(1)d Lab each receive up to 5%, materialized as two
+outputs in a mandatory daily system payout.
 Those outputs go to hardcoded addresses. Consensus rejects a missing payout,
 a changed recipient, or a changed amount. The repository openly describes the
 allocation and says the Lab supports founders and developers. That identifies
 the intended beneficiaries, but source code and labels alone do **not** prove
-which person holds the private spending material or how much of the issued
-NOID remains in either wallet.
+which party holds the private spending material or how much of the issued
+NOID remains at either address.
 
-I found **no source-defined address blacklist, native NOID freeze switch,
-administrator spend override, or special permission for those two addresses
-to bypass ordinary spending authorization** in the surveyed paths. This is a
-bounded negative finding, not a proof that all future releases or all external
-wallets and exchanges are benign. A block producer may omit a holder's valid
-transaction from its *own* blocks, but other producers can include it; the
-source does not grant the development recipients exclusive block-production
-rights. No reviewed code path lets the apparent operator alone make everyone
-else unable to spend native NOID while retaining an intrinsic right to spend
-its own.
+The surveyed paths contain **no address blacklist, native NOID freeze switch,
+administrator spend override, or special permission for these two addresses
+to bypass ordinary spending authorization**. This conclusion is limited to
+the pinned source and does not assess later releases or external wallet and
+exchange policies. A block producer may omit a holder's valid transaction
+from its own blocks; other producers can include it. The development
+recipients have no source-defined block-production privilege. The reviewed
+paths do not give a fund address an intrinsic ability to reject other holders'
+native NOID spends while allowing its own.
 
-## Economic privilege, precisely
+## Issuance schedule and recipient addresses
 
 | Rule | Evidence | Consequence |
 | --- | --- | --- |
@@ -65,42 +64,43 @@ of their current owners or balances.
    addresses as an input-owner exception. The two zero-input system mints are
    separately constrained by shape and placement (`block.rs:428-455`;
    `consensus/validation.rs:310-368`).
-2. **Producer censorship:** Transaction ordering in the reference builder is
-   explicitly miner policy, not a consensus inclusion rule
+2. **Block inclusion discretion:** Transaction ordering in the reference
+   builder is explicitly miner policy, not a consensus inclusion rule
    (`consensus/ordering.rs:4-15`). Fork choice selects among valid chains by
    cumulative work while preserving local finality
    (`consensus/fork_choice.rs:37-82`). Thus a miner can choose not to include a
-   transaction in blocks it wins. A lasting, network-wide selective exclusion
-   requires enough production/relay control to defeat alternative inclusion;
-   the source does not attribute such power to the developer or fund addresses.
+   transaction in blocks it wins. A persistent difference in inclusion would
+   require enough production or relay control to defeat alternative inclusion;
+   the source does not attribute such power to the fund addresses.
 3. **Protocol changes:** V1.1, V2, and V2.1 activation heights and owner-proof
    versions are compiled constants (`consensus/params.rs:16-63,100-114`;
    `consensus/forks.rs:100-107`). The reviewed source has no on-chain
    administrator transaction that changes these heights or installs a new
-   blacklist. A publisher can offer different code, but adoption of that
-   binary or hard fork is a distribution and social trust question, not a
+   address restriction. A publisher can offer different code, but adoption of
+   that binary or hard fork is a distribution and social trust question, not a
    privilege exercised inside the pinned node.
 4. **Local operator RPC:** The node optionally accepts a separately configured
    operator bearer token for pool accounting and payouts; its CLI warns that
    this credential can spend from that node's **active wallet**
-   (`noid_node/src/main.rs:1324-1336,2398-2406`). This is real local-wallet
-   authority granted by a node operator, not a network-wide developer key or
-   a default credential embedded in consensus. The mining token is a different
-   role limited to template and submit methods (`main.rs:1308-1322`).
+   (`noid_node/src/main.rs:1324-1336,2398-2406`). This grants authority over
+   that node's wallet. No default network-wide credential appears in the
+   reviewed source. The mining token is a different role limited to template
+   and submit methods (`main.rs:1308-1322`).
 5. **Bootstrap:** Four default DNS names share the `parano1d.org` zone and do
    not pin peer IDs (`consensus/network.rs:99-135`). Controlling those answers
    could influence fresh-node discovery. The DNS entries are not consensus
    checkpoints or native spending keys. The separate
    [operator-power review](../operator-power/REPORT.md) examines candidate
-   selection and retained work; it has not shown a release node accepting a
-   poisoned snapshot.
+   selection and retained work; it has not shown a release node accepting an
+   invalid snapshot.
 
 ## Limits and next evidence
 
-The negative privilege conclusion covers the inspected pinned code paths,
-not arbitrary future binaries, compromised local RPC, third-party exchange
-custody, or an unknown producer majority. It does not prove who controls the
-two fund addresses or how much hashpower any actor has. To claim a selective
-exit, evidence must connect one actor to a concrete submission/deposit choke
-point **and** a working alternative exit for that actor; the protocol's
-development allocation alone supplies neither link.
+The authority conclusion covers the inspected pinned code paths. It does not
+assess later binaries, compromised local RPC, third-party exchange custody,
+or an unknown producer majority. It does not identify who controls the two
+fund addresses or how much hashpower any party has. Establishing an
+asymmetric transaction-delivery scenario would require evidence that one
+party controls a submission or deposit path, that a specific valid transfer
+fails through it, and that the party has a separate credited balance or
+working route. The development allocation alone supplies none of those links.

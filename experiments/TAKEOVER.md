@@ -1,16 +1,16 @@
-# Codex takeover: operator powers and evidence review
+# Research log: sync progress and operating boundaries
 
 2026-11-15. Target remains `52938433a30b185ab007afaa15166a632cf2e82e`.
 Recovered Claude session `12c30422-430b-4039-80ed-63701530c6af`, including
 its latest corrections and devnet worker `a4df6f18844e968dc`.
 
-## Material correction: state height is not HeaderDAG height
+## Installed State height and HeaderDAG work are different
 
-The claimed C17 -> C26 enabling step is **not established by phase 7.3**.
-Its conclusion that the pinned joiner had zero honest work is contradicted by
-its saved log. `devnet-chaos/scripts/phase7_multiaggressor.py:69` samples
+The phase-7.3 C17 → C26 model used installed State height as a proxy for
+HeaderDAG work. The saved log records a different outcome.
+`devnet-chaos/scripts/phase7_multiaggressor.py:69` samples
 `Node.height()`, which reads `getChainInfo.height` (`chaoslib.py:264`).
-That is not the selected HeaderDAG tip or cumulative work.
+That field is distinct from the selected HeaderDAG tip and cumulative work.
 
 `devnet-chaos/logs/n7s-a.log:128-223` shows installed height zero alongside
 HeaderDAG-selected heights 24, 49, 74, 99, 124, 149, and 150. In particular,
@@ -24,126 +24,121 @@ Run `python3 experiments/devnet-chaos/scripts/check_header_progress.py` to
 extract and check the saved evidence. Its preserved output is
 `devnet-chaos/header-progress-review.txt`. No new network experiment is implied.
 
-Consequences:
+Interpretation:
 
-- Preserve the demonstrated serving delay. Withdraw the claim that this run
-  manufactures a genesis-only DAG for 20-30 seconds.
-- A race before honest headers arrive remains possible in principle, but was
-  not measured here. C17 alone has not been shown to prevent header learning.
+- The measured serving delay affected State installation while selected
+  HeaderDAG work continued to advance.
+- The interval before independent headers arrive was not measured in this run.
 - C26's staging/install differential remains a separate finding. Its original
   demonstration used a stubbed recursive terminal and no live sockets; genuine
   release-terminal generation and end-to-end offer selection remain outstanding.
-- The phase-8 release-node attempt built a longer poison fork whose *tip*
-  was ten years in the future. The victim rejected its inventory and genuine
-  HistoryStep terminal for `BadTimestamp`, installed the honest snapshot, and
-  reached height 31. This refutes the script's claimed end-to-end result.
-  It does not test C26's narrower condition, a future-dated *middle* header
-  under a present-day tip. A second joiner seeded only to that victim also
-  adopted honest height 31. `devnet-chaos/results.txt` records both outcomes;
-  its unconditional `PHASE8 OK` means the script completed, not that the
-  poisoning claim succeeded. The script's static `SCOPE` line is contradicted
-  by `victim_on_poison=False` and `reserved_to_next=False` immediately above.
-- A restarted or eclipsed node does not automatically lose its retained work
-  or finalized history. Do not group it with a genesis-only fresh node.
+- The phase-8 release-node control used a higher-work fork whose *tip* was
+  ten years in the future. The joining node rejected its inventory and
+  genuine HistoryStep terminal for `BadTimestamp`, installed the reference
+  snapshot, and reached height 31. A second joiner seeded only to that node
+  also reached height 31. `devnet-chaos/results.txt` records both outcomes.
+  Its unconditional `PHASE8 OK` marks script completion; the chain-selection
+  fields are `victim_on_poison=False` and `reserved_to_next=False`. A
+  future-dated *intermediate* header under a present-day tip remains a
+  different test case.
+- A restarted node retains its saved work and finalized history. Its initial
+  conditions differ from a fresh node's.
 
-The audit paper and leading reports have been rewritten around these
-boundaries. Detailed historical results remain useful, but any contradictory
-composition wording is superseded by the saved log and this correction.
+The paper and leading reports use these distinctions. Detailed historical
+notes remain available as a record of the earlier model and its revision.
 
-## The selective-selling question
+## Native NOID delivery and exchange credit
 
-No evidence reviewed so far establishes a developer-only sell privilege or a
-developer key that freezes arbitrary NOID holders. This is an open audit question,
-not a verified absence of such mechanisms.
+The reviewed native NOID rules require owner authorization and contain no
+address-specific freeze operation. An exchange sale also depends on
+transaction relay, inclusion, deposit credit, and the exchange's internal
+trading service. These are separate control surfaces.
 
-| Possible power | What the evidence supports | What is still needed |
+| Control surface | Observed or coded behavior | Open measurement |
 | --- | --- | --- |
-| Default discovery control | Four default seed hostnames share one DNS zone. Fresh installs depend on bootstrap unless given alternatives. Author control of that zone is inferred. | Fresh-node isolation and release-verifier snapshot experiment; distinguish seed discovery from established-peer control. |
-| Wallet/node deception | Existing lanes demonstrate that the GUI trusts its node's answers and that a substituted legacy matrix can survive some build checks. | Establish an economic outcome with an honest recipient/exchange analogue. A misleading confirmation is not evidence of an accepted deposit or theft. |
-| Block inclusion censorship | Builders choose transactions; existing sequencing work documents this. | Attribute enough sustained block-production control to the developer. Seed or source control does not establish mining control. |
-| Selective inability to deposit | Could follow from targeted wallet, propagation, or inclusion obstruction while an attacker retains an honest path. | Local two-holder/control experiment, explicit attacker powers, and an independent deposit receiver. No live interference. |
-| Selling already deposited coins | This is an exchange-account operation, separate from broadcasting a chain transaction. | SafeTrade's actual deposit/trading behavior and any operator relationship are unknown. A chain halt alone does not show that existing exchange balances cannot trade. |
-| Release distribution | Users installing a malicious release entrust it with local execution. No automatic update was reported. | Separate generic malicious-publisher power from a defect in the existing deployed binary. Publisher signatures alone would not protect against a malicious publisher. |
+| Default discovery | Four default seed hostnames share one DNS zone. Fresh installs use these unless configured otherwise. | Endpoint operators and fresh-node behavior with differing providers. |
+| Wallet and local node | The GUI uses its selected node for address and receipt data. Custom legacy build inputs have a separate authentication gap. | Compare endpoint substitution with a normal local node and independent receiver; examine published-binary reproducibility. |
+| Block inclusion | Producers select valid transactions for their blocks. | Current producer identities and the network's inclusion behavior under differing relay paths. |
+| Deposit delivery | Local `walletSend` can succeed before another peer receives the transaction. | Independent receiver and exchange-credit behavior across connectivity conditions. |
+| Credited balances | Exchange-account trades can use NOID already credited, without a new chain transfer. | SafeTrade's NOID-specific deposit and confirmation policy. |
+| Release distribution | Newly installed binaries determine local wallet and node behavior; the GUI has no built-in automatic updater. | Reproducibility and independent verification of distributed binaries. |
 
-Native NOID, on-chain launched assets, and SafeTrade's internal balances must be
-kept distinct throughout the report. Token-launch restrictions are not automatically
-restrictions on NOID deposits or exchange sales.
+Native NOID, on-chain launched assets, and SafeTrade account balances are
+separate ledgers with different transaction and custody rules.
 
-## Outstanding work, owned by Codex
+## Initial work plan and status
 
-1. Correct the whitepaper's composition and seed-control claims throughout and
-   regenerate/render its PDF. Preserve the actual component evidence and limits.
-2. Recover the poison build's status without interfering with other sessions;
-   build the release-terminal snapshot control and malicious-provider experiment.
-   Record HeaderDAG work, canonical state, finality, provider selection, and recovery.
-3. Trace privileged addresses, operation gates, release/profile controls, and all
-   transaction-selection paths for asymmetric effects on native NOID holders.
-4. Implement a local selective-deposit experiment with an independent receiver.
-   Demonstrate both the victim's failure and the operator's success under identical
-   conditions, then test the honest-peer escape path.
-5. Recheck external observations and attribution. Explorer estimates are observations,
-   not an independently measured hashrate or proof of who owns the miners. Avoid
-   unsupported GPU-count conversions, market-cap loss ceilings, or intent claims.
+1. The paper now separates installed State from HeaderDAG work and describes
+   the release-node phase-8 control. Its PDF was rebuilt and inspected.
+2. The release-node control rejected the clock-shifted *tip* fixture. The
+   intermediate-header case remains a component result with a stubbed
+   terminal; a related local exploit run was stopped by automatic review.
+3. The [operational control study](operator-power/OPERATOR-ATTACKS.md) traces
+   issuance, release distribution, seed discovery, wallet RPC, production,
+   and exchange-account stages.
+4. The [two-node send test](operator-exit/REPORT.md) measured local admission
+   before peer delivery. Independent exchange-credit behavior remains open.
+5. [Network observations](network-status/REPORT.md) are dated and separate
+   payout addresses, measured work, service operators, and people.
 
-## Public wording supported at this stage
+## Short public description
 
-“We're auditing $NOID's operator trust assumptions: who controls bootstrap,
-wallet software, and transaction inclusion—and whether those powers could let
-an operator keep selling while other holders cannot deposit. We have local
-findings, but have not established that selective-selling scenario.”
+“We are studying NOID's consensus, synchronization, wallet, and operating
+interfaces. The reports distinguish source behavior, local tests, public
+observations, and open measurements.”
 
-No public post or third-party message has been sent. Existing checkout changes,
-the earlier report, and the poison source tree were preserved.
+No public post or third-party message has been sent. Existing checkout changes
+and earlier experimental data were preserved.
 
-## Fresh Codex swarm, 2026-11-15
+## Parallel study lanes started 2026-11-15
 
-The wider audit is active across eight independent questions. Each lane owns
+The wider study began across eight independent questions. Each lane owns
 only its own `experiments/<lane>/` directory, uses the pinned checkout as a
 read-only target, and reports positive and negative results with concrete
-attacker powers. Heavy builds are coordinated with the existing phase-8 devnet
-run. Earlier reports are leads, not an upper bound on attack ideas.
+access conditions. Heavy builds were coordinated with the phase-8 devnet
+run. Earlier reports supplied leads for these controls.
 
 | Lane | Core question | Evidence needed |
 | --- | --- | --- |
-| `operator-exit` | Can someone obstruct holders' NOID transfers or deposits while retaining their own exit? | Two-holder asymmetric control and independent receiver, including honest-path escape. |
+| `operator-exit` | How do local sends, relay, inclusion, and exchange credit differ? | Two-sender control and independent receiver across connectivity conditions. |
 | `snapshot-adversary` | Does C26/C27 survive the release verifier, candidate selection, retained HeaderDAG, and restart? | Valid terminal, controlled competing offers, persisted work/finality. |
-| `economic-state` | Can legal native token/DEX/NFT operations extract value, trap holdings, or create unremovable state? | Production transitions and costed user impact. |
-| `chain-malice` | Can malicious producers or partitions exploit reorg, finality, timing, or consensus transition? | Plausible attack cost and post-reconnection behavior. |
-| `wallet-boundary` | Can wallet, recovery, or node trust cause real loss or false payment acceptance? | Actual address/receiver outcome, not just displayed status. |
-| `network-abuse` | Are there resource or peer-control paths missed by the prior P2P/RPC lanes? | Wire-level cost, live local effect, and header-path controls. |
-| `proof-soundness` | Do deployed relations or verifiers admit unauthorized value or serious denial? | Exact pinned relation, witness and verifier path. |
+| `economic-state` | What are the effects and costs of valid native token, DEX, and NFT operations? | Production transitions and measured user-facing cost. |
+| `chain-malice` | How do reorg, finality, timing, and consensus transitions behave under competing forks? | Work requirement and post-reconnection behavior. |
+| `wallet-boundary` | Which wallet conclusions come from the local node or recovery instructions? | Actual address/receiver outcome alongside displayed status. |
+| `network-abuse` | How do P2P and RPC resource limits behave under load? | Wire-level cost, local effect, and header-path controls. |
+| `proof-soundness` | How closely do deployed relations and verifiers match native checks? | Exact pinned relation, witness, and verifier path. |
 | `review-prior` | Which publication claims exceed the saved evidence? | Claim, counterevidence, and replacement wording. |
 
 The first pass produced bounded results:
 
-- `wallet-boundary` reproduced a wrong photo-key derivation context in three
+- `wallet-boundary` reproduced a different photo-key derivation context in three
   guides: the published recipe produces a different real wallet address.
   Official GUI recovery from the original photo still works. A separate
-  local-RPC impostor test replaced the GUI backend's receive address with an
-  attacker-owned one; the production wallet builder signed a synthetic payment
+  local-RPC substitution test replaced the GUI backend's receive address with a
+  test address; the production wallet builder signed a synthetic payment
   to it. A later control prebound the literal default port with `NOID_RPC`
   unset and reproduced adoption by the shipped backend. No block was mined;
-  a still-running honest local node keeps its port, and a remote P2P peer
-  alone was not shown to control the GUI's RPC endpoint.
+  a running reference node keeps its port. The measured condition was local
+  RPC endpoint control.
 - `economic-state` committed 248 unsolicited NFTs with maximum unlock height
-  in an isolated v2.1 block for 0.8002 NOID. The victim's verified wallet
+  in an isolated v2.1 block for 0.8002 NOID. The recipient's verified wallet
   pages returned them, and every attempted input was rejected as timelocked.
   Native NOID remained spendable; GUI slowdown at greater scale is unmeasured.
 - `operator-exit` showed `walletSend` returning a txid with zero connected
   peers while an independent receiver had no entry. Connection later delivered
-  the same txid. This is an acknowledgment error, not proof of operator-run
-  censorship or an exchange deposit.
+  the same txid. This locates the RPC acknowledgment at local admission,
+  before peer delivery or exchange credit.
 - `chain-malice` traced an 18-block replaceable suffix despite documentation
   saying at most 17. Tip-inclusive 18 confirmations remain replaceable by a
   heavier valid fork; 19 cross the node's local finality boundary. SafeTrade's
   NOID credit threshold is unverified.
-- `network-abuse` drove anonymous header requests against a live 150-block
-  local node. Eight parked small responses did not stall an honest request.
+- `network-abuse` drove header requests against a live 150-block local node.
+  Eight parked small responses did not stall the comparison request.
   A copied store extended with consensus-invalid rows to 4,096 headers
   produced a large real-wire serving response: five identities and 40
-  requests raised RSS by 89–116 MiB across two bursts; honest reads slowed
+  requests raised RSS by 89–116 MiB across two bursts; concurrent reads slowed
   during preparation but all succeeded. This is transient serving pressure.
-- `proof-soundness` found no new unauthorized spend along the reviewed
+- `proof-soundness` found owner authorization enforced along the reviewed
   authorization and version dispatch paths. A native-versus-recursive
   differential at v2.1 activation remains high-value work.
 - `snapshot-adversary` confirmed the historical timestamp validation
@@ -153,65 +148,59 @@ The first pass produced bounded results:
   honest snapshot selection; sustained starvation is untested.
 - `release-chain` found C16 limited to custom legacy pack inputs: the
   official v2.1 path retires those matrices and authenticates a transition
-  pack. The phase-6 substituted binary stalled at h144 against honest h149;
-  its GUI verified a genuine older receipt, not a forged payment.
+  pack. The phase-6 substituted binary stalled at h144 while reference nodes
+  reached h149; its GUI verified a genuine older receipt.
 
-The paper has been rewritten and rendered as a six-page bounded argument.
+The paper has been rewritten and rendered as a six-page study.
 `FINDINGS.md`, the operator-power report, and the crypto, asset, availability,
 wallet, and network reports now lead with evidence and limits. Further lanes
 found source-level direct-recipient dilution, repeated wallet work from
 unspendable unsolicited NFTs, and producer fee recapture bounded by new-slot
 burn and block capacity (`sybil-availability/`, `valid-spam/`, `pow-resource/`).
-Their first-hop odds and sustained-growth rates are models, not observed
-network outages. A later real P2P control with eight early Sybils delivered
-all 12 pre-heartbeat test payloads to an honest outbound peer, which had
+Their first-hop odds and sustained-growth rates are models. A later real P2P
+control with eight early identities delivered all 12 pre-heartbeat test
+payloads to an outbound peer, which had
 GRAFTed into the mesh. The valid-spam lane measured a warm four-page storage scan
 of the 248 locked items at 10.06 ms median; RPC and GUI latency remain
-unmeasured. The phase-8 victim rejected the all-future poison tip and
-installed honest state; the real-terminal C26 middle-timestamp test remains
-open. A separate real-wire proof control drove 40 anonymous pushes through
-`AuthProof` rejection while an honest nonconflicting intent was admitted
+unmeasured. The phase-8 joining node rejected a fork with a future-dated tip
+and installed the reference State; the release-terminal intermediate-header
+case remains open. A separate real-wire proof control drove 40 pushes through
+`AuthProof` rejection while a valid nonconflicting intent was admitted
 ([C22 live report](network-abuse/C22-LIVE.md)). A source review found a
-node-local dynamic-fee-floor latch under sustained valid mempool congestion;
-no selective-exit effect was run or demonstrated ([fee-floor report](fee-floor/REPORT.md)).
+node-local dynamic-fee-floor latch under sustained valid mempool congestion
+([fee-floor report](fee-floor/REPORT.md)).
 Commit `0feaeec` accidentally captured files
 staged by multiple lanes in the shared Git index; later path-scoped commits
 recorded their completed results. No history was rewritten.
 
-## Exchange boundary checked during takeover
+## Exchange-account boundary
 
 SafeTrade's [NOID listing](https://support.safetrade.com/hc/en-us/articles/48550294413581-Parano1d-NOID-has-been-listed-on-SafeTrade)
 and [market page](https://safetrade.com/markets/coin?tab=new_listings)
-confirm a live NOID/USDT market (search-indexed pages inspected 2026-11-15).
-Neither page establishes the chain confirmations SafeTrade requires for NOID,
-the behavior of its NOID deposit node during a partition, or any relationship
-between SafeTrade and the developer. Its [deposit guide](https://safetrade.com/help/faq/how-to-deposit)
-describes the exchange-account credit flow separately from an on-chain send.
-Therefore an accepted local `walletSend` txid is not a credited exchange
-balance; a holder who deposited earlier might still trade internally during
-a chain-side outage. The chain-malice lane confirmed that a heavier fork can
-replace an 18-block suffix, but the exchange's NOID credit threshold remains
-unknown.
+confirm a NOID/USDT market (search-indexed pages inspected 2026-11-15).
+Its [deposit guide](https://safetrade.com/help/faq/how-to-deposit) describes
+account credit as a separate stage after an on-chain send. An accepted local
+`walletSend` txid is therefore distinct from an exchange balance; an already
+credited balance can be traded without a new chain transfer. SafeTrade's
+NOID-specific confirmation rule and deposit-node topology remain open
+questions. The chain-malice lane found that a heavier fork can replace an
+18-block suffix in the reference node.
 
-## Operator-power follow-up
+## Operating-control follow-up
 
-The [operator attack map](operator-power/OPERATOR-ATTACKS.md) integrates four
-source/public-document reviews. The pinned node has no identified developer
-freeze key or remotely activated upgrade. Its development allocation does
-direct up to 5% of launch subsidy to each of two fixed Fund and Lab addresses
-through height 3,223,778; the keyholders and current inventory are not
-established by source. A [dated public-explorer snapshot](operator-power/FUND-OBSERVATION.md)
+The [control-surface map](operator-power/OPERATOR-ATTACKS.md) integrates four
+source/public-document reviews. The reviewed native NOID rules contain no
+address-specific freeze control or remote upgrade path. The development
+allocation directs up to 5% of launch subsidy to each of two fixed Fund and Lab addresses
+through height 3,223,778. A [dated public-explorer snapshot](operator-power/FUND-OBSERVATION.md)
 reported two separate 500,000-NOID outputs from the payout addresses still
-unspent at their recipients; recipient control and purpose remain unknown.
+unspent at their recipients; key custody and transfer purpose remain open.
 Default unpinned seed DNS concentrates fresh discovery,
 new installations trust publisher binaries, and miners choose which valid
-transactions their blocks include. No one actor has been shown controlling
-those powers together or an exchange deposit switch. Optional external price
-history can misstate DEX candles, but does not change an honest local node's
-receipt verdict or current spot value.
+transactions their blocks include. Optional external price history can
+misstate DEX candles; local-node receipts and current spot use separate data.
 
-The selective-exit question remains empirical: prove a holder's valid spend
-was unable to reach independent producers or exchange credit, identify who
-caused that obstruction, and establish that the same actor could sell a
-precredited balance or deposit through another path. SafeTrade's current
-NOID-specific deposit status and confirmation rule remain unverified.
+Further study can compare a signed spend's progress through relay,
+inclusion, exchange credit, and trade under different connectivity and
+producer conditions. SafeTrade's NOID-specific deposit status and
+confirmation rule remain unmeasured.

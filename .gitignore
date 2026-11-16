@@ -35,6 +35,9 @@ experiments/*/*.html
 experiments/*/*.js
 experiments/network-status/jetsam-*.md
 
+# Generated pages and contact sheets used to check the whitepaper layout.
+experiments/whitepaper/.render-check/
+
 # --- the target checkout itself: read-only reference, reproducible from the pinned
 #     commit in PROVENANCE.md; never committed into the audit repo. ---
 parano1d/

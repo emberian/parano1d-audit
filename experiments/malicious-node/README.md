@@ -14,16 +14,16 @@ tested together.
 ## A. Snapshot staging omits intermediate future-drift checks
 
 The coinbase-only test chain has 24 headers. Its height-12 header is dated ten
-years ahead; later headers return to the local time window. An attack would
-also require a real-PoW fork, a genuine recursive terminal, and a victim that
-selects the fork above its HeaderDAG-selected work. The component test shows:
+years ahead; later headers return to the local time window. Release-node
+acceptance would also require a real-PoW fork, a genuine recursive terminal,
+and selection above the joining node's HeaderDAG work. The component test shows:
 
-1. **Honest admission rejects the chain.** `validate_header` with a local clock
+1. **Ordinary admission rejects the chain.** `validate_header` with a local clock
    (the exact predicate `validate_bounded_header_extension` applies to every
    live-inventory header, `noid_node/src/snapshot_header_staging.rs:1049`, and
    that `validate_block_checks` applies to admitted blocks) returns
-   `BadTimestamp` at h12. A fresh node syncing natively (headers only, no
-   snapshot) can therefore never be fed this chain.
+   `BadTimestamp` at h12. A fresh node syncing through native header admission
+   therefore rejects this chain at that height.
 2. **Snapshot staging accepts the identical headers.** The real
    `SnapshotHeaderStaging::append_batch`/`validate_complete` path validates
    every staged header with `validate_header_timeless_prehashed_parent`
@@ -45,22 +45,22 @@ selects the fork above its HeaderDAG-selected work. The component test shows:
    that terminal remain untested.
 5. **The local install path commits and finalizes.** The real
    `apply_staged_state_snapshot` + `install_finalized_snapshot_staging` path
-   writes the poison headers into the canonical archive and sets the finalized
-   checkpoint to the snapshot tip immediately
+   writes the future-dated headers into the canonical archive and sets the
+   finalized checkpoint to the snapshot tip immediately
    (`mdbx_context.rs:2686-2694` — `finalized = FinalizedCheckpoint { height:
    tip_height, .. }`). After install, `store.get_header(12)` returns the
    +10-year header and `finalized_checkpoint().height == 24`.
-6. **The source predicts divergence below finality.** The honest fork (built
+6. **The source predicts divergence below finality.** The reference fork (built
    and natively validated in the test) shares only genesis with the committed
    history. `plan_header_inventory` filters common ancestors to
    `>= header_dag.finalized()` and classifies deeper divergence
    `FinalizedDivergence` (`main.rs:4924-4943`), which the event loop answers
    with `mining_peer_quorum.reject_incompatible(from)` (`main.rs:11657-11668`)
-   — the event loop would mark such peers incompatible. Re-staging an honest
+   — the event loop would mark such peers incompatible. Re-staging a reference
    snapshot also meets a structural barrier: `SnapshotHeaderStaging::create`
    requires the base to be
    the first missing canonical height (`snapshot_header_staging.rs:298-313`),
-   and after this install there is no such base on the honest fork. Live
+   and after this install there is no such base on the reference fork. Live
    recovery paths have not been tested.
 7. **Serving code has no intermediate drift re-check.** Manifest serving answers from the committed
    immutable generation (`noid_p2p/src/network.rs:8032-8075`); no drift
@@ -81,7 +81,7 @@ child_target_10y_parent       = 0000…400000 (== GENESIS_TARGET floor)
 `noid_chain/src/consensus/timestamps.rs:11-12` says the drift cap prevents
 future timestamps from gaming difficulty. The 24-header snapshot witness is
 in the **legacy** difficulty era; this target calculation uses v2 at height
-279,506. The two tests do not jointly measure a production-scale attack fork
+279,506. The two tests do not jointly measure a production-scale alternate fork
 or establish a 17-second cost. In-drift forks can also descend toward the
 floor over time (ASERT halflife 120 s). The demonstrated difference is that
 ordinary validation rejects the future-dated intermediate header while
@@ -90,9 +90,9 @@ snapshot staging accepts it.
 **Fork choice still applies.** The snapshot
 install requires the manifest to improve on the HeaderDAG-selected work
 (`validate_snapshot_install_selection`, `main.rs:287-301`). A node that has
-learned honest headers holds their cumulative work in its DAG; the attacker
-must exceed that amount. The prior devnet serving stall delayed state
-installation but did not erase learned honest headers (`experiments/TAKEOVER.md`).
+learned reference headers holds their cumulative work in its DAG; a competing
+fork must exceed that amount. The prior devnet serving stall delayed state
+installation while reference headers continued to be selected (`experiments/TAKEOVER.md`).
 The release node also compares snapshot candidates over five seconds and
 rechecks HeaderDAG work at install time
 (`experiments/snapshot-adversary/REPORT.md`).
@@ -187,6 +187,8 @@ not executed; the other tested layers reject the foreign artifacts.
 
 `snapshot_terminal_boundary=accepted` below means the boundary check accepted
 the harness's stubbed verifier result. It is not a release-terminal result.
+The literal output keys retain the harness's earlier `poison` naming for the
+clock-shifted fixture; they are identifiers, not a statement about live nodes.
 
 ```text
 [dialect-facts]
@@ -223,16 +225,16 @@ all_local_assertions=passed
 
 ## Controls
 
-- **Native/suffix path rejects the poison chain** — `validate_header` with a
-  local clock returns `BadTimestamp` at the poison height; every non-poison
+- **Native/suffix path rejects the future-dated chain** — `validate_header` with a
+  local clock returns `BadTimestamp` at the future-dated height; every other
   header of the same chain is natively admissible (the differential is
   exactly the one rule).
 - **Terminal binding control** — a tip whose state root is tampered with no
   longer matches its terminal and is rejected before the verifier callback
   runs (`terminal does not bind its staged boundary`).
-- **Honest chain admissible** — the comparison fork passes `validate_header`
+- **Reference chain admissible** — the comparison fork passes `validate_header`
   at every height under the same local clock. The local divergence classifier
-  responds to the committed checkpoint, not bad honest headers.
+  responds to the committed checkpoint, not invalid reference headers.
 - **Difficulty contrast** — in the separate v2 target calculation, the
   drift-capped (+120 s) parent does not floor difficulty; the far-future
   parent does.
@@ -240,16 +242,16 @@ all_local_assertions=passed
   builder refuses the identical transaction (Finding B control).
 - **Cross-dialect artifacts rejected** at the layers tested (Finding C).
 - **Fork choice compares work** — snapshot install requires improving on
-  HeaderDAG-selected cumulative work (`main.rs:287-301`). Seeing some honest
-  headers raises the attack cost; seeing the established mainnet chain raises
-  it greatly. Neither condition is a categorical proof of safety.
+  HeaderDAG-selected cumulative work (`main.rs:287-301`). Learned reference
+  headers raise the work threshold, and a node retaining established mainnet
+  work has a much higher threshold.
 
 ## Checks that constrain stronger variants
 
 | Chain | Stronger version | Blocked by | Where | Cryptographic or conventional |
 | --- | --- | --- | --- | --- |
-| A | Poisoning a victim with honest HeaderDAG work | Snapshot install must exceed its selected cumulative chainwork (`choose_chain_by_work`); this is an economic barrier proportional to the work learned, not an absolute prohibition | `noid_node/src/main.rs:287-301` (`validate_snapshot_install_selection`) | Conventional comparison over PoW-derived work |
-| A | Poisoned STATE (not just history) at the tip | The tip state must be authenticated by a genuine HistoryStep terminal bound to the tip semantic header id; a tampered tip root is rejected before the verifier | `noid_chain/src/storage/mdbx_context.rs:2422-2435`; PoC control `control_changed_tip_root` | Cryptographic (semantic header id + recursive proof binding) |
+| A | Installing an alternate fork above reference HeaderDAG work | Snapshot install must exceed selected cumulative chainwork (`choose_chain_by_work`); the threshold scales with work already learned | `noid_node/src/main.rs:287-301` (`validate_snapshot_install_selection`) | Conventional comparison over PoW-derived work |
+| A | Installing an unverified tip state | The tip state must be authenticated by a genuine HistoryStep terminal bound to the tip semantic header id; a changed tip root is rejected before the verifier | `noid_chain/src/storage/mdbx_context.rs:2422-2435`; PoC control `control_changed_tip_root` | Cryptographic (semantic header id + recursive proof binding) |
 | A | Far-future headers surviving *native* sync | Per-header future-drift admission with the local clock on every live header | `noid_node/src/snapshot_header_staging.rs:1049` (`validate_bounded_header_extension`), `noid_chain/src/consensus/header.rs:246` | Conventional (wall-clock policy — intentionally not part of the provable rules) |
 | B | Double-apply of the replayed tx across forks | One canonical fork per node; the durable txid index is rewritten through undo logs on reorg | `noid_chain/src/storage/mdbx_store.rs:4061-4067`, `UNDO_RETENTION_DEPTH`; PoC control `same_fork_second_spend` | Conventional persistence logic (sound by single-canonical-history construction) |
 | C | Default node accepting an isolated-V2.1 header | Receiver recomputes the ASERT target under its own schedule — foreign dialect target mismatches (`BadDifficultyTarget`) | `noid_chain/src/consensus/header.rs:211-233`; PoC `dialect_expected_target_h24` diverges across builds | Conventional (schedule constants compiled in; nothing cryptographic separates the dialects) |
@@ -259,9 +261,9 @@ all_local_assertions=passed
 ## PoC implementation and reproduction
 
 `src/main.rs` drives, in order: dialect facts, the difficulty collapse, chain
-A (build attacker chain with real templates/ASERT/PoW → honest-path rejection
+A (build future-dated chain with real templates/ASERT/PoW → ordinary-path rejection
 → real staging/boundary/tip-drift/terminal-binding → real atomic install →
-canonical readback, finalization, honest-chain estrangement predicate,
+canonical readback, finalization, reference-chain divergence classifier,
 re-stage rejection), and chain B (both-fork real block admission + controls).
 The boundary-manifest check (`validate_snapshot_staged_header_boundary`) is
 reproduced field-for-field from `main.rs:4180-4235` (it lives in the binary
@@ -285,7 +287,7 @@ is `results.txt` and the isolated-schedule run's is `results-isolated.txt`.
   HistoryStep proof pack. This harness passed an always-accepting closure to
   `verify_snapshot_boundary`; it did not generate or verify a release terminal
   for the future-dated chain. The binding surface and timeless provable header
-  rules support a hypothesis about acceptance, not proof of that final link.
+  rules motivate a release-verifier test; that final link remains unmeasured.
 - **No live sockets.** The harness calls functions in node order, but does
   not execute peer exchange or the event loop. It reproduces the logic of
   `plan_header_inventory` and `validate_snapshot_staged_header_boundary` from
@@ -293,7 +295,7 @@ is `results.txt` and the isolated-schedule run's is `results-isolated.txt`.
 - **Offer selection was not simulated.** The real node settles competing
   candidates for five seconds, then rechecks HeaderDAG work at install time
   (`experiments/snapshot-adversary/REPORT.md`). This test does not demonstrate
-  that the attacker's offer would win against a live honest provider.
+  which offer would be selected among live providers.
 - **Finding B's consumer survey** covers template admission, sequential
   consensus validation, state application, and the durable tx index/undo
   path; it does not fuzz the RPC surface for presentation-level confusion.
@@ -301,6 +303,6 @@ is `results.txt` and the isolated-schedule run's is `results-isolated.txt`.
   schedule (pack-gated). All executable layers reject; the open question is
   whether the pack layer would too — it is conventional code, so it should be
   treated as a regression surface, not a proven wall.
-- The attack chain uses a coinbase-only attacker fork; user transactions on
-  the poisoned fork would additionally need valid owner authorizations (the
-  attacker can produce its own).
+- The alternate chain uses a coinbase-only fork; user transactions on it
+  would additionally need valid owner authorizations, which its producer
+  could provide for its own inputs.
