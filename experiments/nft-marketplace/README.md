@@ -1,29 +1,27 @@
-# NFT collections and marketplace audit
+# NFT marketplace: active operations and gated paths
 
-Source: `/Users/ember/dev/parano1d-break/parano1d` at `52938433a30b185ab007afaa15166a632cf2e82e` (verified with `git rev-parse HEAD`). A verbatim copy lives in `source/` (read-only reference, gitignored); the PoC crate `poc/` builds against it by path. All created files are confined to this directory. No live node, wallet, peer, or RPC server was started; all state is synthetic in-memory `ChainState`.
+Source: `/Users/ember/dev/parano1d-break/parano1d` at `52938433a30b185ab007afaa15166a632cf2e82e`. A verbatim, read-only copy in `source/` supplies path dependencies to `poc/`. Tests use synthetic in-memory `ChainState`; no node, wallet, peer, or RPC server was run.
 
-This lane inherited an unverified, non-compiling PoC from a dead agent. It was audited and repaired: one borrow error and one semantic error (the `TransferNft` step was executed by the buyer while the item was still owned by the creator, which the authority check correctly rejected) were fixed, and one unfounded claim was removed (Finding 2).
+**Result:** Collection creation, mint, transfer, listing, instant purchase, cancellation, and burn passed the tested lifecycle and rejection controls. Funded purchase rounds and offers are disabled by the activation profile at this commit, so results from synthetic round escrow describe dormant code, not reachable marketplace behavior. A suspected native/recursive disagreement for collection genesis was refuted by a production-faithful R1CS witness.
 
-## Finding 1: the funded round-escrow and offer families are unreachable at this commit (informational, no severity)
-
-**Severity: Informational — a reachability/scoping fact, not a vulnerability. Preconditions: none; it is a property of the pinned commit itself.**
+## Funded purchase rounds and offers are disabled
 
 The NFT marketplace in `noid_tx`/`noid_chain` has two layers:
 
-1. **Live at 5293843:** base NFT operations (CreateCollection/Mint/Transfer/Burn, codes 5–8) and the owner listing lifecycle — CreateListing (64), Purchase (65), CancelListing (66) — with opening kinds `NftListingDefinition`/`NftListing` enabled. `Purchase` dispatches to the *instant buy* (`check_financial_owner` → `check_listing_purchase`, `noid_tx/src/native_assets/financial/owner.rs:229-238`): one idle listing input plus buyer cash, seller paid `ask + NFT_FEE_CREDIT` exactly.
-2. **Present but unreachable:** the funded round system (request funding → registration → settlement → timeout reset → recovery → refunds, operations 70–75) and the entire offer family (67–69). Two independent gates hold:
+1. **Enabled:** base NFT operations (CreateCollection/Mint/Transfer/Burn, codes 5–8) and the owner listing lifecycle — CreateListing (64), Purchase (65), CancelListing (66) — with opening kinds `NftListingDefinition`/`NftListing`. `Purchase` dispatches to the instant-buy check (`check_financial_owner` → `check_listing_purchase`, `noid_tx/src/native_assets/financial/owner.rs:229-238`): one idle listing input plus buyer cash, with the seller paid `ask + NFT_FEE_CREDIT` exactly.
+2. **Implemented but disabled:** the funded round system (request funding → registration → settlement → timeout reset → recovery → refunds, operations 70–75) and offers (67–69). Two independent gates apply:
    - `noid_tx/src/native_assets/profile.rs:8-33` — `operation_enabled` omits codes 67..=75, so `FinancialOperation::operand()` rejects them before any semantic check.
-   - `profile.rs:35-53` — `kind_enabled` omits `NftPurchase` and `NftOffer`, so `NativeOpening::validate()` returns `Err(Kind)` for those openings. `apply_owned_purchase_funding` and the offer funding/acceptance/cancellation therefore fail inside `claims()` (`check_output` → `validate`) even when every other check would pass — demonstrated end-to-end in the PoC with perfectly formed claims.
+   - `profile.rs:35-53` — `kind_enabled` omits `NftPurchase` and `NftOffer`, so `NativeOpening::validate()` returns `Err(Kind)` for those openings. `apply_owned_purchase_funding` and offer funding/acceptance/cancellation fail inside `claims()` (`check_output` → `validate`) even with otherwise valid claims; the PoC demonstrates this path.
 
    Additionally, `check_purchase_funding` has no dispatcher in `check_financial_owner` at all (only the chain-side `apply_owned_purchase_funding`, which no production code calls), and `FinancialBlockTracker::owner_outputs` returns early for `Purchase` (`noid_chain/src/block/native_assets/financial.rs:276-278`), making its `Purchase → registration` arm (lines 341-350) dead code.
 
-Consequences for claims discipline: the round-settlement economics (winner selection, per-request fee shares, refunds) and offers **cannot occur on this chain at this commit**. Any statement that fee-split/round/offer behaviour is live at 5293843 would be wrong. The recursive circuit for listing settlement (`bind_financial_listing_settlement`, wired for operation code 71) exists and is profile-consistent with this staging.
+At this commit, no profile-enabled path reaches round settlement or offers. The round-settlement economics below apply only to synthetically seeded escrow and possible future activation. The listing-settlement recursive circuit (`bind_financial_listing_settlement`, operation code 71) exists but its operation is also gated.
 
-## Finding 2: the inherited "native accepts / recursive rejects" divergence PoC was a mis-model (rejected claim; soundness control substituted)
+## Collection genesis: no native/recursive divergence found
 
-The dead agent's test asserted that a native-accepted `CreateCollection` fails in the recursive route because the funding action's slot/packed/root are "currently zeroed". That model does not match production: both live construction sites keep the ordinary funding row's **real** values in `NativeActionTrace` — `noid_recursive/src/acceptance/trace/native_assets/actions.rs` builds the trace from live-masked rows (`slot: row[4]`, `packed_value: row[5]`, `root: [row[6], row[7]]`), and `financial_base_projection.rs` masks only by the family selector (`slot: mul(b, &selected, &action.slot)`). Only the *opening-validation* inputs passed to `bind_native_action_slot` are native-masked. The kernel's genesis accumulator (`kernel.rs`, `complete_group_summaries`) reads the real funding row, so collection genesis **is** provable.
+An earlier PoC modeled the `CreateCollection` funding action's slot, packed value, and root as zero in the recursive trace and predicted rejection of a native-accepted collection. The production trace retains the funding row's real values: `noid_recursive/src/acceptance/trace/native_assets/actions.rs` takes `slot: row[4]`, `packed_value: row[5]`, `root: [row[6], row[7]]`; `financial_base_projection.rs` masks only by family selector (`slot: mul(b, &selected, &action.slot)`). Only the opening-validation inputs to `bind_native_action_slot` are native-masked. The genesis accumulator (`kernel.rs`, `complete_group_summaries`) uses the real funding row.
 
-The rewritten test verifies both directions against the real `bind_native_kernel` R1CS: the production-faithful witness (real anchor) satisfies; a hypothetically zeroed funding anchor cannot satisfy — i.e. the collection's genesis identity is cryptographically bound to the exact funding slot/value/root. No native-vs-recursive divergence was found on this path.
+The `bind_native_kernel` R1CS accepts the production-faithful witness and rejects a witness with a zeroed funding anchor. This checks binding to the funding slot, value, and root. It does not establish native/recursive equivalence outside this collection-genesis path.
 
 ## Negative and control results
 

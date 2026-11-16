@@ -1,481 +1,177 @@
-# Typed-binding verdict: do our attacks instantiate THEIR bad events?
+# What the typed-binding claim covers
 
-Formal-analysis lane of the parano1d adversarial audit. Question, exactly as
-scoped: do the attacks we already hold — (a) the TAG_CAPSNODE node collision,
-(b) the C21 cross-tag claw, (c) the GF(2^16) algebra — instantiate the bad
-event or violate the assumed bound **as the authors themselves define them**?
-No new attacks were run; everything here is derived from their paper, their
-certificate code/docs, and the PoC-verified objects of the prior lanes.
+This is a reading of the paper and certificate against three previously
+verified objects: a `TAG_CAPSNODE` node collision, a `TAG_CAPSNODE` /
+`IVCPCSN_` cross-tag claw, and the `GF(2^16)` invariant subfield that makes
+both cheap. No new attack was run for this report. The evidence and commands
+for the objects are in `../leaf-reachability/{README.md,results.txt}` and
+`../../poc/src/bin/verify_collision.rs`.
 
- verdict summary up front:
+The distinction is between **a collision in the raw node hash** and **a
+failure of the terminal-state security game**. The former is established.
+The latter has not been demonstrated. Whether the former counts as the
+certificate's `BadTypedBind` event depends on what “typed semantic graph”
+includes.
 
-| Candidate | Verdict (walk reading) | Verdict (dictionary reading) |
-|---|---|---|
-| (a) same-tag node collision | EXCLUDED-BY-CLAUSE | INSTANTIATES (collision cause) |
-| (b) cross-tag claw (C21) | EXCLUDED-BY-CLAUSE + UNMODELED-DOMAIN | INSTANTIATES (collision + domain-confusion causes) |
-| (c) GF(2^16) structure → Delta | NOT FORCED (premise unevaluated) | **FORCES-DELTA: Delta ≥ ~0.95 > 0.4507 (C1) and ≥ ~0.81 > 0.3125 (T=2^64)** |
+| Candidate | Extractor-worklist reading | Measured-dictionary reading |
+| --- | --- | --- |
+| Same-tag node collision | No represented accepting root changes | Two node rows give one anchor more than one pair of children |
+| Cross-tag claw | No represented accepting root changes; the second node domain is not modeled explicitly | Same ambiguity; also a failure of cross-domain binding if equal bytes name both objects |
+| `GF(2^16)` route to `Delta_P2b` | Does not determine `Delta_P2b` | Gives a large `BadTypedBind` probability, conditional on this event including raw node rows |
 
-The two readings are theirs, not ours — their corpus states the typed-binding
-bad event twice, with different scope, and never disambiguates. Both columns
-are licensed public claims; see "Verdicts and licensed public claims".
+## Certificate statements
 
----
+The security game in `noid_soundness/docs/category-one.md` starts from a
+terminal `HistoryStep` State. The adversary wins when the production
+verifier accepts its proof although no valid execution from genesis ends
+there. None of the three objects above is such a proof.
 
-## 1. Their definitions, verbatim
+The same document defines `BadAll(D)` for a *represented accepting* wallet
+or History root whose deterministic extractor fails or returns an invalid
+local witness. It separately names `MissRep` (a required noncertified child
+is absent) and `BadTypedBind` (“a collision, ambiguous encoding or domain
+confusion changes the typed semantic graph”). It states
+`BadState ⊆ BadAll ∪ MissRep ∪ BadTypedBind`. The v2 correspondence note,
+`docs/v2-correspondence-2026-10.md`, describes `BadTypedBind` as
+“object/statement/namespace binding fails” and says that equal digests
+imply equal named objects only under the certificate's binding game. The
+documents do not say unambiguously whether raw node rows outside an
+accepting extractor worklist belong to that game.
 
-Locations: paper = Zenodo 23778742 PDF (text extract
-`post-quantum-signatureless-authorization.txt`) and the artifact's LaTeX
-sources; certificate = `parano1d/noid_soundness/` (read-only checkout
-`52938433a30b185ab007afaa15166a632cf2e82e`).
+The paper's Appendix H.1 (`manuscript/sections/k-native-extraction.tex`,
+lines 27–78) defines a finite dictionary from a measured database `D`.
+Each free permutation record supplies a node anchor and children; the
+reconstruction lemma says that a cap and index determine at most one
+payload. At exponent zero, its proof invokes “the unique node row”. The
+stated guard excludes certain capacity-edge and anchor-orbit conflicts;
+it does not explicitly exclude two distinct node rows with the same
+anchor. The ideal analysis instead charges a separate global binding
+collision term, `6T^3/2^256` (`docs/category-one.md`, eq. 11;
+`src/qrom.rs`, `binding_collision_term`). This is the textual basis for
+counting node-anchor collisions in the measured dictionary.
 
-### 1.1 The certificate's security game (chain level)
+The paper's node hash has a single `v_node` (`k-native-extraction.tex`,
+eq. 52); its three sponge capacities are `CAPSMIX_`, `CAPS256_`, and
+`KSCH256_`. Appendix F's simulator also uses one `v_node`
+(`f-merkle-simulation.tex:83`). Production has at least two distinct
+one-permutation node domains, `TAG_CAPSNODE` and `IVCPCSN_`, plus the
+two-permutation `EXSTNOD` path and additional leaf sponges. The
+certificate mentions “typed commitment domains” in its fixed experiment,
+but the inspected paper and certificate do not define a multi-node-domain
+dictionary corresponding to these production tags. Under the paper's
+single-node dictionary, the cross-tag claw is represented, if at all, as
+two node rows with one digest; its cross-domain character is lost.
 
-`noid_soundness/docs/category-one.md`, "The security game":
+## What the experiments establish
 
-> "The public instance is a terminal `HistoryStep` State. The adversary wins
-> when the production verifier accepts its terminal proof but no valid
-> execution from genesis ends in that State."
+The same-tag witness has distinct child pairs and one production
+`TAG_CAPSNODE` digest. The hardcoded witness is checked by
+`poc/src/bin/verify_collision.rs`. The earlier 72,274 and 111,525
+evaluation counts are in `../FINDINGS.md` (C1–C2). The subfield checks
+and a fresh 167,686-evaluation search are in
+`../leaf-reachability/results.txt`: 4,096 of 4,096 aligned permutation
+states stayed aligned.
 
-`noid_soundness/README.md`: "The remaining rows concern a different game:
-acceptance of an invalid terminal State whose ancestry starts at genesis by a
-quantum adversary."
+The cross-tag witness has one 32-byte root for two different prehashed
+two-leaf trees. Production
+`verify_source_batched_merkle_proof_to_cap` accepts each tree under its
+respective hasher. The recorded claw used 111,423 evaluations and its
+JSON contains both accepted results, distinct leaves, and identical root
+bytes. This refutes the claim in
+`noid_poseidon2b/src/native/compression.rs:319-325` that tag whitening
+prevents distinct trees from sharing collisions. The witness uses a raw
+Merkle interface; the report does not establish acceptance by a capsule,
+PCS proof, wallet, or terminal State. The in-tree semantic consumers
+inspected in `../leaf-reachability/README.md` recompute leaf hashes.
 
-### 1.2 The certificate's bad events
+The mechanism is the public permutation's restriction to `K^4` for
+`K = GF(2^16)`. The production one-permutation compressor XORs the tag
+IV into attacker-controlled right input lanes. Choosing the right input
+in `IV_tag + K^2` places the whole state in `K^4`, reducing the digest
+space on that slice to 32 bits. Both tags select cosets of the same
+restricted function. This is a collision event, not merely a
+distinguishing test against a random permutation. The certificate itself
+says that `Delta_P2b` is not a qPRP distinguishing advantage
+(`docs/category-one.md`, “Fixed Poseidon2b boundary”).
 
-`docs/category-one.md`, "One all-root event" (bad events of the ideal
-compiler; the fixed game's analogues are folded into Delta, section 1.4):
+## Consequences for `BadTypedBind`
 
-> "Every transcript family and statement is placed in a typed,
-> statement-keyed oracle namespace. Let `D` be the single measured
-> compressed-oracle database. Define `BadAll(D)` to mean that there exists any
-> represented accepting wallet or History root for which the deterministic
-> extractor fails or returns an invalid local witness."
->
-> "Two boundary events are kept explicit:
-> ```text
-> MissRep       a required noncertified child is absent from D
-> BadTypedBind  a collision, ambiguous encoding or domain confusion changes
->               the typed semantic graph
-> ```"
->
-> "BadState ⊆ BadAll ∪ MissRep ∪ BadTypedBind."
+On a **worklist reading**, “changes the typed semantic graph” refers to
+the graph traversed from a represented accepting root. Neither witness
+is on such a path. `BadAll` and `MissRep` also do not occur. On that
+reading, the experiments say nothing quantitative about `Delta_P2b`.
+This interpretation follows the extractor's stated starting point; it
+is an interpretation of the underspecified `BadTypedBind` clause, not an
+explicit exclusion written into that clause.
 
-Restated in `docs/v2-correspondence-2026-10.md`, "Deterministic v2 all-root
-extension" (second, broader wording):
+On a **dictionary reading**, the graph is the finite dictionary over the
+measured database `D` in Appendix H.1. Two records with the same node
+anchor and different children make “the unique node row” unavailable.
+The same-tag witness is a direct example. The cross-tag witness gives
+the same ambiguity when represented by the paper's single `v_node`; in
+production it also supplies equal commitment bytes for two different
+tag domains. This reading connects `BadTypedBind` to the ideal analysis's
+global binding-collision term. It remains conditional on a formal account
+of how the fixed game's typed domains and database records are assembled.
 
-> "Define `MissRep` when a required noncertified child is absent and
-> `BadTypedBind` when **object/statement/namespace binding fails**."
-
-And in "Model and authority" of the same document:
-
-> "When a digest is used as authority, the implication from equal digests to
-> equal named objects is conditional on the certificate's binding game."
-
-### 1.3 The typed semantic graph (the object BadTypedBind protects)
-
-The only place either document gives the graph structure is the paper's
-Appendix H.1, "A finite typed dictionary"
-(`manuscript/sections/k-native-extraction.tex`, lines 27-58; PDF lines
-1652-1676):
-
-> "A free permutation record $(x,y)$ gives the capacity edge $x_C\to y_C$ and
-> node anchor $y_R\oplus x_R$, with children $(x_R, x_C\oplus v_{\rm node})$.
-> Reachability starts at the three sponge capacities. Exclude a reachable
-> address capacity, a reachable edge ending at a root, and two distinct
-> reachable edges with the same endpoint. Every reachable vertex then has a
-> unique rooted path."
->
-> "Each row supplies a node anchor and at most one typed leaf anchor. …
-> Let $\mathcal A(D)$ be the resulting at most $2|D|$ anchor classes. The
-> finite guard additionally requires the map $(a,j)\mapsto g^j(a)$, … to be
-> injective, and its image to avoid $Z_D=\{0,b_*\}\cup\{r\oplus v_{\rm node}:
-> r\text{ is a reachable capacity}\}$."
-
-Lemma H.1 (Typed native reconstruction), same file:
-
-> "On a guarded database, a cap and index determine at most one source
-> payload and at most one middle payload. Every accepted opening whose free
-> pairs occur in that database has the reconstructed payload."
-
-with the load-bearing proof step (line 78): "At exponent zero **the unique
-node row** supplies both children."
-
-Two structural facts about this graph, both decisive later:
-
-* **Single node domain.** Equation (52) (PDF line 1620): "The native node is
-  $N(a,b)=\operatorname{rate}P(a,b\oplus v_{\rm node})\oplus a$" — **one**
-  $v_{\rm node}$; and "The three sponge capacities for `CAPSMIX_`,
-  `CAPS256_` and `KSCH256_` are distinct and outside the address slice.
-  Their number is $c=3$." The paper's dictionary has exactly one node tag
-  and three leaf-sponge tags. The simulator of Appendix F uses the same
-  single-domain model (`f-merkle-simulation.tex` line 83: "At a node with
-  child labels $a,b$ and parent label $z$, propose $x=(a,b\oplus v_{\rm node})$…").
-* **The guard does not exclude node collisions.** The guard's clauses
-  (reachable address capacity / edge at a root / two reachable edges with the
-  same endpoint / anchor-orbit injectivity on classes / $Z_D$ avoidance) are
-  all about *capacity edges and anchor orbits*. Two distinct records whose
-  **node anchors coincide** (i.e. two children-pairs with the same feed-forward
-  digest) violate none of them: they form one anchor class with two rows.
-  The reconstruction lemma's "the unique node row" is not delivered by any
-  guard clause. Their certificate implicitly concedes this: it is exactly why
-  the ideal bound carries a *separate* global commitment-collision term
-  (section 1.5), priced at the generic rate. In the ideal model a node
-  collision is a tiny-probability event charged by that term; the lemma
-  operates conditioned on its absence.
-
-### 1.4 Delta_P2b and the certificate's PASS condition
-
-`docs/category-one.md`, "Fixed Poseidon2b boundary":
-
-> "`Delta_P2b(R)` is any explicit upper bound satisfying
-> \[\Delta_{\rm P2b}(R)\ge\max\left\{0,\Pr[\mathsf{BadCompiler}]_{\rm fixed\
-> P2b}-\varepsilon_{\rm ideal}(R)\right\}.\]"
->
-> "The fixed experiment uses the exact `FsLaneChallenger` framing, public
-> Poseidon2b constants, **typed commitment domains**, canonical
-> nested-artifact recording, native verifier and recursive verifier gates."
->
-> "It is not defined as a qPRP advantage between a public fixed permutation
-> and a secret random permutation. Direct evaluation would distinguish those
-> games. … It does not evaluate `Delta_P2b`, because the ideal-degree attack
-> model neither bounds every fixed-permutation failure event nor supplies the
-> required coherent quantum statement."
-
-with `BadCompiler = BadAll ∪ MissRep ∪ BadTypedBind` and
-`Pr[BadState]_production ≤ ε_ideal + Δ_P2b` (eq. 37).
-
-The shipped numbers (`README.md` lines 35-41, `docs/category-one.md` eqs.
-(1),(2); reproduced by `src/qrom.rs` / `src/resource.rs` as
-`half_success_headroom_at_two_to_64` / `fixed_poseidon2b_delta_headroom`):
+The certificate defines
 
 ```text
-at T = 2^64:      Delta_P2b   < 0.312471062061564258   (= 1/2 − 0.187528937938435742)
-at C1 envelope:   Delta_P2b^C1 < 0.450669651771636316  (= 1/2 − 0.049330348228363684)
+Delta_P2b(R) >= max(0, Pr[BadCompiler]_fixed - epsilon_ideal(R))
+BadCompiler = BadAll union MissRep union BadTypedBind
 ```
 
-`src/main.rs:517` prints the PASS as conditional:
-`"assessment: PASS under the typed parallel-QROM, coherent response-cost, and
-fixed-Poseidon2b delta premises"`. Confirmed: nothing in `noid_soundness`
-computes, estimates or bounds Delta; `poseidon2b_cryptanalysis.rs` states in
-its module header, "The production QROM delta remains a separate premise of
-the end-to-end theorem." (This lane endorses the prior fact-check finding:
-Delta is not a qPRP advantage, and the subfield *distinguisher* by itself
-attacks no premise. The route below is the collision *event*, not a
-distinguisher.)
+(`docs/category-one.md`, eq. 37 and “Fixed Poseidon2b boundary”). Its
+published sufficient conditions require
+`Delta_P2b(2^64) < 0.312471062061564258` and
+`Delta_P2b^C1 < 0.450669651771636316`. The corresponding ideal terms
+are `0.187528937938435742` and `0.049330348228363684`
+(`noid_soundness/README.md:35-41`; `docs/category-one.md`, eqs. 1–2;
+`src/{qrom,resource}.rs`).
 
-### 1.5 The ideal bound whose fixed-game counterpart Delta must absorb
+**If** both witnessed raw node rows can be recorded in `D`, and that
+recording is itself `BadTypedBind`, the fixed event is certain for this
+witness. The definition then requires
 
-`docs/category-one.md` eq. (11) and its term table:
-
-> `ε_ideal(T) = min{1, 6T²(κ* + (2T+1)/2^255) + 6T³/2^256}`
->
-> | `6T^3/2^256` | one global commitment and binding collision event |
-
-(qrom.rs `binding_collision_term`; parameters.rs pins `digest_bits = 256`.)
-On the simulator side the same generic pricing appears as the Appendix F
-fences: proposed node pairs must have "distinct inputs and outputs", with
-collision fences costing `C̄ = (L̄+1)C(m,2) + L̄m² + (L̄+1)mn` over `s = 2^256`,
-`C̄/s < 2^-214` — i.e. in their ideal model a node-digest collision is an
-explicit bad event at the 2^256 generic birthday rate.
-
-### 1.6 What instantiating each event formally requires (derivation table)
-
-| Their event / bound | Formal requirement to instantiate | Where our objects stand |
-|---|---|---|
-| `BadState` (the game win) | Production *terminal* verifier accepts an invalid State | No lane has this; leaf wall blocks the lift from node collisions (leaf-reachability Finding C) |
-| `BadAll` | A **represented accepting** wallet/History root whose extractor fails or yields an invalid witness | Claw/collision objects are prehashed; never represented accepting roots |
-| `MissRep` | A *required* noncertified child absent from D | Nothing requires our objects as children |
-| `BadTypedBind` (cause side) | "a collision, ambiguous encoding or domain confusion" — (a) and (b) each are literally this | satisfied by (a); (b) satisfies two causes at once |
-| `BadTypedBind` (object side) | "…changes the typed semantic graph" — **which graph is the entire dispute**: the H.1 dictionary over the measured database D, or only the extractor worklist over represented accepting roots | (a),(b) change the dictionary graph; they never touch the worklist graph |
-| Delta_P2b premise | Pr[BadCompiler]_fixed − ε_ideal < 0.3125 / 0.4507 | forced false under the dictionary reading of BadTypedBind; unevaluated (not false) under the worklist reading |
-
----
-
-## 2. The model-vs-object gap (coordinator's question, answered)
-
-The paper formalizes **one** node domain (`v_node`, eq. 52) and three leaf
-sponge capacities (`c = 3`). Production ships a *tag-parameterized* node
-compressor with at least two 1-perm node domains (`TAG_CAPSNODE`,
-`IVCPCSN_`), one 2-perm node domain (`EXSTNOD`), and four leaf sponges. Their
-own October review states the production function
-(`docs/october-2026-attack-review.md`):
-
-> "The actual tagged compression is
-> ```text
-> W = (a0, a1, b0 + IV_hi(tag), b1 + IV_lo(tag))
-> H_tag(a,b) = (P(W)_0 + a0, P(W)_1 + a1).
-> ```"
-
-and the certificate's fixed experiment is defined to include "typed
-commitment domains" (plural) — but **no document in the corpus defines a typed
-dictionary over multiple node domains**. Consequences:
-
-1. Under the paper's own H.1 dictionary, a `CAPSNODE` row and an `IVCPCSN_`
-   row are *the same kind of row* (one `v_node`): the cross-tag claw is, to
-   their formal model, a plain node collision — two rows, one anchor class —
-   and the "domain confusion" cause has no model object to attach to. Their
-   definitions do not describe the shipped domain structure at all.
-2. Under the certificate's plural-domains language, the inter-domain binding
-   property (equal commitment bytes must not authenticate objects in two
-   domains) is exactly the property the shipped design comment claims
-   (`noid_poseidon2b/src/native/compression.rs:319-325`: "the caller-selected
-   tag whitens the right-input lanes so distinct trees cannot share
-   collisions") and exactly the property the claw refutes at 2^16 — and it
-   appears in their security statement only inside the never-evaluated Delta
-   premise, via BadTypedBind's one under-specified line.
-3. No clause anywhere catches the cross-tag case *as a cross-tag case*. The
-   only clauses that can catch it at all are the two general ones — "a
-   collision … changes the typed semantic graph" and (v2) "object/statement/
-   namespace binding fails" — and their scope is the reading dispute of
-   section 3.
-
----
-
-## 3. Per-candidate derivations
-
-### Candidate (a) — TAG_CAPSNODE node collision (same domain)
-
-Object: two distinct (left,right) input pairs, one digest, under the single
-tag `TAG_CAPSNODE`, through the production
-`compress_flat_feed_forward_with_tag`. Evidence:
-`poc/src/bin/verify_collision.rs` hardcodes both pairs, asserts
-`assert_ne!(first, second)` and `assert_eq!(first_digest, second_digest)`;
-mechanism and fresh regenerations in leaf-reachability
-(`results.txt`, bin 1: `"known_production_collision": digest … b2cf54a4…78b,
-"digest_in_GF2_16": true, "left_children_in_GF2_16": true,
-"right_children_in_IV_plus_GF2_16": true`; fresh zero-left birthday 167,686
-evals / 0.29 s; `P(K^4)=K^4` invariant 4096/4096).
-
-Derivation against their events:
-
-* `BadState`: no. Nothing submits a terminal State; the semantic layer
-  recomputes leaf hashes.
-* `BadAll`: no. No represented accepting root exists whose extraction fails.
-* `MissRep`: no.
-* `BadTypedBind`, cause side: **yes, literally** — this is "a collision".
-* `BadTypedBind`, object side: depends on the graph.
-  * *Worklist reading* (the graph the certificate's proof walks: "a
-    deterministic worklist starts at the accepted terminal … reconstructs its
-    canonical nested artifacts", and `BadAll`'s quantifier "any represented
-    accepting … root"): the collision inputs are prehashed digests; every
-    semantic consumer recomputes leaf hashes (leaf-reachability Finding B:
-    `noid_fri_binius/src/capsule.rs:805`, `zk_capsule_pcs.rs:1000,1018`,
-    recursive twins), so no represented artifact's reconstruction is ever
-    ambiguous. **EXCLUDED-BY-CLAUSE**: the clause is "changes the typed
-    semantic graph", scoped by their own quantifiers to represented
-    accepting artifacts.
-  * *Dictionary reading* (the graph H.1 actually defines, over the measured
-    database D): the two colliding evaluations are records of D; they form
-    one anchor class with two node rows and two child-pairs; "the unique
-    node row supplies both children" fails at that anchor; a cap (plus index
-    at exponent zero) no longer "determine[s] at most one source payload".
-    This is precisely the event their ideal bound prices at `6T³/2^256`.
-    **INSTANTIATES** (cause: collision).
-* Note what their definitions do *not* say: no clause requires semantic
-  verifier acceptance for BadTypedBind. That requirement is read in from
-  `BadAll`'s quantifier and the worklist — the strongest textual basis their
-  side has, and it is a scope inference, not a stated condition.
-
-### Candidate (b) — C21 cross-tag claw (strongest candidate)
-
-Object: one 32-byte digest valid as a node root in **both** the `CAPSNODE`
-and the `IVCPCSN_` domains; two prehashed 2-leaf trees with identical
-commitment bytes, each accepted by the production raw verifier
-`verify_source_batched_merkle_proof_to_cap` under its own node hasher.
-Evidence (leaf-reachability `results.txt`, bin 2):
-`"capsnode_raw_verify": "accepted"`, `"ivcpcsn_raw_verify": "accepted"`,
-`"roots_identical": true`, `"leaves_distinct": true`,
-`shared_digest_hex 9964c133…429a`, `capsnode_evaluations: 111423`,
-`claw_seconds: 0.37`. This is exactly "one authenticated object, two
-semantics", obtained for ~2^16 work.
-
-Derivation:
-
-* `BadState`, `BadAll`, `MissRep`: no, as in (a) (raw/prehashed surface only;
-  leaf-reachability Finding B sweep: no in-tree caller compares digests
-  across domains; the `tower_lanes_to_flat_digest` bridge is `#[cfg(test)]`).
-* `BadTypedBind`, cause side: **yes, twice over** — "a collision" *and*
-  "domain confusion". The v2 wording matches verbatim: "namespace binding
-  fails" — one commitment value (the authority) authenticates two different
-  named objects in two namespaces, with both acceptances issued by
-  production code.
-* `BadTypedBind`, object side, worklist reading: **EXCLUDED-BY-CLAUSE**, same
-  clause and same scope inference as (a): the claw never changes the graph
-  the extractor walks, because that graph is anchored at leaf sponges whose
-  capacity IVs (63+ tower bits) eject the state from every invariant
-  subfield — their own design, accidentally, is what keeps our object out of
-  their event.
-* `BadTypedBind`, object side, dictionary reading: **INSTANTIATES** — and
-  *a fortiori* under their paper's single-`v_node` dictionary, where the two
-  claw rows are same-domain node rows sharing one anchor class (section 2):
-  the reconstruction ambiguity is immediate, no cross-domain notion is even
-  needed to break it.
-* The additional, reading-independent finding: their formal model **cannot
-  see the cross-tag structure at all** (one `v_node`; `c = 3` sponge
-  capacities; no multi-domain dictionary defined anywhere), so the property
-  their design comment claims ("distinct trees cannot share collisions") is
-  a property about an object their security statement never models. The
-  shipped domain separation is real code carrying a formalization that has
-  no corresponding symbol.
-
-### Candidate (c) — the GF(2^16) structure and Delta
-
-Facts (leaf-reachability README + `results.txt`, bins 1 and 3): every round
-constant and MDS multiplier lies in `K = GF(2^16)` (their own pinned
-`AUDITED_INTERNAL_MATRIX` in `poseidon2b_cryptanalysis.rs` is
-`[[0x20,1,1,1],[1,0x2000,1,1],[1,1,0x200,1],[1,1,1,0x800]]` — all in K);
-`P(K^4) = K^4` exactly (4096/4096; restriction injective; a random
-permutation preserves a 64-dim subspace with probability 2^-448); the 1-perm
-tagged compressor whitens only the right input, so `left ∈ K², right ∈
-IV_tag + K²` pins the state in K^4 — a 64→32-bit function with a 2^16
-birthday; the restriction is the *same* function for every tag (the tag only
-selects the right-input coset), so inter-domain separation on the aligned
-coset is ~16 bits, not 128. Their cryptanalysis audit instantiates ePrint
-2026/306 (Appendix A feed-forward, `d_I ≤ 7^73`, 409.87-bit projection),
-2026/1792 (nonlinear subspaces, ≥ 1022.83 bits) and 2026/1905 (screening
-only); **none of these models instantiates the subfield restriction**, which
-is the structure that actually fires — so their published-attack
-correspondence provides no Delta value along this channel either.
-
-Delta derivation. By their definition (1.4),
-
-```
-Delta_P2b(R) ≥ max{0, Pr[BadCompiler]_fixed − ε_ideal(R)},
-BadCompiler ⊇ BadTypedBind.
+```text
+Delta_P2b(2^64) >= 1 - 0.187528937938435742 = 0.812471062061564258
+Delta_P2b^C1    >= 1 - 0.049330348228363684 = 0.950669651771636316
 ```
 
-Dictionary reading of BadTypedBind: the adversary (classically, the
-permutation is public — these are gate charges, not oracle queries) runs the
-aligned-coset birthday until a colliding pair of node rows exists in its
-query history; measured cost 72k-168k evaluations (~2^17.1 permutations ≈
-2^41.4 gates in their own scalar price of 17,648,280 gates — inside the C1
-envelope G = 2^130 at MAXDEPTH 2^40 with ~89 bits of margin, and inside
-T = 2^64 sequential with 2^47 margin); repeat a handful of times so
-Pr[collision recorded] → 1. Then Pr[BadTypedBind]_fixed = 1 (candidate (a)
-suffices; (b) additionally instantiates the domain-confusion cause), so
+Both exceed the sufficient-condition thresholds. Even a success
+probability above `0.5` suffices to exceed either threshold. The recorded
+search is classical, about `2^17` permutation evaluations. The
+certificate's own scalar gate estimate is 17,648,280 per permutation,
+yielding roughly `2^41.4` gates for one recorded search, within the
+cited C1 envelope
+`G = 2^130`, `MAXDEPTH = 2^40`. This calculation is a conditional
+consequence of the dictionary reading, not a measured `Delta_P2b` or a
+terminal-state forgery. On the worklist reading, it does not apply.
 
-```
-Delta_P2b(2^64)  ≥ 1 − 0.187528937938435742 = 0.812471062061564258  > 0.312471062061564258  (eq. 1 refuted)
-Delta_P2b^C1     ≥ 1 − 0.049330348228363684 = 0.950669651771636316  > 0.450669651771636316  (eq. 2 refuted)
-```
+The certificate prints “PASS under the typed parallel-QROM, coherent
+response-cost, and fixed-Poseidon2b delta premises”
+(`noid_soundness/src/main.rs:517`). Its cryptanalysis module says the
+production-QROM delta remains an end-to-end premise
+(`src/poseidon2b_cryptanalysis.rs`). No value of `Delta_P2b` is computed
+in the inspected artifact. The module's published-attack models do not
+instantiate the `GF(2^16)` restriction; that is a gap in the evidence for
+the premise, regardless of which `BadTypedBind` scope is intended.
 
-i.e. **no valid bound below their own thresholds exists: the sufficient
-conditions are unsatisfiable for the shipped permutation, and the
-certificate's PASS premise ("fixed-Poseidon2b delta premises") is false
-under this reading of their own definition.** The forcing route is the
-collision *event* inside BadCompiler — it is not, and does not use, a qPRP
-distinguishing advantage (their explicit disclaimer, section 1.4, is
-respected: the distinguisher P(K^4)=K^4 w.p. 1 is what makes the event
-cheap, but the Delta-relevant quantity is Pr[BadTypedBind]).
+## Scope of the result
 
-Worklist reading of BadTypedBind: Pr[BadCompiler]_fixed for this adversary
-stays ~0 — the claw changes no represented accepting root, and every
-BadState-relevant route through the subfield structure is dominated
-(leaf-reachability cost table: aligned lifts 2^464 / 2^416 / 2^320 vs generic
-2^128). Delta is then **not forced** by the measured structure; it remains
-what it already was: a premise the certificate states, needs, and never
-evaluates. The definition evades the structure by scope, not by bound.
+The established production issue is cheap equality of node commitments,
+including across two tags, at a raw verifier that accepts prehashed leaves.
+The formal issue is that the paper models one node domain while the
+certificate names multiple typed domains without specifying the
+corresponding dictionary or whether raw node collisions count as
+`BadTypedBind`. Under the broad dictionary reading, the cheap collision
+conflicts with the published `Delta_P2b` thresholds. Under the narrow
+worklist reading, these witnesses do not evaluate that premise. Neither
+reading turns the witnesses into an accepted invalid terminal State.
 
----
-
-## 4. Verdicts and licensed public claims
-
-**Candidate (a) — same-tag node collision.**
-EXCLUDED-BY-CLAUSE (worklist reading) / INSTANTIATES (dictionary reading).
-Licensed claim (safe under both readings):
-
-> "A node-hash collision in the shipped Poseidon2b compressor does not by
-> itself win their game or fire their extractor-level bad events; whether it
-> fires their typed-binding event depends on a scope their two documents
-> state differently and never resolve — as a collision among database
-> records it is exactly the event their ideal bound prices at 6T³/2^256,
-> while as a change to the extractor's semantic graph it is excluded because
-> every semantic consumer recomputes leaf hashes."
-
-**Candidate (b) — cross-tag claw.**
-EXCLUDED-BY-CLAUSE + UNMODELED-DOMAIN (worklist reading) / INSTANTIATES
-(dictionary reading).
-Licensed claim (safe under both readings, and the publishable core):
-
-> "The certificate's typed-binding bad event does not cover the shipped
-> object's actual commitment-domain structure: the paper's typed dictionary
-> formalizes a single node domain (one v_node), the certificate says 'typed
-> commitment domains' without defining a dictionary over them, and the
-> cross-tag claw — one 32-byte commitment accepted by the production raw
-> verifier in both the CAPSNODE and IVCPCSN_ domains for ~2^16 work — is
-> either outside every bad event they define or, under the reading that makes
-> their own ideal binding-collision term meaningful, a direct instantiation
-> of 'a collision or domain confusion'."
-
-**Candidate (c) — Delta.**
-FORCES-DELTA under the dictionary reading; NOT-FORCED-but-UNEVALUATED under
-the worklist reading.
-Licensed claim (conditional form):
-
-> "Under the reading of BadTypedBind as the fixed-game counterpart of the
-> ideal model's global binding-collision event — the only reading under
-> which that 6T³/2^256 term corresponds to anything — the measured GF(2^16)
-> invariant-subfield structure forces Delta_P2b above both of the
-> certificate's stated thresholds (≥ 0.95 vs < 0.4507 at Category 1; ≥ 0.81
-> vs < 0.3125 at T = 2^64), so the certificate's PASS condition cannot hold
-> for the shipped permutation; under the narrower extractor-worklist reading
-> Delta is merely never evaluated — no text in the paper, certificate, or
-> audit docs bounds it."
-
-**Single strongest licensed claim** (for the final message):
-
-> Their certificate's fixed-Poseidon2b premise is either false or vacuous
-> for the shipped object: false, because the 2^16 cross-tag claw instantiates
-> their own typed-binding bad event ("a collision or domain confusion") and
-> forces Delta_P2b^C1 ≥ 0.95 against a required < 0.4507; or vacuous, because
-> their security statement — whose paper formalizes a single node domain —
-> defines no bad event that covers the shipped multi-tag commitment layer at
-> all, leaving the exact property their design comment claims ("distinct
-> trees cannot share collisions") outside their theorem in either case.
-
-### What their theorem is therefore not about (the exclusion list)
-
-If they adopt the worklist reading to keep the claw out, these are the
-surfaces their definitions thereby exclude — each now documented with the
-excluding clause:
-
-1. **Raw-verifier acceptance.** `verify_source_batched_merkle_proof_to_cap`
-   (and `hash_pair`) accept prehashed trees; no bad event looks at them
-   (excluding clause: `BadAll`'s "represented accepting … root" + the
-   worklist's leaf recomputation).
-2. **Cross-domain commitment-byte identity.** One digest authenticating
-   objects in two typed domains is not an event under the single-`v_node`
-   dictionary; under plural domains no dictionary is defined (excluding
-   clause: the absence itself, section 2).
-3. **Subfield-aligned node collisions.** Two node rows, one anchor class —
-   the H.1 guard does not exclude them; the ideal model prices them at
-   6T³/2^256; the fixed model's price is 2^16 and no Delta bound exists
-   (excluding clause: the walk-scope of "changes the typed semantic graph").
-4. **The multi-tag node layer as such.** Symbols `v_node` (one) and `c = 3`
-   (sponge capacities) do not describe production's tag set; the fixed
-   experiment's "typed commitment domains" are carried only by the Delta
-   premise.
-5. **The Delta premise itself.** Stated, required by the PASS line, never
-   evaluated anywhere in the corpus; their three instantiated
-   attack-correspondence models (2026/306, 2026/1792, 2026/1905) do not
-   model the subfield restriction that actually fires.
-
----
-
-## 5. Sources
-
-* Paper: `/Users/ember/paperbin/zenodo_23778742_signatureless_auth/`
-  (PDF + text extract; LaTeX in
-  `artifact/signatureless-authorization-artifact/manuscript/sections/`,
-  notably `k-native-extraction.tex` [H.1], `f-merkle-simulation.tex` [F],
-  `j-fresh-extraction.tex` [G]).
-* Certificate: `/Users/ember/dev/parano1d-break/parano1d/noid_soundness/` —
-  `README.md`, `docs/category-one.md`, `docs/v2-correspondence-2026-10.md`,
-  `docs/october-2026-attack-review.md`, `src/{main,qrom,resource,local,
-  parameters,poseidon2b_cryptanalysis}.rs`.
-* PoC evidence: `/Users/ember/dev/parano1d-break/poc/src/bin/verify_collision.rs`
-  (hardcoded witness); `/Users/ember/dev/parano1d-break/experiments/
-  leaf-reachability/{README.md,results.txt}` (quoted lines in sections 3a-3c).
-* No runs were executed in this lane; all quantitative statements trace to
-  the quoted evidence lines of the prior lanes and to the certificate's own
-  pinned arithmetic.
+Sources: Zenodo 23778742 paper and LaTeX under
+`/Users/ember/paperbin/zenodo_23778742_signatureless_auth/`;
+certificate checkout `parano1d/noid_soundness/` at
+`52938433a30b185ab007afaa15166a632cf2e82e`; production witness
+`poc/src/bin/verify_collision.rs`; experimental evidence
+`experiments/leaf-reachability/{README.md,results.txt}`.
