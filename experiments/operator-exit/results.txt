@@ -1,0 +1,27 @@
+{
+  "sender_reply": {
+    "txid": "5874ece9e09a752652e7acb769a8e436e7aa4c095de89eb3168d155e82b728dd",
+    "amount_micronoid": 100000,
+    "fee_micronoid": 9000,
+    "input_count": 1,
+    "output_count": 2
+  },
+  "receiver_pool_before": 0,
+  "run_id": "20261115-183253",
+  "peers_before": [
+    0,
+    0
+  ],
+  "peers_after": [
+    0,
+    0
+  ],
+  "receiver_entry_after_5s_is_none": true,
+  "sender_tip": 150,
+  "receiver_tip": 150
+}
+{
+  "receiver_observed_after_connection": true,
+  "receiver_peers_after_connection": 1,
+  "txid": "5874ece9e09a752652e7acb769a8e436e7aa4c095de89eb3168d155e82b728dd"
+}

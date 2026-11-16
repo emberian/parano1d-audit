@@ -7,6 +7,7 @@ import signal
 import subprocess
 import time
 import urllib.request
+import re
 
 ROOT = Path(__file__).resolve().parents[2]
 LANE = Path(__file__).resolve().parent
@@ -15,9 +16,9 @@ SRC = ROOT / "experiments/devnet-chaos/run"
 BIN = ROOT / "experiments/devnet-chaos/bin"
 NODE = BIN / "parano1d"
 CLI = BIN / "parano1d-cli"
-ISOLATED = os.environ.get("OPERATOR_EXIT_ISOLATED") == "1"
-if ISOLATED:
-    NODE = ROOT / "experiments/devnet-chaos/target-linux/default/debug/parano1d"
+RUN_ID = os.environ.get("OPERATOR_EXIT_RUN_ID", time.strftime("%Y%m%d-%H%M%S"))
+if not re.fullmatch(r"[A-Za-z0-9_-]{1,48}", RUN_ID):
+    raise RuntimeError("OPERATOR_EXIT_RUN_ID must be 1-48 letters, numbers, _ or -")
 RUN.mkdir(exist_ok=True)
 
 
@@ -53,8 +54,7 @@ def clone(source, name):
     target = RUN / name
     if target.exists():
         raise RuntimeError(f"refusing to overwrite {target}")
-    copy_command = ["cp", "-a"] if ISOLATED else ["cp", "-cR"]
-    subprocess.run(copy_command + [str(SRC / source), str(target)], check=True)
+    subprocess.run(["cp", "-cR", str(SRC / source), str(target)], check=True)
     # Distinct P2P identities; the chain data and synthetic funded wallet remain.
     (target / "p2p_identity.key").unlink(missing_ok=True)
     return target
@@ -89,8 +89,6 @@ def stop(name, process, stream, rpc):
 
 
 def address(port):
-    if ISOLATED:
-        return call(port, "walletActiveAddress")["address"]
     result = subprocess.run([str(CLI), "--rpc", f"http://127.0.0.1:{port}", "address"],
                             capture_output=True, text=True, check=True)
     return next(word for word in result.stdout.split() if word.startswith("o1"))
@@ -98,7 +96,7 @@ def address(port):
 
 sender = receiver = None
 try:
-    suffix = "-netns" if ISOLATED else ""
+    suffix = "-host-" + RUN_ID
     sender_path = clone("n1-pool", "sender" + suffix)
     receiver_path = clone("n2-relay", "receiver" + suffix)
     sender = start("sender", sender_path, 19910, 19911)
@@ -117,6 +115,7 @@ try:
     assert sender_peers_after == receiver_peers_after == 0, "peer appeared during partition control"
     unseen = call(19921, "getMempoolEntry", [txid])
     print(json.dumps({"sender_reply": result, "receiver_pool_before": before,
+                      "run_id": RUN_ID,
                       "peers_before": [sender_peers_before, receiver_peers_before],
                       "peers_after": [sender_peers_after, receiver_peers_after],
                       "receiver_entry_after_5s_is_none": unseen is None,
@@ -129,6 +128,7 @@ try:
     entry = wait("receiver mempool entry after peer connection",
                  lambda: call(19921, "getMempoolEntry", [txid]), timeout=120)
     print(json.dumps({"receiver_observed_after_connection": entry is not None,
+                      "receiver_peers_after_connection": call(19921, "getPeerCount"),
                       "txid": txid}, indent=2))
 finally:
     if receiver:
