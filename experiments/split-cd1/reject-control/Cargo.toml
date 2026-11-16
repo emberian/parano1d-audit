@@ -1,0 +1,18 @@
+[package]
+name = "split-cd1-reject-control"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+anyhow = "1"
+hex = "0.4"
+noid_chain = { path = "../../comp-system-hunter/pinned/noid_chain" }
+tempfile = "3"
+
+[workspace]
+exclude = ["../../comp-system-hunter/pinned"]
+
+[profile.dev]
+opt-level = 1
+debug = 0

@@ -1,0 +1,32 @@
+[package]
+name = "split-cd1-fixture"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+anyhow = "1"
+hex = "0.4"
+noid_block = { path = "../tree/noid_block" }
+noid_chain = { path = "../tree/noid_chain" }
+noid_core = { path = "../tree/noid_core" }
+noid_gkr = { path = "../tree/noid_gkr" }
+noid_ivc_core = { package = "noid-ivc-core", path = "../tree/noid_ivc_core" }
+noid_mempool = { path = "../tree/noid_mempool" }
+noid_miner = { path = "../tree/noid_miner" }
+noid_poseidon2b = { path = "../tree/noid_poseidon2b" }
+noid_recursive = { path = "../tree/noid_recursive" }
+noid_tx = { path = "../tree/noid_tx" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tempfile = "3"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+zstd = "0.13"
+
+[workspace]
+exclude = ["../tree"]
+
+[profile.dev]
+opt-level = 1
+debug = 0
