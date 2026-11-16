@@ -1,0 +1,35 @@
+CONTROL s1 losing fork paid the payee: payee_total=19994200 at height 11 (close fee 5800)
+CONTROL twin-equality[s1-after-reorg]: root=5ecf7ba16defa43408a737813b56641f59d4028846bd397f155d5c47c24c4b6e supply=433797500 alloc=13 active=12 height=11
+CONTROL s1 refund on losing fork rolled back: payee_total=0 root_utxo_resurrected=true
+CONTROL twin-equality[s1-after-replay]: root=32122f9262db4a413d9d110805597c07b81ba8ada826d3af0be24830336fabb3 supply=448197500 alloc=15 active=13 height=12
+CONTROL s1 replay on winner accepted once: payee_total=19994200 exactly-one-satisfaction-on-surviving-chain=true
+CONTROL s1 double-satisfaction: rejected at template: block template: StateApplyError("UnknownOrSpentInput")
+CONTROL s1 phase selection: authority_at(39)=payee; the same terminal page fails Recipient at 40 (recipient binding flips with the phase)
+CONTROL s2 long fork executed payer recovery at height 16: payer_total=19994200
+CONTROL s2 shorter fork is heavier: 5 stalled blocks outweigh 6 floor blocks (v2 ASERT re-anchoring compounds compression)
+CONTROL twin-equality[s2-after-reorg]: root=5ddd2cd853ca68d81b94b32e8f223f2bef24b50a0bf558eaef71b3546cf620e7 supply=491397500 alloc=18 active=16 height=15
+CONTROL s2 height-decreasing reorg across deadline: tip 16->15 payer_recovery_evaporated=true payee_claim_survived=true twin_equal=true
+CONTROL s2 phase re-derived: recovery page fails Recipient at new candidate height 15 (terminal close below the deadline belongs to the claim recipient)
+CONTROL s3 losing-fork draw applied: remaining_budget=991000 window_end=16 successor_slot=7000030
+CONTROL twin-equality[s3-after-reorg-and-redraw]: root=7ffb3d631c9f2f8a844ac8bfe7332a10726ecb2dc753aee171ed6cb27d8e6e67 supply=448195000 alloc=16 active=14 height=12
+CONTROL s3 counters reverted with the fork: draw-on-A vanished, draw-on-B stands, twin_equal=true (no double-draw, no resurrected budget)
+CONTROL s3 cross-fork draw replay: rejected at template: block template: StateApplyError("UnknownOrSpentInput")
+CONTROL twin-equality[s3-after-replay-attempt]: root=7ffb3d631c9f2f8a844ac8bfe7332a10726ecb2dc753aee171ed6cb27d8e6e67 supply=448195000 alloc=16 active=14 height=12
+CONTROL s3 budget exhaustion holds on winner: contract: Program(Assertion { step: 6 })
+CONTROL s4 sequential double-spend rejected at template: block template: StateApplyError("UnknownOrSpentInput")
+CONTROL twin-equality[s4-after-reorg]: root=5f57e935e3302c12ad2bc90a55562a365d346ac90264f392ec381c4da6cbd307 supply=433795000 alloc=15 active=13 height=11
+CONTROL s4 reorg resolved the allowance race to exactly one authorization: recipient_a=0 recipient_b=15000000 twin_equal=true
+CONTROL s4 losing authorization retry: rejected at template: block template: StateApplyError("UnknownOrSpentInput")
+CONTROL twin-equality[s4-after-loser-retry]: root=5f57e935e3302c12ad2bc90a55562a365d346ac90264f392ec381c4da6cbd307 supply=433795000 alloc=15 active=13 height=11
+CONTROL s5 same-block mint+spend chaining rejected at the page-stream level (input/output slot intersection must be empty)
+CONTROL s5 two contract machines advancing in one block accepted: both payouts live on fork B
+CONTROL twin-equality[s5-onto-two-contract-block]: root=6bcdd808e2a43c5ec05c1cdf8e97f77f95b1d3fd743de0c8fde14b3f4df3b928 supply=448190000 alloc=20 active=16 height=12
+CONTROL s5 reorg onto the two-contract block restored counters exactly (alloc/active/root equal to twin)
+CONTROL twin-equality[s5-off-two-contract-block]: root=a0667b5a3dcce26262e1239639c9320d98c133bd086fcfb18222efbe93883ab4 supply=462595000 alloc=17 active=15 height=13
+CONTROL s5 rolling back the two-contract block restored alloc_counter/active_slot_count/root and both roots to the twin exactly
+CONTROL s5 staged-reorg abort with contract pages restored hot+durable state (tip/root/supply unchanged)
+CONTROL pinning: recurring claim valid at its built height 12 only; at 13 the successor root mismatches (a miner cannot shift the schedule by delaying inclusion)
+CONTROL pinning: successor claim due at 15 stays claimable later, but is height-pinned to its built inclusion height
+CONTROL pinning: tranche claim built at 12 also valid at 11 and 15 (due is State1 <= Height, next unlock = previous + 3: inclusion-height independent)
+CONTROL pinning: in-window budget draw valid across window heights; window-opening draw (reset) valid only at its built height
+contract-reorg-audit: all assertions passed for all

@@ -103,6 +103,8 @@ Sixteen completed attack lanes tried to turn these collisions into protocol-leve
 
 And the semantic chains never touch the broken function at all: state, transaction-root, segment and claim nodes use the two-permutation full-sponge construction, and object roots use one-permutation duplex wraps. The known colliding pair does *not* collide under `TAG_EXSTNOD`, `TAG_TXROOT`, `TAG_SEGMENTTREE`, or `TAG_CLAIMS`, and the object-root wraps are single-bit sensitive — flipping any of 32 tested program words moves the digest. The `2^16` world and the money world never meet. That is the leaf wall.
 
+The escalation question, answered directly: we found no way to escalate any collision into history, snapshot-sync, or other runtime confusion — every route is closed and named. (The snapshot-poisoning attack of §4.4 is an independent validation-differential bug — a wall-clock rule dropped on one admission path — with no hash-collision involvement.)
+
 One related malleability is real but shallow: *C5* *[RV]* — at the legacy `noid_fri` public verifier, the padding value `PAD = 0x01000000000000000000000000000080` is itself a valid data lane, so absorbing `x` and absorbing `x` followed by `PAD` leaves the transcript in the same state; the verifier checks the final codeword is nonempty rather than exactly the right length. Distinct five-lane and six-lane proofs therefore verify for one statement, with no collision search at all. No current caller of that legacy API was found, and the newer framed protocols reject the ambiguity — but it is a public API that malleates.
 
 == The soundness certificate: false or vacuous
@@ -156,9 +158,9 @@ The first two findings need no credentials, no stake, and no identity cost. Both
 
 C17 and C22 compose: both anonymous, both attacking the same shared 64 MiB byte domain and the delivery paths. The combined live demonstration is queued in the devnet-chaos lane (§11).
 
-== What a patient peer can do: first-sync snapshot poisoning (MN-A) *[RV-T]*
+== What a patient peer can do: first-sync snapshot poisoning (C26) *[RV-T]*
 
-Snapshot sync is how a fresh node bootstraps: instead of validating every block from genesis, it downloads a committed snapshot of the history and state. The malicious-node lane demonstrated, end-to-end against the pinned production code (every step the real function, driven in the node's real order; all local assertions passed), that a malicious serving node can make a snapshot-syncing peer *commit and finalize* a header history that every honest validator rejects by rule:
+Snapshot sync is how a fresh node bootstraps: instead of validating every block from genesis, it downloads a committed snapshot of the history and state. The malicious-node lane's headline finding (numbered C26 here) demonstrated, end-to-end against the pinned production code (every step the real function, driven in the node's real order; all local assertions passed), that a malicious serving node can make a snapshot-syncing peer *commit and finalize* a header history that every honest validator rejects by rule:
 
 + *The attacker mines a real-PoW fork* carrying one far-future timestamp in the middle (the demonstration used a 24-header chain whose height-12 header is timestamped ten years in the future). This is cheap on the ramp: snapshot staging drops the wall-clock drift cap for every non-tip header, and a far-future parent drives the child difficulty target straight to the unconditional genesis floor — the exact gaming the drift cap's own comment says it exists to prevent.
 + *The honest admission path rejects this chain* (`BadTimestamp` at the poisoned height, using the local clock). A node syncing header-by-header can never be fed it.
@@ -309,7 +311,7 @@ What malice costs, and what it buys. Every row is attacker cost (compute, tokens
   [Zombie supply (C20)],
   [one local database row write (or bit rot / tampered backup)],
   [(P) node silently diverges upward, or permanently rejects every real spend while coinbase-only blocks keep it looking alive],
-  [Snapshot poisoning (MN-A)],
+  [Snapshot poisoning (C26)],
   [dominate a fresh or eclipsed node's peer set at snapshot-offer time; mine a real-PoW fork (one far-future timestamp collapses the difficulty ramp to the genesis floor; an in-drift eclipse reaches the same floor over time — the cost is the ramp, not the floor); terminals come free with mining; `--genesis` makes the chain generation zero-config],
   [(P) the victim commits rule-invalid history as finalized at install; the honest network becomes permanently unreachable (wipe-only recovery) while honest peers are blacklisted as divergent; the victim re-serves the poison to the next syncer],
 )
@@ -334,23 +336,24 @@ The pattern across all of it: the *semantic* layer (where money is decided) is g
 
 = Severity summary
 
-Classes: *MAJOR* — a major problem: ships a false promise, breaks a production primitive, or lets an unauthenticated stranger degrade the network. *SHOULD-FIX* — a real defect with a bounded or conditional path; fix it, but say precisely what it is. *HYGIENE* — noted for cleanliness, hardening, or claim accuracy. C14 is omitted (it is a neutral witness, not a defect). Counts: 10 MAJOR, 20 SHOULD-FIX, 20 HYGIENE.
+Classes: *MAJOR* — survives the question "so what did you exploit?" either with a demonstrated runtime consequence or with a claim-level kill: unauthenticated degradation of the network, a false security or authentication posture, a user-facing trust failure, or permanent poisoning of a first-sync node. *SHOULD-FIX* — a real defect with a bounded or conditional path: a repair obligation — even a cryptographic one — when no runtime consequence was demonstrated or found possible; fix it, but say precisely what it is. *HYGIENE* — noted for cleanliness, hardening, or claim accuracy. C14 is omitted (it is a neutral witness, not a defect). Counts: 6 MAJOR, 24 SHOULD-FIX, 20 HYGIENE.
+
+A note on the collision family's grade: C1, C2, C3, and C21 are demoted from MAJOR deliberately. They are real breaks of a production primitive — and zero runtime consequence was demonstrated or found possible: every escalation route was attacked and closed (the leaf-wall theorem, no semantic wire hashed under the broken compressor, no in-tree caller, no external consumer), and the snapshot-poisoning attack is an independent validation-differential bug with no hash-collision involvement. They are a repair obligation — and the *witness* for the certificate verdict, which is where their consequence lands: C23 is the single MAJOR of the crypto family, and it carries the collision family as its evidence.
 
 #table(
   columns: (auto, auto, 1fr),
   inset: 4.5pt,
   align: (col, row) => if col == 1 { center } else { left },
   table.header([*ID*], [*Class*], [*Finding — one-line justification*]),
-  [C1], [MAJOR], [Production `TAG_CAPSNODE` compressor collision at ~`2^16` (72,274 evals / 0.128 s) — a production primitive fails collision resistance; not a forgery, and the state tree is unaffected],
-  [C2], [MAJOR], [`IVCPCSN_` compressor collision (111,525 evals / 0.29 s) — second production node domain fails; raw openings verify; full BaseFold verification rejects everything],
-  [C3], [MAJOR], [Prehashed Merkle commitment collision at exact production geometry (depth 13 / cap 3, both openings accepted) — collision resistance fails at a production commitment interface],
-  [C16], [MAJOR], [Release builder embeds legacy matrix bytes unauthenticated under an approved identity; usage text claims authentication; the verifier that would catch it exists but is unwired on the default path],
+  [C16], [MAJOR], [Release builder embeds legacy matrix bytes unauthenticated under an approved identity; usage text claims authentication; the verifier that would catch it exists but is unwired on the default path — a demonstrated trust-boundary failure with silent-consensus-divergence blast radius],
   [C17], [MAJOR], [Four 12-byte unauthenticated requests pin the process-wide outbound byte domain and convert serving for all peers from delay to rejection; honest slow peers trigger it accidentally],
-  [C21], [MAJOR], [Cross-tag claw: one digest valid in two domains with identical commitment bytes — refutes the shipped 128-bit domain-separation design comment (~16 bits actual); raw-API reach only today, inherited by a live hard-fork],
   [C22], [MAJOR], [Anonymous admission occupancy at a 62x CPU discount (8.34 ms vs 134 µs), one real proof as a perpetual template, honest transactions dropped, operator wallet RPC delayed; bandwidth-bound, which is the only reason this is not High],
-  [C23 (+C8)], [MAJOR], [The soundness certificate is false or vacuous for the shipped object — the claw forces Delta past both thresholds under the only meaningful reading, or the definitions never cover the shipped multi-domain layer; C8's unevaluated premise assumed away the hard part],
+  [C23 (+C8)], [MAJOR], [The certificate fork — the single MAJOR of the crypto family: the collisions (C1/C2/C3/C21, SHOULD-FIX below) are its *evidence*; the *impact* is the claim-level kill — the shipped security claim is false or vacuous for the shipped object, the claw forcing Delta past both stated thresholds under the only meaningful reading, or the definitions covering the shipped multi-domain design not at all; C8's unevaluated premise assumed away the hard part],
   [C24], [MAJOR], [The wallet is node-attested end-to-end: no client-side verification of anything, node builds and signs sends while holding the key, and the verify button delegates to the node under attack],
-  [MN-A], [MAJOR], [First-sync snapshot poisoning: a malicious serving node makes a fresh/eclipsed peer commit and finalize rule-invalid history, permanently estranges it from the honest network, and the victim re-serves the poison; lane rates Medium — we grade MAJOR for permanence plus self-propagation; fork choice protects every non-fresh node],
+  [C26], [MAJOR], [First-sync snapshot poisoning: a malicious serving node makes a fresh/eclipsed peer commit and finalize rule-invalid history, permanently estranges it from the honest network, and the victim re-serves the poison; lane rates Medium — we grade MAJOR for permanence plus self-propagation; fork choice protects every non-fresh node],
+  [C1], [SHOULD-FIX], [Production `TAG_CAPSNODE` compressor collision at ~`2^16` (72,274 evals / 0.128 s) — a production primitive fails collision resistance, but zero runtime consequence was demonstrated or found possible (leaf wall; no semantic wire hashed under it; state tree unaffected); a repair obligation and the witness for C23],
+  [C2], [SHOULD-FIX], [`IVCPCSN_` compressor collision (111,525 evals / 0.29 s; raw openings verify; full BaseFold verification rejects everything) — same boundary: a real break with every escalation route closed and named; repair it],
+  [C3], [SHOULD-FIX], [Prehashed Merkle commitment collision at exact production geometry (depth 13 / cap 3, both openings accepted) — collision resistance fails at a production commitment interface; the colliding children have no valid leaf preimages (leaf wall), so no capsule attack exists],
   [C4], [SHOULD-FIX], [Leaf/internal-node alias at the raw API (same root authenticates depth-0 and depth-1); production pins depths, so it is a public-API type confusion],
   [C5], [SHOULD-FIX], [Legacy `noid_fri` proof malleability (distinct 5- and 6-lane proofs verify for one statement, no search); public verifier API, no current caller, newer protocols reject it],
   [C6], [SHOULD-FIX], [Same-anchor fork replay: one real transaction and auth bundle pass all checks on two forks — confirmed through full block admission on both forks, with every consumer fork-correct (no double-apply); the residual is the fork-specificity question and sub-finality downstream indexes],
@@ -361,6 +364,7 @@ Classes: *MAJOR* — a major problem: ships a false promise, breaks a production
   [C18], [SHOULD-FIX], [Header-sync serving memory is outside every process budget and scales with attacker connections (64 stalled streams retained 75.5 MB > the whole shared domain); contradicts the domain's stated no-peer-scaling goal],
   [C19], [SHOULD-FIX], [Every receipt query rescans and Merkle-reverifies the entire store (4.1–5.6 s per call at 20k receipts, ~28 min for a 400-page GUI walk) — credential-gated, serialized, bounded, but O(N) per page with no cache],
   [C20], [SHOULD-FIX], [Circulating-supply counter trusted verbatim on compact restart: silent upward divergence, permanent spend-admission stall downward while the node looks alive; local-write precondition; it is the natural trigger for C24],
+  [C21], [SHOULD-FIX], [Cross-tag claw: one digest valid in two domains, identical commitment bytes under the raw verifier — refutes the shipped 128-bit domain-separation comment (~16 bits actual on the aligned coset); zero in-tree and zero external consumers today (Jetsam caveat recorded); the decisive witness for C23's verdict],
   [C25], [SHOULD-FIX], [Mint-into-victim: anyone permanently places junk NFT items in any address's wallet; only the victim can remove them, by paying — real attacker fees cap this at nuisance, but the asymmetry is a genuine flaw],
   [U2], [SHOULD-FIX], [Packed runtime cache accepts a foreign relation under the approved digest — poisoned artifacts survive a corrected binary; defense-in-depth with a local-write precondition],
   [U18], [SHOULD-FIX], [Receipt scans run inline on async workers holding the wallet mutex — unrelated RPC calls stall up to 3078x idle median (mirror-verified; production type is binary-private, split carried)],
@@ -375,7 +379,7 @@ Classes: *MAJOR* — a major problem: ships a false promise, breaks a production
   [C12], [HYGIENE], [Three mempool liveness policies (first-seen slot pinning, coinbase race eviction, no reorg re-admission) — documented behaviors, no soundness impact],
   [C13], [HYGIENE], [A rejected malformed proof suppresses same-scan recovery of the same txid from that peer — per-peer, per-scan, cleared by a new scan],
   [U3], [HYGIENE], [Inherited cargo environment can flip release builds to debug verifier constants (64→10 FRI queries) — agent-reported; no evidence current CI sets it],
-  [U4], [HYGIENE], [Snapshot staging checks future drift only on the tip — the agent-reported precursor whose mechanism the malicious-node lane has since demonstrated end-to-end as MN-A; kept here as the original record],
+  [U4], [HYGIENE], [Snapshot staging checks future drift only on the tip — the agent-reported precursor whose mechanism the malicious-node lane has since demonstrated end-to-end as C26; kept here as the original record],
   [U7], [HYGIENE], [Standalone validation utility omits epoch-anchor enforcement — informational; the production boundary rejects and no production caller was found],
   [U9], [HYGIENE], [UC-composition assurance gap: distinct concurrent proofs verify in independent sessions — an assurance gap, not a false theorem or bypass],
   [U10], [HYGIENE], [Nothing downstream of the wallet builder can detect a recipient/amount substitution — hardening only (no divergent path in pinned code); escalated to real under exactly the C24 threat model],
@@ -403,7 +407,7 @@ Classes: *MAJOR* — a major problem: ships a false promise, breaks a production
 - C17's escalation from delay to rejection is established by source reading (the admission types are crate-private); the pin itself and the FIFO victim-blocking are demonstrated at the codec/budget layer.
 - SIMD kernel agreement was executed on aarch64 only; the x86 kernels were read, not run.
 - The P2P codec panic review is static: "no panic found" is not "no panic exists."
-- Where a finding is [AR] (U2's cache-persistence scenario, U3, U4, and several negative-result rows), the coordinator's independent rerun was never recorded; the evidence is the lane's own preserved output. (U4's mechanism, tip-only drift checking, has since been positively demonstrated end-to-end by the malicious-node lane as MN-A.)
+- Where a finding is [AR] (U2's cache-persistence scenario, U3, U4, and several negative-result rows), the coordinator's independent rerun was never recorded; the evidence is the lane's own preserved output. (U4's mechanism, tip-only drift checking, has since been positively demonstrated end-to-end by the malicious-node lane as C26.)
 
 *What we did not demonstrate.* No unauthorized spend. No invalid accepted block. No owner-key recovery. No fresh-request forgery. No split-brain or state-equivocation escalation. No live end-to-end supply-chain theft (the composition is closed leg-by-leg; the single live demo is pending). No snapshot poisoning against a live socket (the real staging, install, finalization, and estrangement functions were driven directly, in the node's real order). No claim that the 2^16 collision cost is a proven bound. No claim that the state tree, conservation math, keystore, or witness uniqueness failed — they did not.
 
@@ -456,7 +460,7 @@ All paths are under `/Users/ember/dev/parano1d-break/`. Kimi-era lanes have no R
   [`experiments/constraint-systems/`], [Witness uniqueness (8,870 configs), field-wrap negatives, collision confinement, U28], [`cargo run --bin ip_battery` / `--bin pruv_adversarial` / `--bin domain_separation`],
   [`experiments/prover-unsafe/`], [U13–U15 + the SIMD/kernel differential negatives (8,241 pairs bit-exact; 2,689 loader cases, zero panics)], [`cargo run --release 2>&1 | tee results.txt`],
   [`experiments/external-consumers/`], [The zero-external-consumer verdict for the cross-domain raw surface, with the Jetsam caveat and auditable search log], [read `REPORT.md` (probe; clones and search logs gitignored)],
-  [`experiments/malicious-node/`], [MN-A/B/C: first-sync snapshot poisoning (stage → install → finalize → estrangement → re-serve, on the real production functions); replay publication confirmed by-design with fork-correct consumers; dialect-confusion negative with one open regression surface], [`./run.sh` (default schedule → `results.txt`; isolated-V2.1 → `results-isolated.txt`)],
+  [`experiments/malicious-node/`], [C26 (chain A: first-sync snapshot poisoning — stage → install → finalize → estrangement → re-serve, on the real production functions); chain B replay publication confirmed by-design with fork-correct consumers; chain C dialect-confusion negative with one open regression surface], [`./run.sh` (default schedule → `results.txt`; isolated-V2.1 → `results-isolated.txt`)],
   [`experiments/dark-surface/`], [D1–D5: the 79-method RPC reachability matrix, hidden CLI flags (incl. key-material export/import), the undocumented env surface (`NOID_GUI_NODE_BIN`), the 39-operation profile table (17 dead, 2 phantom ops), and live loopback demonstrations incl. `paranoid_stop`], [read `README.md`; live demos in `results.txt` and `demo/`],
   [`experiments/nft-races/`], [First execution of op 80 (`ExecuteTrades`) through the real State apply path (conservation exact, order re-derived, atomic batch abort); every live listing race decided by the single-UTXO escrow invariant incl. a stale listing across a real reorg; the settlement circuit doubly dead as shipped, witness built and sound-shaped in intended config; wash-trip economics (16,400 µNOID/cycle, self-miner nets 2,500)], [`cd poc && cargo test --release 2>&1 | tee ../results.txt`; then `cd ../reorg && cargo run --release 2>&1 | tee -a ../results.txt`],
 )
