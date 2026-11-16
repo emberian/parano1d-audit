@@ -6,7 +6,7 @@ The experiment drives `noid_mempool::AsyncMempool`, including its decoder, admis
 
 Question: Can distinct transactions with valid public state claims and invalid authorization proofs occupy the bounded verification queue at less attacker CPU cost than the node spends rejecting them?
 
-The local experiment measured 134.3 µs to construct each distinct payload and 8.34 ms for the node to reject it: a 62× ratio in CPU time. A rejected proof spends no fee and reserves no input, so the same public input can be claimed again. Combining these measurements with the configured 50 transactions per peer per 10 seconds and 128 inbound connections gives a *modeled* maximum offer of 640 transactions/s against the measured four-worker drain of 415.5/s. That calculation does not establish that a live swarm can sustain the offer rate or starve other protocols.
+The local experiment measured 134.3 µs to construct each distinct payload and 8.34 ms for the node to reject it: a 62× ratio in CPU time. A rejected proof spends no fee and reserves no input, so the same public input can be claimed again. For direct Push, combining these measurements with the configured 50 transactions per peer per 10 seconds and 128 inbound connections gives a *modeled* maximum offer of 640 transactions/s against the measured four-worker drain of 415.5/s. Gossip has a separate global byte window that prevents offering this payload rate through gossip alone. Neither calculation establishes a live swarm's sustained delivery rate or cross-protocol impact.
 
 ## The admission pipeline, measured (order from code, costs measured)
 
@@ -42,7 +42,7 @@ Measured numbers (M-series laptop, release, real verifier; V4 tip-300000 profile
 
 - Node cost per max-cost reject: **8.34 ms** of one verify worker (drain: 415.5 tx/s at 4 permits; single worker 122 tx/s; peak concurrency pinned at exactly 4).
 - Attacker cost per payload: **134.3 µs** construction, 90,414 B on the wire. **CPU-time ratio: 62×.** A 394 B decode-failing payload costs the node only ~190 µs; at the configured rate limit, even 128 peers offer only ~0.12 CPU-core of this work. Bundle decoding precedes transcript replay.
-- Rate model: 128 inbound connections (`behaviour.rs:539`) × 5 tx/s per PeerId = **640 tx/s offered**, if every connection delivers at its limit. Against the measured 415.5 tx/s drain, ~84 identities at ~58 MB/s would match this laptop's drain. The code comment budgets ~84 ms per verification (`main.rs:10701`); using that estimate gives 10 identities at 4.6 MB/s. Neither scenario was measured on a live node.
+- Direct-Push rate model: 128 inbound connections (`behaviour.rs:539`) × 5 tx/s per PeerId = **640 tx/s offered**, if every connection delivers at its limit. Against the measured 415.5 tx/s drain, ~84 identities at ~58 MB/s would match this laptop's drain. The code comment budgets ~84 ms per verification (`main.rs:10701`); using that estimate gives 10 identities at 4.6 MB/s. The global gossip byte window rules out this rate for gossip payloads of this size. Neither scenario was measured on a live node.
 
 Predicted effects if the offered rate exceeds the drain (derived from measurements and code bounds, not observed in a live swarm):
 
