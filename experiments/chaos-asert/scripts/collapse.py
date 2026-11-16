@@ -214,8 +214,12 @@ def stage_freeze():
     t_start_estimate = time.time() + 45  # poison node boot + template prep
     need = HALFLIFE * math.log2(ratio)
     schedule_correction = (tip_h + 1 - anchor_h) * 20 - (t_start_estimate - anchor["timestamp"])
-    delta = int(math.ceil(need + 30 + schedule_correction + 60))
-    delta = max(240, min(1500, delta))
+    # The margin covers: epoch-boundary jumps in the observed v1-height rule
+    # (measured +28s of effective anchor offset per boundary the fork crosses,
+    # up to 3 crossings), template-ts quantization, and fit residual. Over-shift
+    # is harmless: the floor clamp keeps the fork at 2^238 either way.
+    delta = int(math.ceil(need + 30 + schedule_correction + 240))
+    delta = max(240, min(1800, delta))
     freeze = {
         "tip_height": tip_h,
         "tip_hash": tip_hash,
@@ -256,7 +260,7 @@ def stage_fork(delta_override=None):
     fork_target = tip_h + NFORK
     wait_until(f"poison fork reaches h{fork_target}",
                lambda: tip_of(p.rpc_url)[0] if tip_of(p.rpc_url)[0] >= fork_target else False,
-               timeout=900, interval=3, quiet=True)
+               timeout=1500, interval=3, quiet=True)
 
     # Self-check: every fork block must be at the exact genesis floor target.
     rows = []
