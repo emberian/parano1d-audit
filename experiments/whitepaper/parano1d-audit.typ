@@ -8,6 +8,7 @@
 #show heading.where(level: 1): it => { v(0.8em, weak: false); it; v(0.35em) }
 
 #align(center)[
+  #set par(justify: false)
   #text(size: 21pt, weight: "bold")[Parano1d: a protocol and implementation study]
   #v(0.35em)
   #text(size: 11pt)[Proof commitments, synchronization, wallet trust, and resource costs]
