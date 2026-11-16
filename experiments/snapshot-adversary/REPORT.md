@@ -54,6 +54,16 @@ does not itself mark the peer as a rejected manifest provider. This matters
 for the proposed race: direct header rejection can coexist with a pending
 snapshot offer, but the release-node timing and outcome require a local run.
 
+The candidate comparator uses **advertised** bridge chainwork before native
+headers prove it (`main.rs:879-891,11940-11960`). The manifest's digest and
+geometry authenticate its *own bytes*, not its work claim (`noid_p2p/src/
+protocol.rs:232-260,547-568`). A peer claiming enormous work could therefore
+win this scheduling window and fail later, temporarily displacing a genuine
+honest offer. Retry and provider rotation are present (`main.rs:8782-8807,
+8921-8930`); neither persistent starvation nor an integrity bypass has been
+demonstrated. Repeated false-work rounds against an honest provider are a
+useful separate availability experiment.
+
 **The C17 serving stall did not create a genesis-only DAG.** Its phase-7
 sampler recorded `getChainInfo.height`, the installed chain height
 (`devnet-chaos/scripts/phase7_multiaggressor.py:66-73`,
@@ -103,6 +113,9 @@ mainnet chain. The exact minimum production-scale cost remains unmeasured.
 4. If any malicious snapshot installs, reconnect an honest peer and restart
    the victim without wiping its data. Verify the claimed persistent
    estrangement and its actual operator recovery path.
+5. Feed repeated self-consistent manifests with inflated, unverified bridge
+   work beside an honest source; measure whether retries eventually choose
+   the honest source or can be held in false-candidate cycles.
 
 Publication wording should say: “A snapshot path omits wall-clock future
 drift for historical headers, and a local component demonstration installed
