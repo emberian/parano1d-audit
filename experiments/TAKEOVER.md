@@ -200,7 +200,10 @@ source/public-document reviews. The pinned node has no identified developer
 freeze key or remotely activated upgrade. Its development allocation does
 direct up to 5% of launch subsidy to each of two fixed Fund and Lab addresses
 through height 3,223,778; the keyholders and current inventory are not
-established by source. Default unpinned seed DNS concentrates fresh discovery,
+established by source. A [dated public-explorer snapshot](operator-power/FUND-OBSERVATION.md)
+reported two separate 500,000-NOID outputs from the payout addresses still
+unspent at their recipients; recipient control and purpose remain unknown.
+Default unpinned seed DNS concentrates fresh discovery,
 new installations trust publisher binaries, and miners choose which valid
 transactions their blocks include. No one actor has been shown controlling
 those powers together or an exchange deposit switch. Optional external price

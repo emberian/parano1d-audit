@@ -19,6 +19,14 @@ names the beneficiaries but cannot prove who holds their keys. Receiving
 issued coins gives potential inventory to sell, not a right to censor another
 holder's signed spend.
 
+A [dated public-explorer snapshot](FUND-OBSERVATION.md) reported 599,040
+NOID issued to each fund by height 313,800. It showed one 500,000-NOID
+transfer from each fund payout address to a separate recipient address, with
+both recipient outputs still unspent in that explorer view. The two outputs
+are about 8.22% of the explorer's reported net supply. Their keyholders and
+purpose are unknown; unspent recipient outputs are not evidence of selling
+or operator control of the network.
+
 The most plausible *selective-exit shape* is operational: an actor already
 has NOID credited at an exchange, new deposits stop reaching that exchange,
 and the actor sells the precredited balance. [SafeTrade lists a NOID/USDT

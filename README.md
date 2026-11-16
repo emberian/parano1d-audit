@@ -103,7 +103,10 @@ The [operator attack map](experiments/operator-power/OPERATOR-ATTACKS.md)
 separates fund keys, release publishing, seed DNS, miners, wallet RPC, and
 exchange authority. Consensus directs up to 5% of launch-period subsidy to
 each of two hardcoded Fund and Lab addresses; those payouts do not grant a
-freeze or privileged spend. No experiment has shown a developer-only ability
+freeze or privileged spend. A [dated explorer snapshot](experiments/operator-power/FUND-OBSERVATION.md)
+records two separate, unspent 500,000-NOID outputs sent from the fund payout
+addresses; recipient key control and purpose are unknown. No experiment has
+shown a developer-only ability
 to sell NOID while preventing other holders from selling. In a
 [two-node local test](experiments/operator-exit/REPORT.md), `walletSend`
 returned success with zero peers; the independent receiver saw no transaction
