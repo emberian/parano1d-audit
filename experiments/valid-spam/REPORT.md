@@ -26,6 +26,16 @@ fee, one NOID spent on this attack buys about 310 items, imposing **at least
 and GUI also repeat per-item lookup and validation. The attacker pays once;
 the recipient pays this cost whenever their wallet reloads.
 
+The [local timing control](reproduce_page_timing.py) repeated 100 full scans
+of the existing 248-item, `u64::MAX`-locked fixture after it was warm in
+MDBX. Across 400 verified 64-item `native_wallet_page` calls, the median was
+**2,546 µs** and the 95th percentile was **2,693 µs**. The four-page full
+scan took 10,056 µs median and 10,302 µs at the 95th percentile. An empty
+victim-independent address took 16 µs median and 95th percentile across 100
+calls. The output is in [page-timing-results.txt](page-timing-results.txt).
+These are direct production storage-query timings on one small warm database;
+they exclude RPC, network transfer, JSON encoding/decoding, and GUI work.
+
 The GUI polls its snapshot every second (`app.rs:2878,3092-3103,1419-1433`)
 and gives its native-holdings cache a key containing height, tip hash, and
 state root (`app.rs:1441-1474`, `assets/live.rs:13-25`). A changed key calls
@@ -91,9 +101,13 @@ The table is a sensitivity analysis, not measured latency. It prices only
 mint transactions, rounds up full 248-item batches, and assumes the low
 occupancy fee schedule. It omits the one-time 0.0058-NOID collection fee,
 variable fee multipliers, competition for block space, and proof-production
-cost. At v2's 30-second target, ordinary timing variance can interrupt a scan below
-the table's nominal threshold. An attacker need not control the victim's
+cost. At v2's 30-second target, ordinary timing variance can interrupt a
+scan below the table's nominal threshold. An attacker need not control the victim's
 node or be the miner, but miners must include the valid mint batches.
+The measured storage-only median, 2.546 ms/page, would correspond to about
+754,000 items in this simple 30-second arithmetic **if** that page latency
+remained constant at scale and equaled the end-to-end RPC latency. Neither
+assumption has been tested, so this is not a measured starvation threshold.
 
 ## Guardrails and alternate costs
 
@@ -112,9 +126,17 @@ node or be the miner, but miners must include the valid mint batches.
 
 ## Needed measurement
 
-Time `native_wallet_page` on the already demonstrated 248-item local store,
-then time the RPC and stock GUI separately. A cursor-invalidation control
-would prove restart behavior but not starvation. A full availability claim
+The attempted RPC measurement could not use this fixture: the isolated-v2.1
+daemon refuses to start on this macOS host because its isolated-fork test
+requires a Linux loopback namespace; the ordinary daemon rejects the
+fixture's synthetic HistoryStep terminal when reopening MDBX. Both failures
+occurred before an RPC holdings request. No RPC latency is reported. The
+small fixture's direct storage timing does not substitute for an end-to-end
+wallet or GUI measurement.
+
+Time a valid-release-terminal fixture through RPC and the stock GUI. A
+cursor-invalidation control would prove restart behavior but not starvation.
+A full availability claim
 needs a valid fixture near a measured threshold with advancing local tips
 and a stock GUI observation. Until then, the defensible claim is perpetual
 cost transfer from a paid, valid, non-consensual mint to the recipient's

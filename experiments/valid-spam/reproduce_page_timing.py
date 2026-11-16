@@ -19,6 +19,18 @@ temporary = lane / "tmp/page-timing"
 for name in ("Cargo.toml", "Cargo.lock"):
     shutil.copy2(source / name, temporary / name)
 text = (source / "src/main.rs").read_text()
+old = '''    std::fs::create_dir_all("../target").map_err(|e| e.to_string())?;
+    let directory = tempfile::Builder::new()
+        .prefix("creation-spam-")
+        .tempdir_in("../target")
+'''
+new = '''    std::fs::create_dir_all("../").map_err(|e| e.to_string())?;
+    let directory = tempfile::Builder::new()
+        .prefix("wallet-pages-")
+        .tempdir_in("../")
+'''
+assert text.count(old) == 1
+text = text.replace(old, new)
 anchor = '    println!("CONTROL victim wallet: {wallet_items} MAX-locked NFTs across {wallet_pages} verified 64-item pages; every input rejected Timelock");\n'
 assert text.count(anchor) == 1
 probe = '''    // Warm-store timings of the production verified wallet query. These
@@ -57,12 +69,32 @@ probe = '''    // Warm-store timings of the production verified wallet query. Th
     println!("CONTROL warm empty wallet page (n={}): p50={}us p95={}us", empty_us.len(), empty_us[empty_us.len()/2], empty_us[empty_us.len()*95/100]);
 '''
 text = text.replace(anchor, anchor + probe)
+anchor = '''    Ok(())
+}
+
+fn main() {
+    phase1_inventory();'''
+assert text.count(anchor) == 1
+text = text.replace(anchor, '''    println!("FIXTURE_DB={}", directory.path().canonicalize().unwrap().display());
+    println!("FIXTURE_VICTIM={}", address(VICTIM).to_bech32());
+    println!("FIXTURE_EMPTY={}", address(0xAB).to_bech32());
+    std::mem::forget(directory); // preserve this isolated fixture for later inspection
+    Ok(())
+}
+
+fn main() {
+    phase1_inventory();''')
 (temporary / "src/main.rs").write_text(text)
 env = os.environ.copy()
 env["CARGO_TARGET_DIR"] = str(root / "target")
-subprocess.run(
+result = subprocess.run(
     ["cargo", "run", "--release", "-j", "1", "--manifest-path", str(temporary / "Cargo.toml")],
     check=True,
     env=env,
     cwd=temporary,
+    text=True,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.STDOUT,
 )
+print(result.stdout, end="", flush=True)
+(lane / "page-timing-results.txt").write_text(result.stdout)
