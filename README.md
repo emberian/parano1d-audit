@@ -99,14 +99,16 @@ production spend check rejected them as locked. The [economic-state report](expe
 measures the attacker's 0.8002 NOID cost. Native NOID remains spendable;
 stock-GUI slowdown from larger collections has not been measured.
 
-No experiment has yet shown a developer-only ability to sell NOID while
-preventing other holders from selling. The audit is testing routes through
-transaction propagation, wallet display, block inclusion, and exchange
-deposit credit. In a [two-node local test](experiments/operator-exit/REPORT.md),
-`walletSend` returned success with zero peers; the independent receiver saw
-no transaction until the nodes connected. Local admission is not an exchange
-deposit. An exchange balance already credited can trade without a new chain
-transfer.
+The [operator attack map](experiments/operator-power/OPERATOR-ATTACKS.md)
+separates fund keys, release publishing, seed DNS, miners, wallet RPC, and
+exchange authority. Consensus directs up to 5% of launch-period subsidy to
+each of two hardcoded Fund and Lab addresses; those payouts do not grant a
+freeze or privileged spend. No experiment has shown a developer-only ability
+to sell NOID while preventing other holders from selling. In a
+[two-node local test](experiments/operator-exit/REPORT.md), `walletSend`
+returned success with zero peers; the independent receiver saw no transaction
+until the nodes connected. Local admission is not an exchange deposit. An
+exchange balance already credited can trade without a new chain transfer.
 
 ## How to read a claim
 

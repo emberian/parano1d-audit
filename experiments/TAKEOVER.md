@@ -192,3 +192,23 @@ balance; a holder who deposited earlier might still trade internally during
 a chain-side outage. The chain-malice lane confirmed that a heavier fork can
 replace an 18-block suffix, but the exchange's NOID credit threshold remains
 unknown.
+
+## Operator-power follow-up
+
+The [operator attack map](operator-power/OPERATOR-ATTACKS.md) integrates four
+source/public-document reviews. The pinned node has no identified developer
+freeze key or remotely activated upgrade. Its development allocation does
+direct up to 5% of launch subsidy to each of two fixed Fund and Lab addresses
+through height 3,223,778; the keyholders and current inventory are not
+established by source. Default unpinned seed DNS concentrates fresh discovery,
+new installations trust publisher binaries, and miners choose which valid
+transactions their blocks include. No one actor has been shown controlling
+those powers together or an exchange deposit switch. Optional external price
+history can misstate DEX candles, but does not change an honest local node's
+receipt verdict or current spot value.
+
+The selective-exit question remains empirical: prove a holder's valid spend
+was unable to reach independent producers or exchange credit, identify who
+caused that obstruction, and establish that the same actor could sell a
+precredited balance or deposit through another path. SafeTrade's current
+NOID-specific deposit status and confirmation rule remain unverified.
