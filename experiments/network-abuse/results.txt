@@ -32,3 +32,23 @@ read 0 bytes=17749 elapsed_ms=3 prefix=[4e, 48, 42, 35, 96, 00, 01, 00, 00, 00, 
 One-identity 16-stream burst: connection closed after 12 issued requests;
 configured concurrency cap is eight active chain-sync streams per connection.
 No claim of 16 concurrently held streams.
+
+4096-row serving fixture (same stopped store extended offline by
+extend_header_rows; rows 151..4096 are consensus-invalid; canonical tip 150):
+inserted 3946 syntactically encoded, consensus-invalid header rows at heights 151..4096
+issued 0 inventory=false at_ms=0
+read 0 bytes=409436 elapsed_ms=66 prefix=[4e, 48, 42, 35, 00, 10, 01, 00, 00, 00, 00, 00]
+
+After fresh restart, baseline honest reads: 101, 86, 100 ms; node RSS 330656 KiB.
+First five identities x 8 parked requests: all 40 sent; eight server-side
+"header preparation workers are full" log lines, hence no claim all 40
+held full wire writes. RSS during park 422240 KiB. Honest 4096-record Ready
+response in 87 ms; after release, another Ready in 72 ms.
+
+Second five-identity burst with honest requests deliberately overlapping
+preparation: all 40 sent; four honest 4096-record Ready responses in
+157, 182, 203, 167 ms. Sampled RSS 449072 KiB during this park, and
+355664 KiB after release. Post-release honest Ready in 84 ms.
+
+No listener on 19880/19881 remained after Ctrl-C shutdown. `logs/server-4096.log`
+contains the detailed reactor health and Busy events (ignored runtime log).
