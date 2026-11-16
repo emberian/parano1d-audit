@@ -1,0 +1,37 @@
+[package]
+name = "verification-receipts"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+anyhow = "1"
+noid_chain = { path = "../comp-system-hunter/pinned/noid_chain" }
+noid_poseidon2b = { path = "../comp-system-hunter/pinned/noid_poseidon2b" }
+noid_tx = { path = "../comp-system-hunter/pinned/noid_tx" }
+noid_rpc = { path = "../comp-system-hunter/pinned/noid_rpc" }
+noid_core = { path = "../comp-system-hunter/pinned/noid_core" }
+noid_miner = { path = "../comp-system-hunter/pinned/noid_miner" }
+noid_mempool = { path = "../comp-system-hunter/pinned/noid_mempool" }
+noid_gkr = { path = "../comp-system-hunter/pinned/noid_gkr" }
+noid_recursive = { path = "../comp-system-hunter/pinned/noid_recursive" }
+noid-ivc-core = { path = "../comp-system-hunter/pinned/noid_ivc_core" }
+noid_block = { path = "../comp-system-hunter/pinned/noid_block" }
+rand = "0.8"
+zeroize = { version = "1", features = ["zeroize_derive"] }
+libc = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+bincode = "1"
+hex = "0.4"
+blake3 = "1"
+tracing = "0.1"
+thiserror = "1"
+tempfile = "3"
+
+[workspace]
+exclude = ["../comp-system-hunter/pinned"]
+
+[profile.dev]
+opt-level = 1
+debug = 0

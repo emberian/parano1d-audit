@@ -1,0 +1,11 @@
+[package]
+name = "verification_redeem"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+noid_poseidon2b = { path = "../comp-system-hunter/pinned/noid_poseidon2b" }
+noid_tx = { path = "../comp-system-hunter/pinned/noid_tx" }

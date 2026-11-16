@@ -1,0 +1,105 @@
+warning: associated function `try_from_locally_built_block` is never used
+  --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_chain/src/accepted_block_bundle.rs:73:19
+   |
+65 | impl AcceptedBlockBundle {
+   | ------------------------ associated function in this implementation
+...
+73 |     pub(crate) fn try_from_locally_built_block(
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `encode_body` is never used
+   --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_chain/src/block/payload.rs:297:15
+    |
+297 | pub(crate) fn encode_body<'a>(block_bytes: &'a [u8], openings: &[NativeOpening]) -> Cow<'a, [u8]> {
+    |               ^^^^^^^^^^^
+
+warning: `noid_chain` (lib) generated 2 warnings
+warning: unused import: `FsChannelOps`
+ --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/history_step/v2/capacity_banked/shared_parent.rs:9:36
+  |
+9 | use noid_ivc_core::field_circuit::{FsChannelOps, RecordedChannel};
+  |                                    ^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `pin_eq`
+ --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/native_assets/financial_inventory_scan.rs:7:25
+  |
+7 | use super::super::{mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128};
+  |                         ^^^^^^
+
+warning: unused import: `flat_const`
+ --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/native_assets/financial_launch_context.rs:7:18
+  |
+7 |     alloc_block, flat_const, mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128,
+  |                  ^^^^^^^^^^
+
+warning: unused import: `F128`
+ --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/native_assets/financial_launch_effects_shared.rs:8:32
+  |
+8 |     FieldR1csBuilder, LinExpr, F128,
+  |                                ^^^^
+
+warning: unused import: `flat_const`
+ --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/native_assets/financial_nft_funding.rs:6:20
+  |
+6 | use super::super::{flat_const, mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128};
+  |                    ^^^^^^^^^^
+
+warning: unused import: `duplex_substitution_terms_selected`
+  --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/region_sidecar/recording_duplex.rs:36:5
+   |
+36 |     duplex_substitution_terms_selected, duplex_substitution_terms_selected_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `prove_c1_duplex_walk_suffix_selected`, `verify_c1_duplex_walk_suffix_selected_trace`, and `verify_c1_duplex_walk_suffix_selected`
+  --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/region_sidecar/recording_duplex.rs:40:63
+   |
+40 |     prove_c1_duplex_walk_prefix, prove_c1_duplex_walk_suffix, prove_c1_duplex_walk_suffix_selected,
+   |                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+43 |     verify_c1_duplex_walk_suffix_selected, verify_c1_duplex_walk_suffix_selected_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+44 |     verify_c1_duplex_walk_suffix_selected_trace, verify_c1_duplex_walk_suffix_selected_trace_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `prove_c1_duplex_walk_suffix_selected` is never used
+    --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/region_source_binding_c1.rs:1587:15
+     |
+1587 | pub(crate) fn prove_c1_duplex_walk_suffix_selected<C: Challenger>(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `verify_c1_duplex_walk_suffix_selected` is never used
+    --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/region_source_binding_c1.rs:1728:15
+     |
+1728 | pub(crate) fn verify_c1_duplex_walk_suffix_selected<C: Challenger>(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `verify_c1_duplex_walk_suffix_selected_trace` is never used
+   --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/region_source_binding_c1/trace_impl.rs:346:15
+    |
+346 | pub(crate) fn verify_c1_duplex_walk_suffix_selected_trace<C: FsChannelOps>(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `noid_recursive` (lib) generated 10 warnings (run `cargo fix --lib -p noid_recursive` to apply 7 suggestions)
+   Compiling verification-crypto v0.1.0 (/Users/ember/dev/parano1d-break/experiments/verification-crypto)
+    Finished `release` profile [optimized] target(s) in 0.97s
+     Running `experiments/comp-proof-algebra/algebra-audit/target/release/verification-crypto`
+receiver_iv pair_same=true field_same=true concatenation_same=true seeded_direct_differs=true
+production_history classes=[(25, 19), (255, 21)] squeeze_permutations=12
+synthetic_history classes=[(25, 22), (255, 21)] class_squeezes=[14, 12] selected=14
+portability_fixture a=00000000000000000000000000000002 b=00000000000000000000000000000080 tower_product=0000000000000000000000000000001b source_fallback_raw_product=00000000000000000000000000000100 flat_inverse=a688437ec255f9d7eee9271fc6a6eed7 source_fallback_inverse=6851fda6f1ddcae41d240f297e046361
+flat_from_u32_differs_from_tower_converted=true
+channel_edges empty_first=00000000000000000000000000000000 empty_second=00000000000000000000000000000000 half_vs_explicit_padding_four_squeezes_equal=true
+channel_edges one_vs_two_squeezes_then_absorb_alias=true empty_round_polynomial_degree=0
+finalize_no_pad_release_half_block_ignored=true
+collision_status=confirmed iterations=73494 elapsed_ms=136
+left_64=a8190000000000000000000000000000e2bc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+right_64=0dd5000000000000000000000000000039500000000000000000000000000000f5d20000000000000000000000000000d0870000000000000000000000000000
+digest_32=e5c3f258a47028d37747859698ae3a3e2054b6d68ce43fdc0a9d037db44c5595
+tagged_hash_control_differs=true
+exact_state_node_control_differs=true

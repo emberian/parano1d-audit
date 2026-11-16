@@ -1,0 +1,5 @@
+object opening: zero and ordinary policy addresses accepted; zero opening round-trips through wire parser
+address syntax: zero accepted; pruv Owner: zero rejected
+native transfer: zero recipient rejected; ordinary accepted
+native trade: distant positive expiry accepted; zero rejected
+native transfer/burn: unit amount above launch ceiling accepted by static template

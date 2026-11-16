@@ -1,0 +1,2 @@
+PA-02 full standalone FieldR1cs+MerkleRegionSidecar accepted: D=F128 { lo: 2, hi: 0 }; public entry [F128 { lo: 4097, hi: 4352 }, F128 { lo: 4099, hi: 4608 }] -> [F128 { lo: 5635, hi: 6912 }, F128 { lo: 6661, hi: 6656 }]; public root [F128 { lo: 6461856112183150620, hi: 15500421276279685589 }, F128 { lo: 4243851563534931119, hi: 3623175151230227765 }]; Boolean pin rejects
+PA-03 full inline PoW gadget accepted high-half nonce F128 { lo: 11244, hi: 1 }; 64-bit range pin rejects

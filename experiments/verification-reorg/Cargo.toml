@@ -1,0 +1,15 @@
+[package]
+name = "verification-reorg"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+noid_chain = { path = "../comp-system-hunter/pinned/noid_chain" }
+noid_core = { path = "../comp-system-hunter/pinned/noid_core" }
+
+[profile.release]
+lto = false
+codegen-units = 16

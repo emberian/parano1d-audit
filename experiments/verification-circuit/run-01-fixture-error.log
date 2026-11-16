@@ -1,0 +1,178 @@
+     Locking 105 packages to latest compatible versions
+   Compiling libc v0.2.191
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling syn v2.0.119
+   Compiling syn v3.0.10
+   Compiling cfg-if v1.0.5
+   Compiling serde_core v1.0.229
+   Compiling serde v1.0.229
+   Compiling serde_derive v1.0.229
+   Compiling crossbeam-utils v0.8.23
+   Compiling zerocopy v0.8.63
+   Compiling crossbeam-epoch v0.9.21
+   Compiling crossbeam-deque v0.8.8
+   Compiling jobserver v0.1.35
+   Compiling getrandom v0.2.17
+   Compiling find-msvc-tools v0.1.15
+   Compiling shlex v2.0.1
+   Compiling cc v1.11.2
+   Compiling rand_core v0.6.4
+   Compiling ppv-lite86 v0.2.21
+   Compiling rayon-core v1.13.0
+   Compiling rand_chacha v0.3.1
+   Compiling zeroize_derive v1.5.0
+   Compiling glob v0.3.4
+   Compiling either v1.19.0
+   Compiling rayon v1.12.0
+   Compiling zeroize v1.9.1
+   Compiling clang-sys v1.9.1
+   Compiling rand v0.8.8
+   Compiling noid_core v2.1.0 (/Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_core)
+   Compiling regex-syntax v0.8.11
+   Compiling memchr v2.8.3
+   Compiling nom v7.1.3
+   Compiling noid_poseidon2b v2.1.0 (/Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_poseidon2b)
+   Compiling libloading v0.8.9
+   Compiling regex-automata v0.4.18
+   Compiling equivalent v1.0.3
+   Compiling indexmap v2.14.2
+   Compiling itertools v0.13.0
+   Compiling regex v1.13.1
+   Compiling bindgen v0.72.1
+   Compiling cexpr v0.6.0
+   Compiling bitflags v2.13.2
+   Compiling pkg-config v0.3.34
+   Compiling rustc-hash v2.1.3
+   Compiling zstd-sys v2.1.3+zstd.1.5.7
+   Compiling rustix v1.1.6
+   Compiling getrandom v0.4.3
+   Compiling mdbx-sys v13.11.0
+   Compiling toml_datetime v0.6.11
+   Compiling serde_spanned v0.6.9
+   Compiling bincode v1.3.3
+   Compiling errno v0.3.15
+   Compiling smallvec v1.16.5
+   Compiling thiserror v2.0.21
+   Compiling derive_more-impl v2.1.1
+   Compiling parking_lot_core v0.9.12
+   Compiling toml_edit v0.22.27
+   Compiling noid_fri v2.1.0 (/Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_fri)
+   Compiling thiserror-impl v2.0.21
+   Compiling zstd-safe v7.4.1
+   Compiling fastrand v2.5.0
+   Compiling tempfile v3.27.0
+   Compiling noid_fri_binius v2.1.0 (/Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_fri_binius)
+   Compiling toml v0.8.23
+   Compiling parking_lot v0.12.5
+   Compiling derive_more v2.1.1
+   Compiling noid_tx v2.1.0 (/Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_tx)
+   Compiling tracing-attributes v0.1.31
+   Compiling sealed v0.6.0
+   Compiling memmap2 v0.9.12
+   Compiling tracing v0.1.44
+   Compiling noid-ivc-core v2.1.0 (/Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_ivc_core)
+   Compiling libmdbx v0.6.6
+   Compiling zstd v0.13.5
+   Compiling noid-ivc-prover v2.1.0 (/Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_ivc_prover)
+   Compiling noid_chain v2.1.0 (/Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_chain)
+warning: associated function `try_from_locally_built_block` is never used
+  --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_chain/src/accepted_block_bundle.rs:73:19
+   |
+65 | impl AcceptedBlockBundle {
+   | ------------------------ associated function in this implementation
+...
+73 |     pub(crate) fn try_from_locally_built_block(
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `encode_body` is never used
+   --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_chain/src/block/payload.rs:297:15
+    |
+297 | pub(crate) fn encode_body<'a>(block_bytes: &'a [u8], openings: &[NativeOpening]) -> Cow<'a, [u8]> {
+    |               ^^^^^^^^^^^
+
+warning: `noid_chain` (lib) generated 2 warnings
+   Compiling noid_gkr v2.1.0 (/Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_gkr)
+   Compiling noid_recursive v2.1.0 (/Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive)
+warning: unused import: `FsChannelOps`
+ --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/history_step/v2/capacity_banked/shared_parent.rs:9:36
+  |
+9 | use noid_ivc_core::field_circuit::{FsChannelOps, RecordedChannel};
+  |                                    ^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `pin_eq`
+ --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/native_assets/financial_inventory_scan.rs:7:25
+  |
+7 | use super::super::{mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128};
+  |                         ^^^^^^
+
+warning: unused import: `flat_const`
+ --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/native_assets/financial_launch_context.rs:7:18
+  |
+7 |     alloc_block, flat_const, mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128,
+  |                  ^^^^^^^^^^
+
+warning: unused import: `F128`
+ --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/native_assets/financial_launch_effects_shared.rs:8:32
+  |
+8 |     FieldR1csBuilder, LinExpr, F128,
+  |                                ^^^^
+
+warning: unused import: `flat_const`
+ --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/native_assets/financial_nft_funding.rs:6:20
+  |
+6 | use super::super::{flat_const, mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128};
+  |                    ^^^^^^^^^^
+
+warning: unused import: `duplex_substitution_terms_selected`
+  --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/region_sidecar/recording_duplex.rs:36:5
+   |
+36 |     duplex_substitution_terms_selected, duplex_substitution_terms_selected_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `prove_c1_duplex_walk_suffix_selected`, `verify_c1_duplex_walk_suffix_selected_trace`, and `verify_c1_duplex_walk_suffix_selected`
+  --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/region_sidecar/recording_duplex.rs:40:63
+   |
+40 |     prove_c1_duplex_walk_prefix, prove_c1_duplex_walk_suffix, prove_c1_duplex_walk_suffix_selected,
+   |                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+43 |     verify_c1_duplex_walk_suffix_selected, verify_c1_duplex_walk_suffix_selected_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+44 |     verify_c1_duplex_walk_suffix_selected_trace, verify_c1_duplex_walk_suffix_selected_trace_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `prove_c1_duplex_walk_suffix_selected` is never used
+    --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/region_source_binding_c1.rs:1587:15
+     |
+1587 | pub(crate) fn prove_c1_duplex_walk_suffix_selected<C: Challenger>(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `verify_c1_duplex_walk_suffix_selected` is never used
+    --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/region_source_binding_c1.rs:1728:15
+     |
+1728 | pub(crate) fn verify_c1_duplex_walk_suffix_selected<C: Challenger>(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `verify_c1_duplex_walk_suffix_selected_trace` is never used
+   --> /Users/ember/dev/parano1d-break/experiments/uc-composition/pinned/noid_recursive/src/acceptance/trace/region_source_binding_c1/trace_impl.rs:346:15
+    |
+346 | pub(crate) fn verify_c1_duplex_walk_suffix_selected_trace<C: FsChannelOps>(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `noid_recursive` (lib) generated 10 warnings (run `cargo fix --lib -p noid_recursive` to apply 7 suggestions)
+   Compiling verification-circuit v0.1.0 (/Users/ember/dev/parano1d-break/experiments/verification-circuit)
+    Finished `release` profile [optimized] target(s) in 5m 39s
+     Running `experiments/comp-proof-algebra/circuit-audit/target/release/verification-circuit`
+
+thread 'main' (28517996) panicked at src/main.rs:70:5:
+assertion `left == right` failed
+  left: [F128 { lo: 0, hi: 0 }, F128 { lo: 0, hi: 0 }]
+ right: [F128 { lo: 10573034703637531616, hi: 13550027983843012064 }, F128 { lo: 10695189820711066043, hi: 15179011837599799657 }]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

@@ -1,0 +1,16 @@
+[package]
+name = "verification-template"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+noid_chain = { path = "../comp-system-hunter/pinned/noid_chain" }
+noid_tx = { path = "../comp-system-hunter/pinned/noid_tx" }
+noid_poseidon2b = { path = "../comp-system-hunter/pinned/noid_poseidon2b" }
+
+[profile.dev]
+opt-level = 1
+debug = 0

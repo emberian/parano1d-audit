@@ -1,0 +1,17 @@
+[package]
+name = "verification-stale-fee"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+anyhow = "1"
+noid_chain = { path = "../comp-system-hunter/pinned/noid_chain", features = ["isolated-v2-1-fork-testnet"] }
+noid_gkr = { path = "../comp-system-hunter/pinned/noid_gkr" }
+noid_mempool = { path = "../comp-system-hunter/pinned/noid_mempool" }
+noid_poseidon2b = { path = "../comp-system-hunter/pinned/noid_poseidon2b" }
+noid_tx = { path = "../comp-system-hunter/pinned/noid_tx" }
+tempfile = "3"
+tokio = { version = "1", features = ["full"] }

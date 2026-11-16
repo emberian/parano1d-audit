@@ -1,0 +1,5 @@
+[merkle-sidecar verify] complete proof: Substitution(FinalMismatch)
+
+thread 'main' (28520459) panicked at src/main.rs:161:5:
+standalone sidecar result: Err(Auxiliary)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

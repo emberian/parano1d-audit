@@ -1,0 +1,262 @@
+warning: associated function `try_from_locally_built_block` is never used
+  --> /Users/ember/dev/parano1d-break/experiments/comp-system-hunter/pinned/noid_chain/src/accepted_block_bundle.rs:73:19
+   |
+65 | impl AcceptedBlockBundle {
+   | ------------------------ associated function in this implementation
+...
+73 |     pub(crate) fn try_from_locally_built_block(
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `encode_body` is never used
+   --> /Users/ember/dev/parano1d-break/experiments/comp-system-hunter/pinned/noid_chain/src/block/payload.rs:297:15
+    |
+297 | pub(crate) fn encode_body<'a>(block_bytes: &'a [u8], openings: &[NativeOpening]) -> Cow<'a, [u8]> {
+    |               ^^^^^^^^^^^
+
+warning: `noid_chain` (lib) generated 2 warnings
+warning: unused import: `FsChannelOps`
+ --> /Users/ember/dev/parano1d-break/experiments/comp-system-hunter/pinned/noid_recursive/src/acceptance/history_step/v2/capacity_banked/shared_parent.rs:9:36
+  |
+9 | use noid_ivc_core::field_circuit::{FsChannelOps, RecordedChannel};
+  |                                    ^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `pin_eq`
+ --> /Users/ember/dev/parano1d-break/experiments/comp-system-hunter/pinned/noid_recursive/src/acceptance/trace/native_assets/financial_inventory_scan.rs:7:25
+  |
+7 | use super::super::{mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128};
+  |                         ^^^^^^
+
+warning: unused import: `flat_const`
+ --> /Users/ember/dev/parano1d-break/experiments/comp-system-hunter/pinned/noid_recursive/src/acceptance/trace/native_assets/financial_launch_context.rs:7:18
+  |
+7 |     alloc_block, flat_const, mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128,
+  |                  ^^^^^^^^^^
+
+warning: unused import: `F128`
+ --> /Users/ember/dev/parano1d-break/experiments/comp-system-hunter/pinned/noid_recursive/src/acceptance/trace/native_assets/financial_launch_effects_shared.rs:8:32
+  |
+8 |     FieldR1csBuilder, LinExpr, F128,
+  |                                ^^^^
+
+warning: unused import: `flat_const`
+ --> /Users/ember/dev/parano1d-break/experiments/comp-system-hunter/pinned/noid_recursive/src/acceptance/trace/native_assets/financial_nft_funding.rs:6:20
+  |
+6 | use super::super::{flat_const, mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128};
+  |                    ^^^^^^^^^^
+
+warning: unused import: `duplex_substitution_terms_selected`
+  --> /Users/ember/dev/parano1d-break/experiments/comp-system-hunter/pinned/noid_recursive/src/region_sidecar/recording_duplex.rs:36:5
+   |
+36 |     duplex_substitution_terms_selected, duplex_substitution_terms_selected_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `prove_c1_duplex_walk_suffix_selected`, `verify_c1_duplex_walk_suffix_selected_trace`, and `verify_c1_duplex_walk_suffix_selected`
+  --> /Users/ember/dev/parano1d-break/experiments/comp-system-hunter/pinned/noid_recursive/src/region_sidecar/recording_duplex.rs:40:63
+   |
+40 |     prove_c1_duplex_walk_prefix, prove_c1_duplex_walk_suffix, prove_c1_duplex_walk_suffix_selected,
+   |                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+43 |     verify_c1_duplex_walk_suffix_selected, verify_c1_duplex_walk_suffix_selected_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+44 |     verify_c1_duplex_walk_suffix_selected_trace, verify_c1_duplex_walk_suffix_selected_trace_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `prove_c1_duplex_walk_suffix_selected` is never used
+    --> /Users/ember/dev/parano1d-break/experiments/comp-system-hunter/pinned/noid_recursive/src/acceptance/trace/region_source_binding_c1.rs:1587:15
+     |
+1587 | pub(crate) fn prove_c1_duplex_walk_suffix_selected<C: Challenger>(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `verify_c1_duplex_walk_suffix_selected` is never used
+    --> /Users/ember/dev/parano1d-break/experiments/comp-system-hunter/pinned/noid_recursive/src/acceptance/trace/region_source_binding_c1.rs:1728:15
+     |
+1728 | pub(crate) fn verify_c1_duplex_walk_suffix_selected<C: Challenger>(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `verify_c1_duplex_walk_suffix_selected_trace` is never used
+   --> /Users/ember/dev/parano1d-break/experiments/comp-system-hunter/pinned/noid_recursive/src/acceptance/trace/region_source_binding_c1/trace_impl.rs:346:15
+    |
+346 | pub(crate) fn verify_c1_duplex_walk_suffix_selected_trace<C: FsChannelOps>(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `noid_recursive` (lib) generated 10 warnings (run `cargo fix --lib -p noid_recursive` to apply 7 suggestions)
+   Compiling verification-opcodes v0.1.0 (/Users/ember/dev/parano1d-break/experiments/verification-opcodes)
+warning: unused imports: `ApplyError`, `BlockApplyError`, `BlockSelectionBudget`, `Mempool`, `NativeFinancialBudget`, `StateHash`, `TX_EPOCH_BLOCKS`, `checks::validate_block_slot_conflicts`, `claimable_fee_for_tx_body`, `compute_tx_root`, `creation_id_within_boundary`, `emission::block_reward`, `materialize_accepted_block_state_with_native_data`, `materialize_accepted_block_state`, `payload::BlockBodyPayload`, `required_fee_for_tx_body`, `slot_leaf_hash`, `state_node_hash`, `tx_epoch_anchor_height_for_child`, `validate_block_checks`, and `zero_slot_roots`
+  --> src/lib.rs:44:13
+   |
+44 |             compute_tx_root,
+   |             ^^^^^^^^^^^^^^^
+...
+48 |                 materialize_accepted_block_state_with_native_data, try_compute_tx_root_at,
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+49 |             },
+50 |             payload::BlockBodyPayload,
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^
+51 |             Block, BlockApplyError,
+   |                    ^^^^^^^^^^^^^^^
+...
+54 |             checks::validate_block_slot_conflicts,
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+55 |             development_allocation::miner_subsidy_at_height,
+56 |             emission::block_reward,
+   |             ^^^^^^^^^^^^^^^^^^^^^^
+57 |             fees::{claimable_fee_for_tx_body, fee_breakdown, required_fee_for_tx_body},
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^                 ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+61 |                 coinbase_creation_id, creation_id_within_boundary, TX_EPOCH_BLOCKS,
+   |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^
+...
+64 |             tx_epoch_anchor_height_for_child,
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+65 |             validation::{validate_block_checks, AnchorInfo},
+   |                          ^^^^^^^^^^^^^^^^^^^^^
+...
+68 |         exact_state_hash::{slot_leaf_hash, state_node_hash, zero_slot_roots, StateHash},
+   |                            ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^  ^^^^^^^^^
+69 |         fri_state::SlotValue,
+70 |         hash_block_header, materialize_accepted_block_state,
+   |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+71 |         mempool::{BlockSelectionBudget, Mempool, NativeFinancialBudget},
+   |                   ^^^^^^^^^^^^^^^^^^^^  ^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^
+72 |         state::{native_assets::native_chain_id, ApplyError, ChainState},
+   |                                                 ^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused imports: `spine_statement::spine_inputs_from_body` and `state_leaf_killshot::SlotLeafInputs`
+  --> src/lib.rs:78:9
+   |
+78 |         spine_statement::spine_inputs_from_body, state_leaf_killshot::SlotLeafInputs,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Challenger`, `ColRef`, `FsLaneChallenger`, `LaneClaimGroup`, `RelationColumns`, `Wire`, `carry_selection_terms`, `claimed_refs`, `field::F128`, `field_r1cs::FieldR1cs`, `flat_const`, `flat_of_tower_u128`, `lincheck::build_eq_table`, `prove_column_relation`, `prove_deep_chain_walk`, `prove_shift_discharge_pow2`, `prove_shift_discharge`, `verify_column_relation`, `verify_deep_chain_walk`, `verify_shift_discharge_pow2`, and `verify_shift_discharge`
+  --> src/lib.rs:83:22
+   |
+83 |         challenger::{Challenger, FsLaneChallenger},
+   |                      ^^^^^^^^^^  ^^^^^^^^^^^^^^^^
+84 |         deep_chain::{
+85 |             prove_deep_chain_walk,
+   |             ^^^^^^^^^^^^^^^^^^^^^
+86 |             relations::{
+87 |                 claimed_refs, prove_column_relation, prove_shift_discharge,
+   |                 ^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^
+88 |                 prove_shift_discharge_pow2, verify_column_relation, verify_shift_discharge,
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^
+89 |                 verify_shift_discharge_pow2, ColRef, RelationColumns,
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^  ^^^^^^^^^^^^^^^
+90 |             },
+91 |             schedule::{carry_selection_terms, flat_of_tower_u128},
+   |                        ^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^
+92 |             verify_deep_chain_walk, LaneClaimGroup,
+   |             ^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^
+93 |         },
+94 |         field::F128,
+   |         ^^^^^^^^^^^
+95 |         field_circuit::{flat_const, FieldR1csBuilder, LinExpr, Wire},
+   |                         ^^^^^^^^^^                             ^^^^
+96 |         field_r1cs::FieldR1cs,
+   |         ^^^^^^^^^^^^^^^^^^^^^
+97 |         lincheck::build_eq_table,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `TAG_EXSTNOD` and `capacity_iv`
+   --> src/lib.rs:101:26
+    |
+101 |         native::domain::{capacity_iv, TAG_EXSTNOD},
+    |                          ^^^^^^^^^^^  ^^^^^^^^^^^
+
+warning: unused imports: `ActionRowTrace`, `CompactedActionTrace`, `ExactStateRootWires`, `MIN_EXACT_STATE_DEPTH`, `PAIRED_UPDATE_DEPTH`, `PAIRED_UPDATE_STRIDE`, `PagedSpendGroupTrace`, `PairedMerkleUpdateColumns`, `PairedMerkleUpdateWitness`, `PairedRootCellPair`, `SlotLeafInputsTrace`, `StateDepthTrace`, `bind_actions_to_exact_state_leaves`, `bind_coinbase_action_with_amount`, `bind_exact_state_header_roots_dynamic`, `bind_financial_paged_spend_stream`, `bind_mint_packed_values_body_order`, `bind_segment_upper_chain`, `bind_user_action_surface_v2_1`, `bind_user_action_surface`, `bind_user_public_arithmetic_v2_1`, `bind_user_public_arithmetic`, `build_paired_merkle_update_columns`, `compact_action_rows`, `compact_segment_updates`, `fee_arithmetic::bind_block_fee_arithmetic`, `financial_definitions::bind_financial_definition_table`, `flat_of`, `header::bind_financial_native_headers`, `mul`, `paired_merkle_update_consistency_terms`, `paired_merkle_update_fixed_patterns`, `paired_merkle_update_refs`, `paired_merkle_update_substitution_terms`, `paired_update_root_offsets`, `pin_eq`, `pin_zero`, `range_check_bits`, `select_upper_paired_roots`, `tx_body_spine::SpineInputsTrace`, and `tx_epoch::constrain_tx_epoch_boundary`
+   --> src/lib.rs:112:21
+    |
+112 |                     bind_mint_packed_values_body_order, compact_action_rows, CompactedActionTrace,
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^
+...
+115 |                     bind_coinbase_action_with_amount, bind_user_action_surface,
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^
+116 |                     bind_user_action_surface_v2_1, ActionRowTrace,
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^
+...
+120 |                     bind_actions_to_exact_state_leaves, bind_exact_state_header_roots_dynamic,
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+121 |                     select_upper_paired_roots, ExactStateRootWires, PairedRootCellPair,
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^
+122 |                     SlotLeafInputsTrace, StateDepthTrace, MIN_EXACT_STATE_DEPTH,
+    |                     ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^
+123 |                 },
+124 |                 fee_arithmetic::bind_block_fee_arithmetic,
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+125 |                 flat_of, mul,
+    |                 ^^^^^^^  ^^^
+126 |                 native_assets::{
+127 |                     financial_definitions::bind_financial_definition_table,
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+130 |                     header::bind_financial_native_headers,
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+131 |                 },
+132 |                 paged_spend::{bind_financial_paged_spend_stream, PagedSpendGroupTrace},
+    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^
+133 |                 paired_merkle_update::{
+134 |                     build_paired_merkle_update_columns, paired_merkle_update_consistency_terms,
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+135 |                     paired_merkle_update_fixed_patterns, paired_merkle_update_refs,
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^
+136 |                     paired_merkle_update_substitution_terms, paired_update_root_offsets,
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+137 |                     PairedMerkleUpdateColumns, PairedMerkleUpdateWitness, PAIRED_UPDATE_DEPTH,
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^
+138 |                     PAIRED_UPDATE_STRIDE,
+    |                     ^^^^^^^^^^^^^^^^^^^^
+139 |                 },
+140 |                 pin_eq, pin_zero,
+    |                 ^^^^^^  ^^^^^^^^
+141 |                 public_arithmetic::{
+142 |                     bind_user_public_arithmetic, bind_user_public_arithmetic_v2_1,
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+143 |                 },
+144 |                 range_check_bits,
+    |                 ^^^^^^^^^^^^^^^^
+145 |                 segment_compaction::{bind_segment_upper_chain, compact_segment_updates},
+    |                                      ^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^
+146 |                 tx_body_spine::SpineInputsTrace,
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+147 |                 tx_epoch::constrain_tx_epoch_boundary,
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `NativeOperation`, `PAGED_SPEND_CONTRACT_BIT`, `PAGED_SPEND_END_BIT`, `PAGED_SPEND_START_BIT`, `TxPage`, and `experimental_object::applications::refundable_payment`
+   --> src/lib.rs:153:9
+    |
+153 |         experimental_object::applications::refundable_payment,
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+164 |             transition::{NativeContext, NativeInputClaim, NativeOperation, NativeOutputClaim},
+    |                                                           ^^^^^^^^^^^^^^^
+...
+170 |         TxPage, PAGED_SPEND_CONTRACT_BIT, PAGED_SPEND_END_BIT, PAGED_SPEND_START_BIT, TX_INPUTS,
+    |         ^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^
+
+warning: value assigned to `state` is never read
+   --> src/lib.rs:431:25
+    |
+431 |         let mut state = ChainState::with_log_slots(24);
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this value is reassigned later and never used
+...
+442 |         state = ChainState::from_sparse_utxos(24, &initial_slots, 2).unwrap();
+    |         ----- `state` is overwritten here before the previous value is read
+    |
+    = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: `verification-opcodes` (lib test) generated 7 warnings (run `cargo fix --lib -p verification-opcodes --tests` to apply 6 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.14s
+     Running unittests src/lib.rs (/Users/ember/dev/parano1d-break/experiments/comp-system-hunter/core-seams/target/debug/deps/verification_opcodes-2a849bada8b75baa)
+
+running 1 test
+test tests::diff_b1_consensus_enabled_financial_ops_accepted_natively_rejected_by_v21_history_step ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 37.18s

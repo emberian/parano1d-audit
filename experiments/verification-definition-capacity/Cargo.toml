@@ -1,0 +1,17 @@
+[package]
+name = "verification-definition-capacity"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+noid_block = { path = "../comp-system-hunter/pinned/noid_block" }
+noid_chain = { path = "../comp-system-hunter/pinned/noid_chain", features = ["isolated-v2-1-fork-testnet"] }
+noid_core = { path = "../comp-system-hunter/pinned/noid_core" }
+noid_gkr = { path = "../comp-system-hunter/pinned/noid_gkr" }
+noid_ivc_core = { package = "noid-ivc-core", path = "../comp-system-hunter/pinned/noid_ivc_core" }
+noid_poseidon2b = { path = "../comp-system-hunter/pinned/noid_poseidon2b" }
+noid_recursive = { path = "../comp-system-hunter/pinned/noid_recursive" }
+noid_tx = { path = "../comp-system-hunter/pinned/noid_tx" }

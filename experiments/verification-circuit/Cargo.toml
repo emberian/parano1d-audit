@@ -1,0 +1,13 @@
+[package]
+name = "verification-circuit"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+noid_ivc_core = { package = "noid-ivc-core", path = "../uc-composition/pinned/noid_ivc_core" }
+noid_ivc_prover = { package = "noid-ivc-prover", path = "../uc-composition/pinned/noid_ivc_prover" }
+noid_recursive = { path = "../uc-composition/pinned/noid_recursive" }
+
+[profile.release]
+opt-level = 3

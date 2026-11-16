@@ -1,0 +1,47 @@
+{
+  "source": "experiments/comp-sync-finality/logs/asert_mtp_conformance.json",
+  "cases": [
+    {
+      "case": "mainnet_h210536_target_at_v2_epoch_210540",
+      "source_anchor_is_synthetic": true,
+      "first_hard_header_mined_or_validated_by_source": false,
+      "floor_headers_mined_by_source": 23,
+      "floor_offset_seconds_from_synthetic_anchor": 4375,
+      "earliest_clock_delta_for_all_shifted_headers_seconds": 4375,
+      "shifted_headers_rejected_at_source_clock": 5,
+      "tip_passes_future_drift_at_source_clock": true,
+      "one_hard_block_accounted_work": "4825867084694",
+      "one_hard_block_expected_hashes_ceiling": "4825867084694",
+      "one_floor_block_expected_hashes": 262144,
+      "source_assumed_branch_work": "4825873114006",
+      "work_from_23_mined_floor_headers_only": 6029312,
+      "source_branch_work_is_from_unmined_first_block": true,
+      "floor_blocks_needed_to_exceed_one_additional_equal_hard_block": 18409222,
+      "honest_blocks_at_30s_nominal_during_wait": 145.83333333333334,
+      "maximum_honest_blocks_before_anchor_exits_18_block_finality_window": 18,
+      "minimum_mean_honest_interval_to_keep_anchor_in_window_seconds": 243.05555555555554,
+      "target_without_early_clamp_at_threshold": "441711766194596082395824375185729628956870974218904739530401550323154944"
+    },
+    {
+      "case": "extreme_min_target_at_v2_1_epoch_279504",
+      "source_anchor_is_synthetic": true,
+      "first_hard_header_mined_or_validated_by_source": false,
+      "floor_headers_mined_by_source": 23,
+      "floor_offset_seconds_from_synthetic_anchor": 11190,
+      "earliest_clock_delta_for_all_shifted_headers_seconds": 11190,
+      "shifted_headers_rejected_at_source_clock": 5,
+      "tip_passes_future_drift_at_source_clock": true,
+      "one_hard_block_accounted_work": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "one_hard_block_expected_hashes_ceiling": "115792089237316195423570985008687907853269984665640564039457584007913129639936",
+      "one_floor_block_expected_hashes": 262144,
+      "source_assumed_branch_work": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "work_from_23_mined_floor_headers_only": 6029312,
+      "source_branch_work_is_from_unmined_first_block": true,
+      "floor_blocks_needed_to_exceed_one_additional_equal_hard_block": null,
+      "honest_blocks_at_30s_nominal_during_wait": 373.0,
+      "maximum_honest_blocks_before_anchor_exits_18_block_finality_window": 18,
+      "minimum_mean_honest_interval_to_keep_anchor_in_window_seconds": 621.6666666666666,
+      "target_without_early_clamp_at_threshold": "4611686018427387904"
+    }
+  ]
+}

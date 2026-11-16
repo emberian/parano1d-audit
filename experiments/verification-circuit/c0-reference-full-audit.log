@@ -1,0 +1,22 @@
+================================================================================
+ parano1d Recursive Verifier & IVC Fold Constraint Audit (`52938433a30b...`)
+================================================================================
+=== [Check 1] BaseFold T2 (`post_row_batch_commit`) Transcript Binding at `log_batch_size == 0` ===
+  [CONFIRMED FINDING 1] C0 native (`basefold.rs:1281-1283`) & trace (`self_verify.rs:2292-2297`) omit T2 root lanes at `log_batch_size=0` (challenges invariant).
+                        C1 native (`basefold.rs:1915-1917`) & trace (`self_verify.rs:2527-2530`) absorb T2 root lanes `[0..2]` pre-round-0 (all 5 challenges diverge).
+=== [Check 2] Walk-B `ff_merkle` Direction-Bit Booleanity & `root_copy_offset` Audit ===
+  [CONFIRMED FINDING 2] `ff_merkle_chain_terms` == 0 on non-boolean D=F128 { lo: 2, hi: 0 } affine witness, while unused `ff_merkle_booleanity_terms` == F128 { lo: 58, hi: 6 } != 0.
+                        Standalone `alloc_f128` outer R1CS satisfies=true; production boolean-pinned outer R1CS satisfies=false. `root_copy_offset` verified (`depth=3 -> Some(3)`, `depth=4 -> None`).
+=== [Check 3] `verify_pow_trace` `pow_nonce` Upper-64-Bit Input-Domain Audit ===
+  [CONFIRMED FINDING 3] At `bits=16`, `verify_pow` emits exactly 114 wires (1 challenge + 112 output bits + 1 sum pin) and 0 range-check rows on `nonce.hi`; 64-bit `decompose_bits_le(&nonce, 64)` remediation rejects `hi != 0`.
+=== [Check 4] C1 `self_verify` Native-vs-Trace Lockstep & Query-Lane High-Bit Pinning ===
+  [VERIFIED TIGHT] C1 `verify_field_c1_trace_deferred_region` (1592311 R1CS wires) matches native transcript & claims bit-for-bit; proof-wire flips rejected; all 128 bits/lane constrained.
+=== [Check 5] C1 `F256::from_raw_challenge_lanes` Trace-One Subfield Exclusion ===
+  [VERIFIED TIGHT] Checked 1029 raw `(lo, raw_hi)` pairs: `hi = y^2 + y + tau != 0` always; native & R1CS gadget match bit-for-bit.
+=== [Check 6] C1 `ShiftDischarge` Non-Wrapping `slot = 0` Boundary Audit ===
+  [VERIFIED TIGHT] `shift_kernel_eval(0^w, sigma) == 0`; non-wrapping target accepted & locked to native point; cyclic `col[w-1] -> slot 0` target rejected in both native & R1CS.
+=== [Check 7] C1 `matrix_fold` (`gate=0` Base / `gate=1` Step) & `pin_boolean_gated_zero` ===
+  [VERIFIED TIGHT] C1 `matrix_fold` verified for `gate=0` (base) and `gate=1` (step, 59324 wires); incoming claim mutation rejected; `pin_boolean_gated_zero` algebraically sound.
+================================================================================
+ ALL 7 AUDIT SUITES COMPLETED DETERMINISTICALLY (EXIT 0)
+================================================================================

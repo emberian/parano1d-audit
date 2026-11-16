@@ -1,0 +1,20 @@
+[package]
+name = "verification-opcodes"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+noid_core = { path = "../comp-system-hunter/pinned/noid_core" }
+noid_poseidon2b = { path = "../comp-system-hunter/pinned/noid_poseidon2b" }
+noid-ivc-core = { path = "../comp-system-hunter/pinned/noid_ivc_core" }
+noid_tx = { path = "../comp-system-hunter/pinned/noid_tx" }
+noid_chain = { path = "../comp-system-hunter/pinned/noid_chain", features = ["isolated-v2-1-fork-testnet"] }
+noid_gkr = { path = "../comp-system-hunter/pinned/noid_gkr" }
+noid_block = { path = "../comp-system-hunter/pinned/noid_block" }
+noid_recursive = { path = "../comp-system-hunter/pinned/noid_recursive" }
+noid_mempool = { path = "../comp-system-hunter/pinned/noid_mempool" }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+hex = "0.4"

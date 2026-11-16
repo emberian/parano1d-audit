@@ -1428,9 +1428,11 @@ mod tests {
             .unwrap()
             .with_native_finance(4, 64, 34)
             .unwrap();
-        assert_eq!(
-            capacity_banked::Config::new(small_cfg, large_cfg, non_seq_native),
-            Err(V2Error::Runtime),
+        assert!(
+            matches!(
+                capacity_banked::Config::new(small_cfg, large_cfg, non_seq_native),
+                Err(V2Error::Runtime)
+            ),
             "v2.1 capacity_banked::Config forbids non-sequential Class::Native"
         );
 
@@ -1497,7 +1499,7 @@ mod tests {
                 parent0.active_slot_count,
                 parent0.log_slots,
             )
-            .claimable_by_miner;
+            .claimable_at_minimum();
         let cb1 = Transaction::new(TxBody {
             epoch_anchor: anchor1,
             fee: 0,
@@ -1522,19 +1524,74 @@ mod tests {
                 .iter()
                 .map(|p| Transaction::new(p.body.clone())),
         );
-        let mut openings_map: BTreeMap<Address, NativeOpening> = launch_intent
+        let mut openings_map: BTreeMap<[u8; 32], NativeOpening> = launch_intent
             .output_openings
             .iter()
             .flatten()
             .chain(&launch_intent.dependencies)
-            .map(|o| (o.root(), *o))
+            .map(|o| (o.root().0, *o))
             .collect();
 
-        // Dry-run state root for Block 1 via a probe header.
-        let mut probe_block1 = Block {
+        // Compute canonical post-state via sparse UTXO projection, then verify with
+        // `materialize_accepted_block_state_with_financial_context`.
+        let apply_intents_sparse = |live: &mut BTreeMap<u32, SlotValue>,
+                                    mut alloc: u64,
+                                    height: u64,
+                                    cb: &TxBody,
+                                    intents: &[NativeIntent]|
+         -> ChainState {
+            for (_, out) in cb.live_outputs() {
+                alloc += 1;
+                live.insert(
+                    out.slot_index,
+                    SlotValue::with_owner_fields(
+                        out.amount,
+                        coinbase_creation_id(height),
+                        out.owner.as_fields(),
+                    ),
+                );
+            }
+            for intent in intents {
+                for page in &intent.pages {
+                    for (_, inp) in page.body.live_inputs() {
+                        live.remove(&inp.slot_index);
+                    }
+                }
+                let live_outs: Vec<_> = intent
+                    .pages
+                    .iter()
+                    .flat_map(|p| p.body.live_outputs().map(|(_, o)| *o))
+                    .collect();
+                for (out, maybe_open) in live_outs.iter().zip(&intent.output_openings) {
+                    alloc += 1;
+                    let cid = if maybe_open.is_some() {
+                        native_creation_id(alloc).unwrap()
+                    } else {
+                        alloc
+                    };
+                    live.insert(
+                        out.slot_index,
+                        SlotValue::with_owner_fields(out.amount, cid, out.owner.as_fields()),
+                    );
+                }
+            }
+            let entries: Vec<_> = live.iter().map(|(&k, &v)| (k, v)).collect();
+            ChainState::from_sparse_utxos(24, &entries, alloc).unwrap()
+        };
+
+        let mut live_slots: BTreeMap<u32, SlotValue> = initial_slots.into_iter().collect();
+        let expected_after_b1 = apply_intents_sparse(
+            &mut live_slots,
+            state.alloc_counter,
+            h1,
+            &txs1[0].body,
+            std::slice::from_ref(&launch_intent),
+        );
+
+        let probe_block1 = Block {
             header: BlockHeader {
                 prev_block_hash: anchor1,
-                state_root: [0; 32],
+                state_root: expected_after_b1.cached_state_root(),
                 tx_root: try_compute_tx_root_at(&txs1, h1).unwrap(),
                 timestamp: parent0.timestamp + 30,
                 height: h1,
@@ -1542,52 +1599,17 @@ mod tests {
                 nonce: 0,
                 difficulty_target: target,
                 log_slots: 24,
-                active_slot_count: state.active_slot_count - 1 + 1 + 4,
-                alloc_counter: state.alloc_counter + 1 + 4,
+                active_slot_count: expected_after_b1.active_slot_count,
+                alloc_counter: expected_after_b1.alloc_counter,
             },
             transactions: txs1,
         };
         let fin_win1 = FinancialHeaderWindow::new(parent0, &[]).unwrap();
-        // Compute post-state root by applying coinbase + launch claims.
-        {
-            let mut scratch = state.clone();
-            noid_chain::apply_tx_at(&mut scratch, &probe_block1.transactions[0].body, h1).unwrap();
-            let (ins, outs) = launch_intent.claims();
-            let ctx = NativeContext {
-                chain: native_chain_id(),
-                height: h1,
-                authority: creator,
-                fee: launch_intent.pages[0].body.fee,
-            };
-            let facts = fin_win1
-                .check_owner(
-                    &state,
-                    &ctx,
-                    FinancialOperation::CreateLaunch {
-                        definition: NativeOpening::Launch(LaunchOpening::Definition(launch_def))
-                            .root(),
-                        funding_input: 0,
-                    },
-                    &ins,
-                    &outs,
-                    |r| openings_map.get(&r).copied(),
-                )
-                .unwrap();
-            noid_chain::state::native_assets::apply_checked_native(
-                &mut scratch,
-                &ctx,
-                &ins,
-                &outs,
-                facts,
-            )
-            .unwrap();
-            probe_block1.header.state_root = scratch.cached_state_root();
-        }
         let transition1 = materialize_accepted_block_state_with_financial_context(
             &mut state,
             &probe_block1,
             &fin_win1,
-            |r| openings_map.get(&r).copied(),
+            |r| openings_map.get(&r.0).copied(),
         )
         .expect("CreateLaunch block materializes cleanly");
         assert_eq!(transition1.new_state_root, probe_block1.header.state_root);
@@ -1625,7 +1647,7 @@ mod tests {
         };
         req_opening.check_round(launch_def, launch_state, h2).unwrap();
         let req_native = NativeOpening::Launch(LaunchOpening::Request(req_opening));
-        openings_map.insert(req_native.root(), req_native);
+        openings_map.insert(req_native.root().0, req_native);
 
         let fee2 = fee_breakdown(
             1,
@@ -1642,7 +1664,7 @@ mod tests {
         };
         let req_noid = req_native.amount_micronoid();
         let buyer_change = buyer_in.amount - req_noid - fee2;
-        let parent_ref = ParentControlRef {
+        let parent_ref = NativeParentRef {
             slot_index: launch_state_slot,
             creation_id: launch_slot_val.creation_id(),
             root: NativeOpening::Launch(LaunchOpening::State(launch_state)).root(),
@@ -1686,7 +1708,7 @@ mod tests {
                     opening: None,
                 },
             ],
-            |r| openings_map.get(&r).copied(),
+            |r| openings_map.get(&r.0).copied(),
         )
         .expect("LaunchRequest (op 49) builds a valid NativeIntent");
 
@@ -1697,7 +1719,7 @@ mod tests {
                 parent1.active_slot_count,
                 parent1.log_slots,
             )
-            .claimable_by_miner;
+            .claimable_at_minimum();
         let cb2 = Transaction::new(TxBody {
             epoch_anchor: hash_block_header(&parent1),
             fee: 0,
@@ -1724,27 +1746,16 @@ mod tests {
         );
 
         let fin_win2 = FinancialHeaderWindow::new(parent1, &[parent0]).unwrap();
-        let mut state_for_b2 = state.clone();
-        {
-            noid_chain::apply_tx_at(&mut state_for_b2, &txs2[0].body, h2).unwrap();
-            let (ins, outs) = op49_intent.claims();
-            let facts = fin_win2
-                .check_owner(&state, &ctx2, op49, &ins, &outs, |r| {
-                    openings_map.get(&r).copied()
-                })
-                .unwrap();
-            noid_chain::state::native_assets::apply_checked_native(
-                &mut state_for_b2,
-                &ctx2,
-                &ins,
-                &outs,
-                facts,
-            )
-            .unwrap();
-        }
+        let state_for_b2 = apply_intents_sparse(
+            &mut live_slots,
+            state.alloc_counter,
+            h2,
+            &txs2[0].body,
+            std::slice::from_ref(&op49_intent),
+        );
 
         let ts2 = parent1.timestamp + 30;
-        let asert2 = AsertAnchor {
+        let asert2 = AnchorInfo {
             anchor_height: h1,
             anchor_timestamp: parent1.timestamp,
             anchor_target: target,
@@ -1787,7 +1798,7 @@ mod tests {
             &mut state_after_b2,
             &block2,
             &fin_win2,
-            |r| openings_map.get(&r).copied(),
+            |r| openings_map.get(&r.0).copied(),
         );
         assert!(
             mat_res.is_ok(),
@@ -1840,7 +1851,8 @@ mod tests {
                     ConsensusError::ShapeMismatch(ref msg)
                 )) if msg.contains("native operation is outside the selected class")
             ),
-            "HistoryStep candidate preparation rejects op-49 LaunchRequest: {cand_res:?}"
+            "HistoryStep candidate preparation rejects op-49 LaunchRequest: {:?}",
+            cand_res.as_ref().err()
         );
 
         // Verify the in-circuit R1CS header relation `bind_financial_sequential_headers`
@@ -1853,7 +1865,7 @@ mod tests {
                 .map(|p| SpineInputsTrace::alloc(&mut b, &spine_inputs_from_body(&p.body)))
                 .collect();
             let live_bits: Vec<_> = (0..page_spines.len())
-                .map(|_| alloc_block(&mut b, Block128::ONE))
+                .map(|_| alloc_block(&mut b, Block128::from(1u128)))
                 .collect();
             let surfaces: Vec<_> = page_spines
                 .iter()
@@ -2000,7 +2012,7 @@ mod tests {
         let anchor = hash_block_header(&parent0);
 
         let mut intents = Vec::new();
-        let mut openings_map = BTreeMap::new();
+        let mut openings_map: BTreeMap<[u8; 32], NativeOpening> = BTreeMap::new();
         for (i, &creator) in creators.iter().enumerate() {
             let (intent, _ld, _tok, _res) = create_launch_intent(
                 &state,
@@ -2018,7 +2030,7 @@ mod tests {
                 .flatten()
                 .chain(&intent.dependencies)
             {
-                openings_map.insert(o.root(), *o);
+                openings_map.insert(o.root().0, *o);
             }
             intents.push(intent);
         }
@@ -2072,37 +2084,48 @@ mod tests {
         }
 
         let fin_win = FinancialHeaderWindow::new(parent0, &[]).unwrap();
-        let mut scratch = state.clone();
-        noid_chain::apply_tx_at(&mut scratch, &txs[0].body, h1).unwrap();
-        for (i, intent) in intents.iter().enumerate() {
-            let (ins, outs) = intent.claims();
-            let facts = intent.validate_structure().unwrap();
-            let NativeOperation::Financial(op) = facts.operation else {
-                unreachable!()
-            };
-            let ctx = NativeContext {
-                chain: native_chain_id(),
-                height: h1,
-                authority: creators[i],
-                fee: facts.fee,
-            };
-            let transition = fin_win
-                .check_owner(&state, &ctx, op, &ins, &outs, |r| {
-                    openings_map.get(&r).copied()
-                })
-                .unwrap();
-            noid_chain::state::native_assets::apply_checked_native(
-                &mut scratch,
-                &ctx,
-                &ins,
-                &outs,
-                transition,
-            )
-            .unwrap();
+        let mut live_map: BTreeMap<u32, SlotValue> = initial_slots.into_iter().collect();
+        let mut alloc = state.alloc_counter;
+        for (_, out) in txs[0].body.live_outputs() {
+            alloc += 1;
+            live_map.insert(
+                out.slot_index,
+                SlotValue::with_owner_fields(
+                    out.amount,
+                    coinbase_creation_id(h1),
+                    out.owner.as_fields(),
+                ),
+            );
         }
+        for intent in &intents {
+            for page in &intent.pages {
+                for (_, inp) in page.body.live_inputs() {
+                    live_map.remove(&inp.slot_index);
+                }
+            }
+            let live_outs: Vec<_> = intent
+                .pages
+                .iter()
+                .flat_map(|p| p.body.live_outputs().map(|(_, o)| *o))
+                .collect();
+            for (out, maybe_open) in live_outs.iter().zip(&intent.output_openings) {
+                alloc += 1;
+                let cid = if maybe_open.is_some() {
+                    native_creation_id(alloc).unwrap()
+                } else {
+                    alloc
+                };
+                live_map.insert(
+                    out.slot_index,
+                    SlotValue::with_owner_fields(out.amount, cid, out.owner.as_fields()),
+                );
+            }
+        }
+        let entries: Vec<_> = live_map.into_iter().collect();
+        let scratch = ChainState::from_sparse_utxos(24, &entries, alloc).unwrap();
 
         let ts1 = parent0.timestamp + 30;
-        let asert = AsertAnchor {
+        let asert = AnchorInfo {
             anchor_height: h0,
             anchor_timestamp: parent0.timestamp,
             anchor_target: target,
@@ -2151,7 +2174,7 @@ mod tests {
                 &block,
                 &fin_win,
                 &[],
-                |r| openings_map.get(&r).copied(),
+                |r| openings_map.get(&r.0).copied(),
             )
             .is_ok(),
             "materialize_accepted_block_state_with_native_data accepts 6 auxiliary definitions"
@@ -2165,21 +2188,7 @@ mod tests {
             OwnerAuthorizationVersion::V4,
         )
         .unwrap();
-        // Supply 3 valid OwnerAuthorization proofs? No: check `validate_scheduled_candidate_resources`
-        // up to authorization preparation — or supply real wallet auths! Wait: we can sign 3 real
-        // V4 wallet authorizations in ~50ms so `prepare_candidate_input_with_native_data` runs ALL
-        // the way to `Ok(HistoryStepBlockInput)`!
-        let proofs: Vec<_> = intents
-            .iter()
-            .enumerate()
-            .map(|(i, intent)| {
-                let sk = [(i as u8) + 0x51; 32];
-                // Wait: creator addresses above were fixed bytes; let's verify resource preflight
-                // directly first, and also test with real derived creator keys below!
-                let _ = (sk, intent);
-                ghost_raw.clone()
-            })
-            .collect();
+        let proofs: Vec<_> = (0..intents.len()).map(|_| ghost_raw.clone()).collect();
         let start_acc = ChainAccumulator {
             height: parent0.height,
             tip_semantic_id: noid_chain::block_header::semantic_header_id(&parent0),
@@ -2220,7 +2229,8 @@ mod tests {
                     noid_recursive::HistoryStepAuthorizationError::Verification
                 ))
             ),
-            "validate_scheduled_candidate_resources failed to catch 6 > 5 auxiliary definitions (reached auth verification instead of ResourceLimit): {cand_res:?}"
+            "validate_scheduled_candidate_resources failed to catch 6 > 5 auxiliary definitions (reached auth verification instead of ResourceLimit): {:?}",
+            cand_res.as_ref().err()
         );
 
         // 3. Engine 2 (`bind_financial_definition_table`): PANICS on `witness.len() (6) <= capacity (5)`!
@@ -2375,7 +2385,7 @@ mod tests {
             noid_chain::apply_tx_at(&mut dry, &tx.body, h1).unwrap();
         }
         let ts1 = parent0.timestamp + 30;
-        let asert = AsertAnchor {
+        let asert = AnchorInfo {
             anchor_height: h0,
             anchor_timestamp: parent0.timestamp,
             anchor_target: target,
@@ -2442,7 +2452,11 @@ mod tests {
             let ph_w = alloc_block(&mut b, Block128::from(parent_height as u128));
             let start_w = digest_to_blocks(start_epoch).map(|v| alloc_block(&mut b, v));
             let pid_w = digest_to_blocks(parent_id).map(|v| alloc_block(&mut b, v));
-            let selected = select_child_tx_epoch_anchor(&mut b, &ph_w, &start_w, &pid_w);
+            let epoch = constrain_tx_epoch_boundary(&mut b, &ph_w);
+            let selected: [LinExpr; 2] = std::array::from_fn(|lane| {
+                let delta = start_w[lane].add(&pid_w[lane]);
+                start_w[lane].add(&mul(&mut b, &epoch.boundary, &delta))
+            });
             let exp_flat = digest_to_flat(native_selected);
             let (r1cs, witness) = b.build();
             assert!(r1cs.satisfies(&witness));

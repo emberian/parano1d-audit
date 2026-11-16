@@ -1,0 +1,18 @@
+[package]
+name = "verification-object-planner"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+noid_pruv = { path = "../comp-system-hunter/pinned/noid_pruv" }
+noid_poseidon2b = { path = "../comp-system-hunter/pinned/noid_poseidon2b" }
+noid_tx = { path = "../comp-system-hunter/pinned/noid_tx" }
+serde_json = "1"
+
+[workspace]
+exclude = ["../comp-system-hunter/pinned"]
+
+[profile.dev]
+opt-level = 1
+debug = 0

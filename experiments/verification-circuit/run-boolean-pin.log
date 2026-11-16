@@ -1,0 +1,2 @@
+PA-02 same public-entry/root witness rejected by outer direction Boolean pin
+PA-03 full inline PoW gadget accepted high-half nonce F128 { lo: 11244, hi: 1 }; 64-bit range pin rejects
