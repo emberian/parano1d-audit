@@ -1,0 +1,77 @@
+=== seed DNS resolution, 2026-11-16T06:52:25Z ===
+--- mseed1.parano1d.org ---
+66.29.128.164
+209.74.93.214
+--- mseed2.parano1d.org ---
+203.161.32.161
+162.0.227.4
+--- mseed3.parano1d.org ---
+162.0.227.238
+69.67.172.157
+--- mseed4.parano1d.org ---
+168.100.9.26
+162.252.198.227
+--- _dnsaddr.parano1d.org TXT ---
+--- parano1d.org A (canonical site, for comparison) ---
+168.100.11.250
+=== seed PTR + port 9600 reachability, 2026-11-16T06:52:31Z ===
+66.29.128.164 PTR=[nc-ph-3288.web-hosting.com. ] :9600 -> Connection to 66.29.128.164 port 9600 [tcp/micromuse-ncpw] succeeded!
+OPEN
+209.74.93.214 PTR=[nc-ph-1887-17.web-hosting.com. ] :9600 -> Connection to 209.74.93.214 port 9600 [tcp/micromuse-ncpw] succeeded!
+OPEN
+203.161.32.161 PTR=[nc-ph-4773.web-hosting.com. ] :9600 -> Connection to 203.161.32.161 port 9600 [tcp/micromuse-ncpw] succeeded!
+OPEN
+162.0.227.4 PTR=[nc-ph-1892-17.web-hosting.com. ] :9600 -> Connection to 162.0.227.4 port 9600 [tcp/micromuse-ncpw] succeeded!
+OPEN
+162.0.227.238 PTR=[nc-ph-2417.web-hosting.com. ] :9600 -> Connection to 162.0.227.238 port 9600 [tcp/micromuse-ncpw] succeeded!
+OPEN
+69.67.172.157 PTR=[] :9600 -> Connection to 69.67.172.157 port 9600 [tcp/micromuse-ncpw] succeeded!
+OPEN
+168.100.9.26 PTR=[] :9600 -> Connection to 168.100.9.26 port 9600 [tcp/micromuse-ncpw] succeeded!
+OPEN
+162.252.198.227 PTR=[] :9600 -> Connection to 162.252.198.227 port 9600 [tcp/micromuse-ncpw] succeeded!
+OPEN
+=== connect-and-hold banner probe, 2026-11-16T06:52:49Z ===
+209.74.93.214 :9600 banner-read -> [<no bytes sent, connection held or closed>]
+168.100.9.26 :9600 banner-read -> [<no bytes sent, connection held or closed>]
+=== whois networks for the 8 seed IPs ===
+--- 66.29.128.164 ---
+inetnum:      66.0.0.0 - 66.255.255.255
+CIDR:           66.29.128.0/19
+NetName:        NAMEC-4
+OriginAS:       
+--- 209.74.93.214 ---
+inetnum:      209.0.0.0 - 209.255.255.255
+CIDR:           209.74.64.0/19
+NetName:        NAMEC-4
+OriginAS:       
+--- 203.161.32.161 ---
+inetnum:      203.0.0.0 - 203.255.255.255
+inetnum:        203.161.32.0 - 203.161.63.255
+netname:        STUB-203-161-32SLASH19
+descr:          Transferred to the ARIN region on 2022-03-01T09:43:00Z.
+--- 162.0.227.4 ---
+inetnum:      162.0.0.0 - 162.255.255.255
+CIDR:           162.0.224.0/20
+NetName:        NAMEC-4
+OriginAS:       
+--- 162.0.227.238 ---
+inetnum:      162.0.0.0 - 162.255.255.255
+CIDR:           162.0.224.0/20
+NetName:        NAMEC-4
+OriginAS:       
+--- 69.67.172.157 ---
+inetnum:      69.0.0.0 - 69.255.255.255
+CIDR:           69.67.172.0/23
+NetName:        BNL-77
+OriginAS:       
+--- 168.100.9.26 ---
+inetnum:      168.0.0.0 - 168.255.255.255
+CIDR:           168.100.8.0/22
+NetName:        BLNETWORKS-01
+OriginAS:       
+--- 162.252.198.227 ---
+inetnum:      162.0.0.0 - 162.255.255.255
+CIDR:           162.252.198.0/23
+NetName:        BNL-77
+OriginAS:       

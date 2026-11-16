@@ -1,0 +1,86 @@
+{
+  "block_reward_micronoid": 14400000,
+  "block_seconds": 30.0,
+  "blocks": {
+    "avg_effort_30d": 190.36984841048275,
+    "last_24h": 0,
+    "last_found_at": 1794237042,
+    "orphan_rate_30d": 0.0,
+    "total": 7
+  },
+  "confirmations_required": 18,
+  "explorer_url": "https://noidexplorer.org",
+  "fee_exemption": true,
+  "hashrate_10m": 7186433.167321227,
+  "hashrate_1m": 6589234.935060307,
+  "miner_hiveos_url": "https://github.com/gustlborg/gb-miner/releases/download/v1.0.2/gb-miner-1.0.2.tar.gz",
+  "miner_url": "https://github.com/gustlborg/gb-miner/releases/latest",
+  "miners": 1,
+  "name": "gb-pool",
+  "network_difficulty": 17902979557073.22,
+  "network_hashrate": 596765985235.7739,
+  "network_height": 314196,
+  "next_payout_at": 1794812513,
+  "now": 1794812194,
+  "online_since": 1794549713,
+  "paid_24h_micronoid": 0,
+  "paid_total_micronoid": 99741344,
+  "payout_interval_seconds": 600,
+  "payout_max_wait_min_micronoid": 1000000,
+  "payout_max_wait_seconds": 14400,
+  "payout_scheme": "PPLNS",
+  "payout_threshold_micronoid": 5000000,
+  "pool_address": "o1y5ap22zs6uuf094a6ypd8pd2xksmve9l57s7gzgyg9ld2nhczt6qtkq5hx",
+  "pool_fee_gb_miner_percent": 0.0,
+  "pool_fee_percent": 0.5,
+  "pplns_window": "2 x network difficulty",
+  "round": {
+    "effort_percent": 155.4627090261514,
+    "shares": 363384,
+    "started_at": 1794237042
+  },
+  "solo": {
+    "fee_gb_miner_percent": 0.0,
+    "fee_percent": 1.0,
+    "hashrate_10m": 0.0,
+    "miners": 0
+  },
+  "stratum": [
+    {
+      "host": "stratum.noid.pool.army",
+      "port": 3333,
+      "purpose": "standard",
+      "start_difficulty": 268435456.0,
+      "tls": false,
+      "url": "stratum+tcp://stratum.noid.pool.army:3333"
+    },
+    {
+      "host": "stratum.noid.pool.army",
+      "port": 3334,
+      "purpose": "tls",
+      "start_difficulty": 268435456.0,
+      "tls": true,
+      "url": "stratum+ssl://stratum.noid.pool.army:3334"
+    },
+    {
+      "host": "stratum.noid.pool.army",
+      "port": 3335,
+      "purpose": "high",
+      "start_difficulty": 4294967296.0,
+      "tls": false,
+      "url": "stratum+tcp://stratum.noid.pool.army:3335"
+    },
+    {
+      "host": "stratum.noid.pool.army",
+      "port": 3336,
+      "purpose": "solo",
+      "start_difficulty": 268435456.0,
+      "tls": false,
+      "url": "stratum+tcp://stratum.noid.pool.army:3336"
+    }
+  ],
+  "uptime_30d": 0.9858110164333537,
+  "version": "0.1.0",
+  "work": "active",
+  "workers": 2
+}
