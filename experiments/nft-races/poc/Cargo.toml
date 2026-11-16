@@ -1,0 +1,12 @@
+[package]
+name = "nft-races-audit"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+noid_core = { path = "../../nft-marketplace/source/noid_core" }
+noid_poseidon2b = { path = "../../nft-marketplace/source/noid_poseidon2b" }
+noid_tx = { path = "../../nft-marketplace/source/noid_tx" }
+noid_chain = { path = "../../nft-marketplace/source/noid_chain" }
+noid_recursive = { path = "../../nft-marketplace/source/noid_recursive" }
+noid-ivc-core = { path = "../../nft-marketplace/source/noid_ivc_core" }

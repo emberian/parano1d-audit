@@ -1,0 +1,152 @@
+warning: associated function `try_from_locally_built_block` is never used
+  --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_chain/src/accepted_block_bundle.rs:73:19
+   |
+65 | impl AcceptedBlockBundle {
+   | ------------------------ associated function in this implementation
+...
+73 |     pub(crate) fn try_from_locally_built_block(
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `encode_body` is never used
+   --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_chain/src/block/payload.rs:297:15
+    |
+297 | pub(crate) fn encode_body<'a>(block_bytes: &'a [u8], openings: &[NativeOpening]) -> Cow<'a, [u8]> {
+    |               ^^^^^^^^^^^
+
+warning: `noid_chain` (lib) generated 2 warnings
+warning: unused import: `FsChannelOps`
+ --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/acceptance/history_step/v2/capacity_banked/shared_parent.rs:9:36
+  |
+9 | use noid_ivc_core::field_circuit::{FsChannelOps, RecordedChannel};
+  |                                    ^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `pin_eq`
+ --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/acceptance/trace/native_assets/financial_inventory_scan.rs:7:25
+  |
+7 | use super::super::{mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128};
+  |                         ^^^^^^
+
+warning: unused import: `flat_const`
+ --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/acceptance/trace/native_assets/financial_launch_context.rs:7:18
+  |
+7 |     alloc_block, flat_const, mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128,
+  |                  ^^^^^^^^^^
+
+warning: unused import: `F128`
+ --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/acceptance/trace/native_assets/financial_launch_effects_shared.rs:8:32
+  |
+8 |     FieldR1csBuilder, LinExpr, F128,
+  |                                ^^^^
+
+warning: unused import: `flat_const`
+ --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/acceptance/trace/native_assets/financial_nft_funding.rs:6:20
+  |
+6 | use super::super::{flat_const, mul, pin_eq, pin_zero, FieldR1csBuilder, LinExpr, F128};
+  |                    ^^^^^^^^^^
+
+warning: unused import: `duplex_substitution_terms_selected`
+  --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/region_sidecar/recording_duplex.rs:36:5
+   |
+36 |     duplex_substitution_terms_selected, duplex_substitution_terms_selected_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `prove_c1_duplex_walk_suffix_selected`, `verify_c1_duplex_walk_suffix_selected_trace`, and `verify_c1_duplex_walk_suffix_selected`
+  --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/region_sidecar/recording_duplex.rs:40:63
+   |
+40 |     prove_c1_duplex_walk_prefix, prove_c1_duplex_walk_suffix, prove_c1_duplex_walk_suffix_selected,
+   |                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+43 |     verify_c1_duplex_walk_suffix_selected, verify_c1_duplex_walk_suffix_selected_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+44 |     verify_c1_duplex_walk_suffix_selected_trace, verify_c1_duplex_walk_suffix_selected_trace_n,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `prove_c1_duplex_walk_suffix_selected` is never used
+    --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/acceptance/trace/region_source_binding_c1.rs:1587:15
+     |
+1587 | pub(crate) fn prove_c1_duplex_walk_suffix_selected<C: Challenger>(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `verify_c1_duplex_walk_suffix_selected` is never used
+    --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/acceptance/trace/region_source_binding_c1.rs:1728:15
+     |
+1728 | pub(crate) fn verify_c1_duplex_walk_suffix_selected<C: Challenger>(
+     |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `verify_c1_duplex_walk_suffix_selected_trace` is never used
+   --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_recursive/src/acceptance/trace/region_source_binding_c1/trace_impl.rs:346:15
+    |
+346 | pub(crate) fn verify_c1_duplex_walk_suffix_selected_trace<C: FsChannelOps>(
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `noid_recursive` (lib) generated 10 warnings (run `cargo fix --lib -p noid_recursive` to apply 7 suggestions)
+    Finished `release` profile [optimized] target(s) in 0.18s
+     Running unittests src/lib.rs (../target/release/deps/nft_races_audit-4811a6ac41e515b2)
+
+running 15 tests
+test circuit_tests::native_and_circuit_winner_rules_agree_on_digest_order ... ok
+test circuit_tests::production_profile_blocks_purchase_openings_in_the_root_trace ... ok
+test tests::race_cancel_vs_buy_no_interleaving_moves_item_and_preserves_payment ... ok
+test circuit_tests::live_schema_copy_matches_production_for_enabled_kinds ... ok
+test tests::race_two_buyers_exactly_one_wins_loser_untouched ... ok
+test tests::op80_caller_order_is_irrelevant_and_wire_round_trip_agrees ... ok
+test tests::op80_hard_invalid_policy_rejects_before_any_execution ... ok
+test tests::op80_honest_execution_end_to_end_and_conservation ... ok
+test tests::wash_trading_self_list_self_buy_round_trip_cost ... ok
+test circuit_tests::circuit_honest_settlement_witness_satisfies ... ok
+test tests::op80_mixed_batch_with_one_declined_fill_is_rejected_wholesale ... ok
+test tests::op80_funding_priority_orders_execution_not_authorization_id ... ok
+test tests::op80_cannot_touch_listing_or_item_openings ... ok
+test tests::failed_purchase_costs_nothing_and_leaves_state_unchanged ... ok
+test circuit_tests::circuit_second_witness_hunt_all_adversarial_variants_fail ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.58s
+
+   Doc-tests nft_races_audit
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+wash round trip at this state geometry: list fee 6600 + buy fee 9800 = 16400 µNOID per cycle (escrow credit 100000 returned, ask 500000 round-trips to the seller)
+fee split at the floor geometry: list (burned 0, claimable 6600), buy (burned 2500, claimable 7300)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 14 filtered out; finished in 0.01s
+warning: associated function `try_from_locally_built_block` is never used
+  --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_chain/src/accepted_block_bundle.rs:73:19
+   |
+65 | impl AcceptedBlockBundle {
+   | ------------------------ associated function in this implementation
+...
+73 |     pub(crate) fn try_from_locally_built_block(
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `encode_body` is never used
+   --> /Users/ember/dev/parano1d-break/experiments/nft-marketplace/source/noid_chain/src/block/payload.rs:297:15
+    |
+297 | pub(crate) fn encode_body<'a>(block_bytes: &'a [u8], openings: &[NativeOpening]) -> Cow<'a, [u8]> {
+    |               ^^^^^^^^^^^
+
+warning: `noid_chain` (lib) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.08s
+     Running `../target/release/nft-races-reorg-audit`
+CONTROL common prefix: 24 coinbase blocks
+CONTROL collection created id=4611686018427387934
+CONTROL item minted at slot 910011
+CONTROL common prefix ends at height 28 with the seller-owned item at slot 910_020
+CONTROL fork A accepted at height 29: listing live at slot 910030
+CONTROL reorg onto fork B: reverted [29] applied [29, 30]; new tip height 30
+CONTROL post-reorg: attacker owns the transferred item; seller utxos=1 buyer utxos=1
+RACE stale-listing-buy rejected at admission: block template: StateApplyError("financial block: Read")
+VERDICT the reorged State carries no stale listing: slot 910030 empty, buy fails before inclusion
+CONTROL re-listed by the attacker at slot 910_060, height 32
+CONTROL each instant-buy alone produces a valid template
+RACE same-block double-buy: template build aborted (block template: StateApplyError("native block: SlotConflict")); no partial block, no double spend
+ALL CONTROLS AND RACES COMPLETE
