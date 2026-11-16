@@ -15,8 +15,14 @@ experiments/network-status/*.js
 # target checkout (read-only reference; reproducible from PROVENANCE.md pinned commit)
 parano1d/
 
-# devnet-chaos: 21GB of live build/runtime artifacts (force-add deliverables when it lands)
-experiments/devnet-chaos/
+# devnet-chaos: exclude compiled/generated/fetched bulk (~26GB); source + reports tracked
+experiments/devnet-chaos/target-*/
+experiments/devnet-chaos/bin/
+experiments/devnet-chaos/run/
+experiments/devnet-chaos/logs/
+experiments/devnet-chaos/downloads/
+experiments/devnet-chaos/packs/
+experiments/devnet-chaos/.cargo-home-linux/
 
 # raw web-fetch evidence (summarized in REPORT.md)
 experiments/network-status/jetsam-*.md

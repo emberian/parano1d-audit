@@ -1,0 +1,12 @@
+[package]
+name = "devnet-wallet-probe"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+noid_gui = { path = "../../wallet-vs-node/gui-noid_gui" }
+tokio = { version = "1", features = ["full"] }
+serde_json = "1"
+tempfile = "3"

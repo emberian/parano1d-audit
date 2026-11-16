@@ -1,0 +1,501 @@
+# devnet-chaos composed run — tee'd output of scripts/run_all.py
+# Target: parano1d @ 52938433a30b185ab007afaa15166a632cf2e82e (read-only checkout)
+# Node binary: release profile, v1 pack generated locally (generate_history_step_pack.sh,
+#   ~19 min), v2 + retirement keys + v21 pack from the public v2.1.0 GitHub release
+#   (SHA256SUMS-verified; build.rs preflight re-authenticates all).
+# All addresses loopback; all processes PID-filed; synthetic wallets/seeds.
+# Phase 4 (docker) runs separately: see logs/phase4-docker.log.
+[start] n1-pool: pid=28035 log=n1-pool.log
+[start] n2-relay: pid=28082 log=n2-relay.log
+=== PHASE 0: control devnet + baselines ===
+[start] w1-worker: pid=28132 log=w1-worker.log
+[baseline] first block 18s after worker start
+[baseline] block cadence to h24: mean 20.5s median 19.1s max 36.1s (n=22)
+[start] n3-syncer: pid=62351 log=n3-syncer.log
+[baseline] fresh node synced 25 headers in 25s
+[baseline] spend confirmed+visible on n2 in 3s
+[baseline] n2 balance: Wallet balance (active address)
+[baseline] n1 getChainInfo: {'n': 40, 'errors': 0, 'p50_us': 594, 'max_us': 2418}
+[baseline] n1 walletReceipts (small store): {'n': 5, 'errors': 5}
+[load] 4/4 intents submitted in 4s
+[stop] n3-syncer pid=62351
+[stop] n2-relay pid=28082
+[stop] n1-pool pid=28035
+[stop] w1-worker pid=28132
+[runner] topology shut down by PID files
+Traceback (most recent call last):
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/run_all.py", line 159, in <module>
+    main()
+    ~~~~^^
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/run_all.py", line 139, in main
+    phases.phase0(topo)
+    ~~~~~~~~~~~~~^^^^^^
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/phases.py", line 171, in phase0
+    grow_utxos(n1)
+    ~~~~~~~~~~^^^^
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/phases.py", line 65, in grow_utxos
+    wait_until(
+    ~~~~~~~~~~^
+        f"split round of {count} mined",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        quiet=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/chaoslib.py", line 84, in wait_until
+    raise ChaosError(f"timeout waiting for {desc}; last={last}")
+chaoslib.ChaosError: timeout waiting for split round of 4 mined; last=False
+
+===== RESUME RUN (drain-check bug fixed) Sun Nov 15 16:11:21 PST 2026 =====
+
+[start] n1-pool: pid=69219 log=n1-pool.log
+[start] n2-relay: pid=69507 log=n2-relay.log
+=== PHASE 0: control devnet + baselines ===
+[start] w1-worker: pid=69531 log=w1-worker.log
+[baseline] first block 0s after worker start
+[stop] n2-relay pid=69507
+[stop] n1-pool pid=69219
+[stop] w1-worker pid=69531
+[runner] topology shut down by PID files
+Traceback (most recent call last):
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/run_all.py", line 169, in <module>
+    main()
+    ~~~~^^
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/run_all.py", line 144, in main
+    phases.phase0(topo)
+    ~~~~~~~~~~~~~^^^^^^
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/phases.py", line 138, in phase0
+    f"[baseline] block cadence to h{target}: mean {statistics.mean(times):.1f}s"
+                                                   ~~~~~~~~~~~~~~~^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.15/3.15.2/Frameworks/Python.framework/Versions/3.15/lib/python3.15/statistics.py", line 178, in mean
+    raise StatisticsError('mean requires at least one data point')
+statistics.StatisticsError: mean requires at least one data point
+[start] n1-pool: pid=69869 log=n1-pool.log
+[start] n2-relay: pid=69951 log=n2-relay.log
+=== PHASE 0: control devnet + baselines ===
+[start] w1-worker: pid=70016 log=w1-worker.log
+[baseline] first block 0s after worker start
+[baseline] chain already past h24; skipping cadence measurement
+[start] n3-syncer: pid=70017 log=n3-syncer.log
+[baseline] fresh node synced 53 headers in 6s
+[baseline] spend confirmed+visible on n2 in 3s
+[baseline] n2 balance: Wallet balance (active address)
+[baseline] n1 getChainInfo: {'n': 40, 'errors': 0, 'p50_us': 298, 'max_us': 650}
+[baseline] n1 walletReceipts (small store): {'n': 5, 'errors': 5}
+[load] 4/4 intents submitted in 3s
+[stop] n3-syncer pid=70017
+[stop] n2-relay pid=69951
+[stop] n1-pool pid=69869
+[stop] w1-worker pid=70016
+[runner] topology shut down by PID files
+Traceback (most recent call last):
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/run_all.py", line 169, in <module>
+    main()
+    ~~~~^^
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/run_all.py", line 144, in main
+    phases.phase0(topo)
+    ~~~~~~~~~~~~~^^^^^^
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/phases.py", line 175, in phase0
+    grow_utxos(n1)
+    ~~~~~~~~~~^^^^
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/phases.py", line 65, in grow_utxos
+    wait_until(
+    ~~~~~~~~~~^
+        f"split round of {count} mined",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        quiet=True,
+        ^^^^^^^^^^^
+    )
+    ^
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/chaoslib.py", line 84, in wait_until
+    raise ChaosError(f"timeout waiting for {desc}; last={last}")
+chaoslib.ChaosError: timeout waiting for split round of 4 mined; last=name '_re' is not defined
+
+===== RESUME 2 (regex-name fix) Sun Nov 15 16:19:53 PST 2026 =====
+[start] n1-pool: pid=77047 log=n1-pool.log
+[start] n2-relay: pid=77125 log=n2-relay.log
+=== PHASE 0: control devnet + baselines ===
+[start] w1-worker: pid=77196 log=w1-worker.log
+[baseline] first block 0s after worker start
+[baseline] chain already past h24; skipping cadence measurement
+[start] n3-syncer: pid=77197 log=n3-syncer.log
+[baseline] fresh node synced 81 headers in 5s
+[baseline] spend confirmed+visible on n2 in 3s
+[baseline] n2 balance: Wallet balance (active address)
+[baseline] n1 getChainInfo: {'n': 40, 'errors': 0, 'p50_us': 484, 'max_us': 1691}
+[baseline] n1 walletReceipts (small store): {'n': 5, 'errors': 5}
+[load] 4/4 intents submitted in 3s
+
+===== RESUME 3 Sun Nov 15 16:20:33 PST 2026 =====
+[start] n1-pool: pid=77519 log=n1-pool.log
+[start] n2-relay: pid=77583 log=n2-relay.log
+=== PHASE 0: control devnet + baselines ===
+[start] w1-worker: pid=77630 log=w1-worker.log
+[baseline] first block 0s after worker start
+[baseline] chain already past h24; skipping cadence measurement
+[start] n3-syncer: pid=77631 log=n3-syncer.log
+[baseline] fresh node synced 82 headers in 5s
+[baseline] spend confirmed+visible on n2 in 3s
+[baseline] n2 balance: Wallet balance (active address)
+[baseline] n1 getChainInfo: {'n': 40, 'errors': 0, 'p50_us': 243, 'max_us': 517}
+[baseline] n1 walletReceipts (small store): {'n': 5, 'errors': 5}
+[load] 4/4 intents submitted in 3s
+[load] 8/8 intents submitted in 9s
+[load] 16/16 intents submitted in 24s
+[load] 25 intents (28s)
+[load] 32/32 intents submitted in 40s
+[load] 25 intents (34s)
+[load] 50 intents (67s)
+[load] 64/64 intents submitted in 84s
+[grow] wallet UTXO rows after splits: 1
+=== PHASE 1: anonymous mempool-pull pin (C17) ===
+[stop] w1-worker pid=77630
+[load] 25 intents (20s)
+[load] 50 intents (37s)
+[load] 75 intents (53s)
+[load] 100 intents (69s)
+[load] 125 intents (86s)
+[load] 150 intents (101s)
+[load] 150/150 intents submitted in 101s
+[start] n3b-pinned: pid=83385 log=n3b-pinned.log
+[stop] n3b-pinned pid=83385
+[phase1] honest pull of n2 mempool served: tx_count=0 total_bytes=0 B
+[stop] n3-syncer pid=77631
+[stop] n2-relay pid=77583
+[stop] n1-pool pid=77519
+[runner] topology shut down by PID files
+Traceback (most recent call last):
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/run_all.py", line 169, in <module>
+    main()
+    ~~~~^^
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/run_all.py", line 151, in main
+    phases.phase1(topo)
+    ~~~~~~~~~~~~~^^^^^^
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/phases.py", line 222, in phase1
+    raise ChaosError(
+        f"mempool too small for a stalled write ({serve[1]} B < 256 KiB); aborting attack"
+    )
+chaoslib.ChaosError: mempool too small for a stalled write (0 B < 256 KiB); aborting attack
+
+===== COMPOSITION RUN (Opus 4.8, victim=n1, fault-tolerant) Sun Nov 15 17:01:59 PST 2026 =====
+
+[start] n1-pool: pid=25088 log=n1-pool.log
+[start] n2-relay: pid=25121 log=n2-relay.log
+[start] n3-syncer: pid=25137 log=n3-syncer.log
+=== PHASE 1: anonymous mempool-pull pin (C17) ===
+[load] 25 intents (16s)
+[load] 50 intents (33s)
+[load] 75 intents (49s)
+[load] 100 intents (65s)
+[load] 125 intents (81s)
+[load] 150 intents (96s)
+[load] 150/150 intents submitted in 96s
+[phase1] n1 mempool loaded: 150 intents submitted, 150 pending
+[start] n3b-pinned: pid=26266 log=n3b-pinned.log
+[stop] n3b-pinned pid=26266
+[phase1] honest pull of n1 mempool served: tx_count=0 total_bytes=0 B -> fast-complete regime (<256 KiB devnet mempool)
+[phase1] starting ANONYMOUS aggressor: 4 pulls x 24 s rotation for 120s
+[start] anon1: pid=26480 log=anon1.log
+[start] n3c-join: pid=26552 log=n3c-join.log
+[phase1] during the pin: n1 served 15 anonymous mempool pulls (no credential, no profile), Busy responses +0, byte-admission failures 0
+[phase1] fresh-joiner sync during pin (t, joiner_height, n1_height):
+    (5, 0, 100)
+    (15, 0, 100)
+    (25, 100, 100)
+    (35, 100, 100)
+    (45, 100, 100)
+    (55, 100, 100)
+    (65, 100, 100)
+    (75, 100, 100)
+    (85, 100, 100)
+    (95, 100, 100)
+    (105, 100, 100)
+    (115, 100, 100)
+    (125, 100, 100)
+[phase1] n1 getChainInfo control-plane before: {'n': 20, 'errors': 0, 'p50_us': 545, 'max_us': 830}
+[phase1] n1 getChainInfo control-plane during: {'n': 20, 'errors': 0, 'p50_us': 2370, 'max_us': 10183}
+[phase1] n3c reached tip (100, '42292969b3165bd3405349284339909370c4067f45b57a35698329c5af1777ef') after release (aggressor ran 120s)
+[stop] n3c-join pid=26552
+[phase1] SCOPE: the 4x16 MiB=64 MiB reservation is unconditional and anonymous (demonstrated live); whether each reservation is HELD long enough for a sustained ~100% duty cycle requires a >256 KiB mempool response (yamux window), which the p2p-resources lane proved at codec level with real large responses. At devnet mempool scale (0 B) the writes complete fast; the unique live result is that an unauthenticated peer is served the mempool endpoint at all, repeatedly.
+=== PHASE 2: tampered node — unauthenticated supply counter (C20) ===
+[start] w1-worker: pid=28038 log=w1-worker.log
+[stop] w1-worker pid=28038
+[stop] n2-relay pid=25121
+[phase2] pre-corruption: state_meta[0] len=36 supply=4814287500 tip[0] len=40
+[phase2] corrupt-db: supply 4814287500 -> 0
+[start] n2-relay: pid=28861 log=n2-relay.log
+[phase2] corrupted n2 restarted cleanly: tip=(107, '9868b449ca0006bba14687971d5d4f6b81df6a8e53475628ab9a32b5913e13a2') (cluster tip was (107, '9868b449ca0006bba14687971d5d4f6b81df6a8e53475628ab9a32b5913e13a2'))
+    [n2-state] UTXO state
+    [n2-state]   Slot space         2^24 = 16777216 slots  (max 2^32)
+    [n2-state]   Active UTXOs       392  (0.00% full)
+    [n2-state]   Fill           [░░░░░░░░░░░░░░░░░░░░░░░|░░░░░░] 0.00%  (| = sample at 75%)
+    [n2-state]   Until expand       12582520 slots  (75.00% headroom)
+    [n2-state]   State storage      0 B materialized RAM  /  19.1 KB encoded state  /  800.0 MB encoded at 2^24  /  200.0 GB encoded protocol max
+    [n1-state] UTXO state
+    [n1-state]   Slot space         2^24 = 16777216 slots  (max 2^32)
+    [n1-state]   Active UTXOs       392  (0.00% full)
+    [n1-state]   Fill           [░░░░░░░░░░░░░░░░░░░░░░░|░░░░░░] 0.00%  (| = sample at 75%)
+    [n1-state]   Until expand       12582520 slots  (75.00% headroom)
+    [n1-state]   State storage      3.0 MB materialized RAM  /  19.1 KB encoded state  /  800.0 MB encoded at 2^24  /  200.0 GB encoded protocol max
+[start] w1-worker: pid=28899 log=w1-worker.log
+[phase2] after coinbase-only block: n1=108 n2=108 -> ACCEPTED (looks alive)
+[phase2] spend block mined (n1 h109); n2 tip=110 -> accepted?!
+[runner] PHASE 2 FAILED (continuing):
+Traceback (most recent call last):
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/run_all.py", line 151, in run_phase
+    fn(topo)
+    ~~^^^^^^
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/phases.py", line 396, in phase2
+    lambda: n1.height() if n1.height() >= spent_at + 3 else False,
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: Node.info() got an unexpected keyword argument 'raw_error'
+=== PHASE 3: credentialed operator (C15 + C19) ===
+[start] n4-pool2: pid=29961 log=n4-pool2.log
+[start] w4-worker: pid=30180 log=w4-worker.log
+[phase3] honest W4 mining on n4 for 60s baseline...
+[phase3] W4 baseline: 4 blocks in 60s
+[phase3] burning templates on n4 (60s) while W4 tries to mine honestly...
+[phase3] W4 under burn: 4 blocks in 60s (baseline 4)
+[phase3] C15 burn: 3 templates prepared, 3 consumed by invalid PoW, 0 replayed as Unavailable
+    [burn-err] {'rpc_error': {'code': -32000, 'message': 'external mining attempt is already active'}}
+    [burn-err] {'rpc_error': {'code': -32000, 'message': 'external mining attempt is already active'}}
+    [burn-err] {'rpc_error': {'code': -32000, 'message': 'mining is waiting for network synchronization'}}
+[phase3] W4 activity before=0 during=1 (log-matched lines)
+[stop] w4-worker pid=30180
+[phase3] n1 walletReceipts idle: {'n': 10, 'errors': 10}
+[phase3] walletQueryReceipts walls (us): [1401, 2022, 2202] (each pays the full rescan)
+[phase3] receipt spam (4 threads) for 45s; probing getChainInfo tails...
+[phase3] n1 getChainInfo under receipt load: {'n': 40, 'errors': 0, 'p50_us': 307, 'max_us': 759}
+[phase3] n1 getChainInfo after load:       {'n': 30, 'errors': 0, 'p50_us': 358, 'max_us': 1627}
+[phase3] note: devnet wallet has few receipts; the lane-measured cost is ~205-225 us/receipt (4.1-5.6 s/call at 20k receipts) and the mutex-tail inflation scales linearly with receipt count.
+=== PHASE 4.5: noncanonical 41-byte chain_tip (U19) ===
+[start] n5-tip: pid=32072 log=n5-tip.log
+[stop] w1-worker pid=28899
+[stop] n5-tip pid=32072
+[phase4.5] corrupt-db: chain_tip 40 -> 41 bytes
+[start] n5-tip: pid=32316 log=n5-tip.log
+[phase4.5] restarted at tip (124, 'cd2058cf207b4eb911f83357300141fbfda8bf684caf6f6482bfc7692b551a12') (accepted at restart, h124)
+[start] w1-worker: pid=32349 log=w1-worker.log
+[phase4.5] cluster h124, n5 h124: advanced?!
+    [n5] 01:13:14  WARN snapshot generation build failed height=102 err=snapshot store read: mdbx: 41
+[stop] w1-worker pid=32349
+[stop] n5-tip pid=32316
+=== PHASE 5: composed degradation (C17 + C20 + C15 + C19) ===
+[phase5] entering composition: cluster h124, corrupted n2 pinned at h124
+[load] 25 intents (16s)
+[load] 50 intents (32s)
+[load] 75 intents (48s)
+[load] 100 intents (63s)
+[load] 125 intents (79s)
+[load] 150 intents (95s)
+[load] 150/150 intents submitted in 95s
+[start] anon-composed: pid=33662 log=anon-composed.log
+[start] w4-worker: pid=33663 log=w4-worker.log
+[start] n3c-join: pid=33664 log=n3c-join.log
+[phase5] composition running; sampling every 15s...
+    {'t': 0, 'n1': 124, 'n2': 124, 'n3': 124, 'n3c': 0, 'n4': 124, 'n1_rpc_us': 640}
+    {'t': 15, 'n1': 124, 'n2': 124, 'n3': 124, 'n3c': 0, 'n4': 124, 'n1_rpc_us': 590}
+    {'t': 30, 'n1': 124, 'n2': 124, 'n3': 124, 'n3c': 0, 'n4': 124, 'n1_rpc_us': 472}
+    {'t': 45, 'n1': 124, 'n2': 124, 'n3': 124, 'n3c': 124, 'n4': 124, 'n1_rpc_us': 331}
+    {'t': 60, 'n1': 124, 'n2': 124, 'n3': 124, 'n3c': 124, 'n4': 124, 'n1_rpc_us': 293}
+    {'t': 75, 'n1': 124, 'n2': 124, 'n3': 124, 'n3c': 124, 'n4': 124, 'n1_rpc_us': 246}
+    {'t': 90, 'n1': 124, 'n2': 124, 'n3': 124, 'n3c': 124, 'n4': 124, 'n1_rpc_us': 504}
+    {'t': 105, 'n1': 124, 'n2': 124, 'n3': 124, 'n3c': 124, 'n4': 124, 'n1_rpc_us': 518}
+    {'t': 120, 'n1': 124, 'n2': 124, 'n3': 124, 'n3c': 124, 'n4': 124, 'n1_rpc_us': 268}
+    {'t': 135, 'n1': 125, 'n2': 125, 'n3': 125, 'n3c': 125, 'n4': 125, 'n1_rpc_us': 391}
+    {'t': 150, 'n1': 125, 'n2': 125, 'n3': 125, 'n3c': 125, 'n4': 125, 'n1_rpc_us': 493}
+    {'t': 165, 'n1': 125, 'n2': 125, 'n3': 125, 'n3c': 125, 'n4': 125, 'n1_rpc_us': 427}
+    {'t': 180, 'n1': 125, 'n2': 125, 'n3': 125, 'n3c': 125, 'n4': 125, 'n1_rpc_us': 339}
+    {'t': 195, 'n1': 125, 'n2': 125, 'n3': 125, 'n3c': 125, 'n4': 125, 'n1_rpc_us': 744}
+[start] w1-worker: pid=35831 log=w1-worker.log
+    [t+195] W1 resumed: can the chain still advance?
+    {'t': 210, 'n1': 126, 'n2': 126, 'n3': 126, 'n3c': 126, 'n4': 126, 'n1_rpc_us': 293}
+    {'t': 225, 'n1': 127, 'n2': 127, 'n3': 127, 'n3c': 127, 'n4': 127, 'n1_rpc_us': 674}
+[load] 25 intents (43s)
+[load] 25/25 intents submitted in 43s
+    {'t': 283, 'n1': 131, 'n2': 131, 'n3': 131, 'n3c': 131, 'n4': 131, 'n1_rpc_us': 274}
+    {'t': 298, 'n1': 132, 'n2': 132, 'n3': 132, 'n3c': 132, 'n4': 132, 'n1_rpc_us': 250}
+    {'t': 313, 'n1': 133, 'n2': 133, 'n3': 133, 'n3c': 133, 'n4': 133, 'n1_rpc_us': 342}
+    {'t': 328, 'n1': 134, 'n2': 134, 'n3': 134, 'n3c': 134, 'n4': 134, 'n1_rpc_us': 359}
+    {'t': 343, 'n1': 135, 'n2': 135, 'n3': 135, 'n3c': 135, 'n4': 135, 'n1_rpc_us': 529}
+    {'t': 358, 'n1': 136, 'n2': 136, 'n3': 136, 'n3c': 136, 'n4': 136, 'n1_rpc_us': 370}
+[phase5] burn stats: {'templates': 16, 'burned': 16}
+[stop] w4-worker pid=33663
+[phase5] all attacks released; measuring recovery...
+[phase5] recovery: n3c reached tip in <=28s after release; corrupted n2 remains at h138 vs cluster h138
+[runner] PHASE 5 FAILED (continuing):
+Traceback (most recent call last):
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/run_all.py", line 151, in run_phase
+    topo.start_node(topo.n1)
+        ^^^^^^^^
+  File "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/scripts/phases.py", line 765, in phase5
+    f" after release; corrupted n2 remains at h{n2_final[0]} vs cluster h{n1.height()}",
+                      ^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: Node.info() got an unexpected keyword argument 'raw_error'
+ALL PHASES COMPLETE
+[stop] n3c-join pid=33664
+[cleanup] n5-tip: Node.stop() got an unexpected keyword argument 'rpc_url'
+[cleanup] n5-tip: Node.stop() got an unexpected keyword argument 'rpc_url'
+[stop] n4-pool2 pid=29961
+[stop] n2-relay pid=28861
+[stop] n3-syncer pid=25137
+[stop] n1-pool pid=25088
+[stop] w1-worker pid=35831
+[runner] topology shut down by PID files
+
+===== PHASE 2 RE-RUN (C20 upward divergence, Opus 4.8) Sun Nov 15 17:22:57 PST 2026 =====
+
+[start] n1-pool: pid=38384 log=n1-pool.log
+[start] n2-relay: pid=38419 log=n2-relay.log
+[start] n3-syncer: pid=38461 log=n3-syncer.log
+=== PHASE 2: tampered node — unauthenticated supply counter (C20) ===
+[start] w1-worker: pid=38473 log=w1-worker.log
+[stop] w1-worker pid=38473
+[phase2] before corruption: n1 (139, 'ab344249475f', 6253847500)  n2 (139, 'ab344249475f', 1439560000)  (supplies agree=False)
+[stop] n2-relay pid=38419
+[phase2] corrupt-db read: state_meta[0] len=36 supply=1439560000 tip[0] len=40
+[phase2] corrupt-db: supply 1439560000 -> 1563016789
+[start] n2-relay: pid=38714 log=n2-relay.log
+[phase2] after corruption + restart: n1 (139, 'ab344249475f', 6253847500)  n2 (139, 'ab344249475f', 1563016789)
+[phase2] -> SAME tip (h139 ab344249475f), DIFFERENT supply (n2 reports 1563016789 vs true 6253847500, delta -4690830711): SILENT INTEGRITY DIVERGENCE while in consensus and RPC-alive
+[start] w1-worker: pid=38739 log=w1-worker.log
+[phase2] after 3 more blocks (68s): n1 (143, 'af4821548af9', 6433847500)  n2 (143, 'af4821548af9', 1743016789) -> divergence PERSISTS and propagated through valid commits
+[stop] w1-worker pid=38739
+[stop] n2-relay pid=38714
+[start] n2-relay: pid=39372 log=n2-relay.log
+[phase2] after a second restart: n2 (144, '8f3731f1d09c', 1788016789) vs n1 (144, '8f3731f1d09c', 6478847500) -> NOT healed; compact restart re-trusts the corrupted counter
+[phase2] SCOPE: live reproduces the UPWARD integrity divergence — a node reports a false circulating supply while staying in consensus, RPC-alive, and accepting every valid block, surviving restart. The DOWNWARD variant (a zeroed counter permanently stalling spend admission via checked-underflow in supply_after_slot_updates) needs the storage-reorg lane's precisely constructed spend of large coinbase UTXOs and its direct apply_next_block path; it is [RV-T] in experiments/storage-reorg (not reproduced here on a passive syncing relay, which simply re-follows the honest tip).
+ALL PHASES COMPLETE
+[stop] n2-relay pid=39372
+[stop] n3-syncer pid=38461
+[stop] n1-pool pid=38384
+[runner] topology shut down by PID files
+
+===== PHASE 6 (developer supply-chain: tampered build -> wallet) Sun Nov 15 17:26:04 PST 2026 =====
+
+=== PHASE 6: developer supply-chain composition ===
+[phase6] copied honest node DB /Users/ember/dev/parano1d-break/experiments/devnet-chaos/run/n1-pool -> /Users/ember/dev/parano1d-break/experiments/devnet-chaos/run/n6-tampered
+[start] n6-tampered: pid=39705 log=n6-tampered.log
+[phase6] wallet view of the tampered node (frozen):
+    wallet-probe: Backend::from_env() -> http://127.0.0.1:19661
+    chain view : height=144 tip=8f3731f1d09c58bedc430ca37a7449ed8b7c41863d5388c63138601fa02078f8
+                 peers=0 mempool=0/1024 txs
+    address[0] o1xjmvd0a2z65asalw9m22cjdxfhajx0u0n2efspczh6tu42s0xzesatkql4 balance=6327685000 μNOID incoming=0 μNOID pending_out=0 μNOID
+    utxos      : 598 rows rendered in the wallet's UTXO table
+    receipts   : 4 rows (page 1)
+      txid=cd4ffe8249c78a64190f66942e4c9491d78518412e6755478b3ba2da696c8ab9 height=110 amount=1000000 μNOID peer=Some("o1j4g4049pq2ak92z6f2cjg56ktyvuhy5gtpr6qhu8rnzzwesn94psyagsnp")
+      txid=a3b416e6eef700dc15b9be916f3b968ae496d13d6ef94acb9424cf56972ddf73 height=84 amount=5000000 μNOID peer=Some("o1j4g4049pq2ak92z6f2cjg56ktyvuhy5gtpr6qhu8rnzzwesn94psyagsnp")
+      txid=8ffdf315faf1a39288755341c3087eb200b21f1b0059f588c7ba05a92d0f3c1b height=55 amount=5000000 μNOID peer=Some("o1j4g4049pq2ak92z6f2cjg56ktyvuhy5gtpr6qhu8rnzzwesn94psyagsnp")
+    verify     : merkle_valid=true canonical=true confirmed=true error=None
+    GUI renders: AUTHENTICATED PAYMENT + CONFIRMED
+    summary    : txid=cd4ffe8249c78a64190f66942e4c9491d78518412e6755478b3ba2da696c8ab9 height=110 fee=9000 μNOID outputs=2
+[start] n1-pool: pid=39848 log=n1-pool.log
+[start] w1-worker: pid=39874 log=w1-worker.log
+[phase6] start heights: honest=144 tampered=144
+[phase6] after 5 new honest blocks: honest=h149 tampered=h144 -> FROZEN (rejects honest blocks under the foreign relation)
+    [n6] 01:26:09 DEBUG Dialer: Received rejection of protocol: /meshsub/1.2.0
+[phase6] wallet view of the honest node (advancing):
+    wallet-probe: Backend::from_env() -> http://127.0.0.1:19611
+    chain view : height=149 tip=baa26911389e6f4ad6d73263e5086b014bd9d436749117058abafeffd5ac5566
+                 peers=0 mempool=0/1024 txs
+    address[0] o1xjmvd0a2z65asalw9m22cjdxfhajx0u0n2efspczh6tu42s0xzesatkql4 balance=6552685000 μNOID incoming=0 μNOID pending_out=0 μNOID
+    utxos      : 603 rows rendered in the wallet's UTXO table
+    receipts   : 4 rows (page 1)
+      txid=cd4ffe8249c78a64190f66942e4c9491d78518412e6755478b3ba2da696c8ab9 height=110 amount=1000000 μNOID peer=Some("o1j4g4049pq2ak92z6f2cjg56ktyvuhy5gtpr6qhu8rnzzwesn94psyagsnp")
+      txid=a3b416e6eef700dc15b9be916f3b968ae496d13d6ef94acb9424cf56972ddf73 height=84 amount=5000000 μNOID peer=Some("o1j4g4049pq2ak92z6f2cjg56ktyvuhy5gtpr6qhu8rnzzwesn94psyagsnp")
+      txid=8ffdf315faf1a39288755341c3087eb200b21f1b0059f588c7ba05a92d0f3c1b height=55 amount=5000000 μNOID peer=Some("o1j4g4049pq2ak92z6f2cjg56ktyvuhy5gtpr6qhu8rnzzwesn94psyagsnp")
+    verify     : merkle_valid=true canonical=true confirmed=true error=None
+    GUI renders: AUTHENTICATED PAYMENT + CONFIRMED
+    summary    : txid=cd4ffe8249c78a64190f66942e4c9491d78518412e6755478b3ba2da696c8ab9 height=110 fee=9000 μNOID outputs=2
+[phase6] verdict: tampered node renders a wallet view with authenticated=True confirmed=True height_rendered=True; the honest node renders the same verdicts; the frozen tip is user-invisible.
+PHASE6 OK
+[stop] w1-worker pid=39874
+[stop] n1-pool pid=39848
+[stop] n6-tampered pid=39705
+
+===== PHASE 7 (multi-aggressor eclipse: chaos-per-attacker-count) Sun Nov 15 17:28:18 PST 2026 =====
+
+=== PHASE 7: multi-aggressor composition ===
+[start] n1-pool: pid=40506 log=n1-pool.log
+[start] n2-relay: pid=40563 log=n2-relay.log
+[start] n3-syncer: pid=40630 log=n3-syncer.log
+=== PHASE 7.1: C17 delta — 1 vs 2 vs 4 anonymous aggressors ===
+[load] 25 intents (16s)
+[load] 50 intents (31s)
+[load] 75 intents (47s)
+[load] 100 intents (63s)
+[load] 125 intents (79s)
+[load] 150 intents (95s)
+[load] 150/150 intents submitted in 95s
+[7.1] n1 mempool loaded: 150 pending (~89 KB each)
+
+--- 1 aggressor(s) x 2 streams = 32 MiB offered, 32 MiB holdable of 64 ---
+[start] anon7-agg1-0: pid=41603 log=anon7-agg1-0.log
+[start] n7j-agg1: pid=41631 log=n7j-agg1.log
+[stop] n7j-agg1 pid=41631
+[7.1/agg1] domain held ~32 MiB; n1 served +11 anon pulls (max 11488096 B); Busy +0; joiner reached h150/150 during pin; recovery 0.0s; getChainInfo p50 259->1009us max 778->2266us
+
+--- 2 aggressor(s) x 2 streams = 64 MiB offered, 64 MiB holdable of 64 ---
+[start] anon7-agg2-0: pid=42331 log=anon7-agg2-0.log
+[start] anon7-agg2-1: pid=42332 log=anon7-agg2-1.log
+[start] n7j-agg2: pid=42361 log=n7j-agg2.log
+[stop] n7j-agg2 pid=42361
+[7.1/agg2] domain held ~64 MiB; n1 served +13 anon pulls (max 11488096 B); Busy +0; joiner reached h150/150 during pin; recovery 0.0s; getChainInfo p50 336->768us max 2844->2362us
+
+--- 4 aggressor(s) x 2 streams = 128 MiB offered, 64 MiB holdable of 64 ---
+[start] anon7-agg4-0: pid=44055 log=anon7-agg4-0.log
+[start] anon7-agg4-1: pid=44056 log=anon7-agg4-1.log
+[start] anon7-agg4-2: pid=44057 log=anon7-agg4-2.log
+[start] anon7-agg4-3: pid=44058 log=anon7-agg4-3.log
+[start] n7j-agg4: pid=44079 log=n7j-agg4.log
+[stop] n7j-agg4 pid=44079
+[7.1/agg4] domain held ~64 MiB; n1 served +12 anon pulls (max 11488096 B); Busy +0; joiner reached h150/150 during pin; recovery 0.0s; getChainInfo p50 259->347us max 704->1030us
+
+[7.1] CHAOS-PER-ATTACKER-COUNT (C17 anonymous mempool-pin on n1, 2 streams each):
+   aggressors | domain held | anon serves | Busy | joiner synced | recovery | ctrl-plane p50/max us
+       1      |   32 MiB    |     11      |    0 |   True        |    0.0s | 1009/2266
+       2      |   64 MiB    |     13      |    0 |   True        |    0.0s | 768/2362
+       4      |   64 MiB    |     12      |    0 |   True        |    0.0s | 347/1030
+
+=== PHASE 7.2: C22 distributed push storm ===
+[start] push7-push1-0: pid=45165 log=push7-push1-0.log
+[7.2/push1] 1 identity(ies) x 40/10s (total 40):
+    verify-path log lines: +0 reject-ish lines; getChainInfo idle p50=273us during p50=706us max=5011us recovered p50=462us
+[start] push7-push2-0: pid=45896 log=push7-push2-0.log
+[start] push7-push2-1: pid=45897 log=push7-push2-1.log
+[7.2/push2] 2 identity(ies) x 20/10s (total 40):
+    verify-path log lines: +0 reject-ish lines; getChainInfo idle p50=293us during p50=314us max=6441us recovered p50=305us
+[start] push7-push4-0: pid=46214 log=push7-push4-0.log
+[start] push7-push4-1: pid=46215 log=push7-push4-1.log
+[start] push7-push4-2: pid=46216 log=push7-push4-2.log
+[start] push7-push4-3: pid=46217 log=push7-push4-3.log
+[stop] push7-push4-0 pid=46214
+[stop] push7-push4-3 pid=46217
+[7.2/push4] 4 identity(ies) x 10/10s (total 40):
+    verify-path log lines: +0 reject-ish lines; getChainInfo idle p50=322us during p50=436us max=9407us recovered p50=269us
+[7.2] note: transport caps scale with identities (128 inbound conns); the same total rate spread across identities multiplies connection/stream admission and removes any per-stream pacing a single identity would hit.
+
+=== PHASE 7.3: fresh-joiner peer selection under eclipse ===
+[start] eclipse7: pid=46786 log=eclipse7.log
+[start] n7s-a: pid=46795 log=n7s-a.log
+[stop] n7s-a pid=46795
+[stop] eclipse7 pid=46786
+[7.3] joiner A (only honest relay, pinned): samples=[(0, 0, 150), (10, 0, 150), (20, 0, 150), (30, 150, 150), (40, 150, 150), (50, 150, 150)]
+    [joiner] 01:39:47 DEBUG Accepting new connection 1/100
+    [joiner] 01:39:48 DEBUG outgoing connection error peer=Some(PeerId("12D3KooWCmBiXQRKqTPiQFZ7YKCxvewPEqWaUyGgemowB5mpeUBC")) err=Failed to negotiate transport protocol(s)
+    [joiner] 01:39:48 DEBUG Failed to dial using libp2p_dns::Transport<libp2p_core::transport::map::Map<libp2p_core::transport::upgrade::Multiplexed<libp2p_core::transport::
+    [joiner] 01:39:48 DEBUG outgoing connection error peer=Some(PeerId("12D3KooWGQFYSaAgyTqbDNRgZsxhoSYT2CwK7JJk8z1Adk7x9AiH")) err=Failed to negotiate transport protocol(s)
+    [joiner] 01:39:48 DEBUG Failed to dial using libp2p_dns::Transport<libp2p_core::transport::map::Map<libp2p_core::transport::upgrade::Multiplexed<libp2p_core::transport::
+    [joiner] 01:39:49 DEBUG outgoing connection error peer=Some(PeerId("12D3KooWS2oy6PzkxURxDgKY9vFLToKjW6L4qQnP1sEHpuysv1Lz")) err=Failed to negotiate transport protocol(s)
+    [joiner] 01:39:57 DEBUG Accepting new connection 1/100
+    [joiner] 01:40:07 DEBUG Accepting new connection 1/100
+[start] n7s-b: pid=47145 log=n7s-b.log
+[stop] n7s-b pid=47145
+[7.3] joiner B (relay free): samples=[(0, 0, 150), (10, 150, 150), (20, 150, 150), (30, 150, 150), (40, 150, 150), (50, 150, 150)]
+[7.3] C26/U21 boundary note: full snapshot poisoning needs a malicious serving fixture (malicious-node lane, C26) and gossip-window monopoly needs a gossipsub publisher (U21) — both cited, not executed live here; this leg shows the selection precondition (a pinned/busy honest source materially slows a fresh joiner's first sync, the state C26 requires).
+PHASE7 OK
+[stop] n3-syncer pid=40630
+[stop] n2-relay pid=40563
+[stop] n1-pool pid=40506

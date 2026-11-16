@@ -1,0 +1,36 @@
+### PHASE 1 (C17)
+[phase1] honest pull of n2 mempool served: tx_count=0 total_bytes=0 B
+[phase1] n1 mempool loaded: 150 intents submitted, 150 pending
+[phase1] honest pull of n1 mempool served: tx_count=0 total_bytes=0 B -> fast-complete regime (<256 KiB devnet mempool)
+[phase1] starting ANONYMOUS aggressor: 4 pulls x 24 s rotation for 120s
+[phase1] during the pin: n1 served 15 anonymous mempool pulls (no credential, no profile), Busy responses +0, byte-admission failures 0
+[phase1] fresh-joiner sync during pin (t, joiner_height, n1_height):
+[phase1] n1 getChainInfo control-plane before: {'n': 20, 'errors': 0, 'p50_us': 545, 'max_us': 830}
+[phase1] n1 getChainInfo control-plane during: {'n': 20, 'errors': 0, 'p50_us': 2370, 'max_us': 10183}
+[phase1] n3c reached tip (100, '42292969b3165bd3405349284339909370c4067f45b57a35698329c5af1777ef') after release (aggressor ran 120s)
+[phase1] SCOPE: the 4x16 MiB=64 MiB reservation is unconditional and anonymous (demonstrated live); whether each reservation is HELD long enough for a sustained ~100% duty cycle requires a >256 KiB mempool response (yamux window), which the p2p-resources lane proved at codec level with real large responses. At devnet mempool scale (0 B) the writes complete fast; the unique live result is that an unauthenticated peer is served the mempool endpoint at all, repeatedly.
+
+### n1 serve sizes
+  12 tx_count=0 total_bytes=0
+   1 tx_count=1 total_bytes=88942
+  14 tx_count=128 total_bytes=11488448
+
+### PHASE 3 (C15/C19)
+[phase3] honest W4 mining on n4 for 60s baseline...
+[phase3] W4 baseline: 4 blocks in 60s
+[phase3] burning templates on n4 (60s) while W4 tries to mine honestly...
+[phase3] W4 under burn: 4 blocks in 60s (baseline 4)
+[phase3] C15 burn: 3 templates prepared, 3 consumed by invalid PoW, 0 replayed as Unavailable
+[phase3] W4 activity before=0 during=1 (log-matched lines)
+[phase3] n1 walletReceipts idle: {'n': 10, 'errors': 10}
+[phase3] walletQueryReceipts walls (us): [1401, 2022, 2202] (each pays the full rescan)
+[phase3] receipt spam (4 threads) for 45s; probing getChainInfo tails...
+[phase3] n1 getChainInfo under receipt load: {'n': 40, 'errors': 0, 'p50_us': 307, 'max_us': 759}
+[phase3] n1 getChainInfo after load:       {'n': 30, 'errors': 0, 'p50_us': 358, 'max_us': 1627}
+[phase3] note: devnet wallet has few receipts; the lane-measured cost is ~205-225 us/receipt (4.1-5.6 s/call at 20k receipts) and the mutex-tail inflation scales linearly with receipt count.
+
+### PHASE 4.5 (U19)
+[phase4.5] corrupt-db: chain_tip 40 -> 41 bytes
+[phase4.5] restarted at tip (124, 'cd2058cf207b4eb911f83357300141fbfda8bf684caf6f6482bfc7692b551a12') (accepted at restart, h124)
+[phase4.5] cluster h124, n5 h124: advanced?!
+    [n5] 01:13:14  WARN snapshot generation build failed height=102 err=snapshot store read: mdbx: 41

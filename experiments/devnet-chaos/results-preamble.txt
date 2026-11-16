@@ -1,0 +1,7 @@
+# devnet-chaos composed run — tee'd output of scripts/run_all.py
+# Target: parano1d @ 52938433a30b185ab007afaa15166a632cf2e82e (read-only checkout)
+# Node binary: release profile, v1 pack generated locally (generate_history_step_pack.sh,
+#   ~19 min), v2 + retirement keys + v21 pack from the public v2.1.0 GitHub release
+#   (SHA256SUMS-verified; build.rs preflight re-authenticates all).
+# All addresses loopback; all processes PID-filed; synthetic wallets/seeds.
+# Phase 4 (docker) runs separately: see logs/phase4-docker.log.
