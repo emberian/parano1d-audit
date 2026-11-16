@@ -16,11 +16,11 @@ pub const V2_BLOCK_TIME: u64 = 30;
 /// Nominal activation estimate for 2026-10-10 23:59 PDT (October 11 06:59 UTC).
 /// Two mainnet seeds agreed on H139327, timestamp 1790277759, on September 24.
 /// H = 139327 + ceil((1791701940 - 1790277759) / 20). Actual time may differ.
-pub const MAINNET_V2_ACTIVATION_HEIGHT: u64 = 10;
+pub const MAINNET_V2_ACTIVATION_HEIGHT: u64 = 210_537;
 
 /// Unified v2.1 activation, estimated for November 4, 2026 at 04:00 UTC.
 /// H246421 at timestamp 1792776344 plus 32949 target intervals of 30 seconds.
-pub const MAINNET_V2_1_ACTIVATION_HEIGHT: Option<u64> = Some(24);
+pub const MAINNET_V2_1_ACTIVATION_HEIGHT: Option<u64> = Some(279_370);
 pub const ISOLATED_V2_1_FORK_TESTNET: bool = cfg!(feature = "isolated-v2-1-fork-testnet");
 pub const V2_1_ACTIVATION_HEIGHT: Option<u64> = if ISOLATED_V2_1_FORK_TESTNET {
     Some(24)

@@ -201,28 +201,17 @@ fn embed_v21_pack(out_directory: &Path, required: bool) {
             write_if_changed(&staged.join(V21_METADATA_FILE), &metadata);
             let mut sources = Vec::new();
             let mut seals = Vec::new();
-            let mut checks = matrix_checks::PackChecks::new(
-                &directory,
-                "v21",
-                bank,
-                &metadata,
-                Class::ALL.len(),
-            );
+            let mut checks = matrix_checks::PackChecks::new(&directory, "v21", bank, &metadata, Class::ALL.len());
             for class in Class::ALL {
                 let name = v21_matrix_file_name(class);
                 let path = directory.join(name);
                 let compressed = read_bounded(&path, V21_MATRIX_MAX_BYTES as u64);
-                let seal = checks.authenticate(
-                    name,
-                    &compressed,
+                let seal = checks.authenticate(name, &compressed,
                     runtime_metadata.bank().config().class(class).shape(),
-                    runtime_metadata.bank().matrix_digest(class),
-                    || {
-                        runtime_metadata
-                            .preflight_build_matrix(class, &compressed)
+                    runtime_metadata.bank().matrix_digest(class), || {
+                        runtime_metadata.preflight_build_matrix(class, &compressed)
                             .expect("v2.1 matrix semantic authentication before embedding")
-                    },
-                );
+                    });
                 println!("cargo:rerun-if-changed={}", path.display());
                 write_if_changed(&staged.join(name), &compressed);
                 sources.push(format!(
@@ -296,28 +285,18 @@ fn embed_v2_pack(
             write_if_changed(&staged.join(V2_METADATA_FILE), &metadata);
             let mut sources = Vec::new();
             let mut seals = Vec::new();
-            let mut checks = matrix_checks::PackChecks::new(
-                &directory,
-                label,
-                bank,
-                &metadata,
-                noid_recursive::acceptance::history_step::v2::banked::Class::ALL.len(),
-            );
+            let mut checks = matrix_checks::PackChecks::new(&directory, label, bank, &metadata,
+                noid_recursive::acceptance::history_step::v2::banked::Class::ALL.len());
             for class in noid_recursive::acceptance::history_step::v2::banked::Class::ALL {
                 let name = v2_matrix_file_name(class);
                 let path = directory.join(name);
                 let compressed = read_bounded(&path, V2_MATRIX_MAX_BYTES as u64);
-                let seal = checks.authenticate(
-                    name,
-                    &compressed,
+                let seal = checks.authenticate(name, &compressed,
                     runtime_metadata.bank().config().class(class).shape(),
-                    runtime_metadata.bank().matrix_digest(class),
-                    || {
-                        runtime_metadata
-                            .preflight_build_matrix(class, &compressed)
+                    runtime_metadata.bank().matrix_digest(class), || {
+                        runtime_metadata.preflight_build_matrix(class, &compressed)
                             .expect("v2 matrix semantic authentication before embedding")
-                    },
-                );
+                    });
                 println!("cargo:rerun-if-changed={}", path.display());
                 write_if_changed(&staged.join(name), &compressed);
                 sources.push(format!(

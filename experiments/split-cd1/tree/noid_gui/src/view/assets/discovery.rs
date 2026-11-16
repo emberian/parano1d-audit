@@ -217,30 +217,20 @@ fn catalogue(app: &App, compact: bool) -> El<'_> {
         grid = grid.push(tagged(
             if launchpad { "LAUNCHPAD" } else { "DEX" },
             CYAN,
-            hint(
-                if !state.markets.has_snapshot() && state.native_operations_enabled() {
-                    "Loading tokens…"
-                } else if launchpad {
-                    "No matching tokens. Try another filter or create a token."
-                } else {
-                    "No matching pools. Tokens enter the DEX when they graduate from Launchpad."
-                },
-            ),
+            hint(if !state.markets.has_snapshot() && state.native_operations_enabled() {
+                "Loading tokens…"
+            } else if launchpad {
+                "No matching tokens. Try another filter or create a token."
+            } else {
+                "No matching pools. Tokens enter the DEX when they graduate from Launchpad."
+            }),
         ));
     }
     let mut heading = row![
-        column![
-            text(if launchpad { "LAUNCHPAD" } else { "DEX" }).size(20),
-            label(if launchpad {
-                "Discover tokens on the bonding curve."
-            } else {
-                "Trade tokens in permanent NOID pools."
-            })
-        ]
-        .spacing(5),
+        column![text(if launchpad { "LAUNCHPAD" } else { "DEX" }).size(20),
+            label(if launchpad { "Discover tokens on the bonding curve." } else { "Trade tokens in permanent NOID pools." })].spacing(5),
         space(),
-    ]
-    .align_y(Alignment::Center);
+    ].align_y(Alignment::Center);
     if launchpad {
         heading = heading.push(go("CREATE TOKEN", Page::CreateToken, true));
     }

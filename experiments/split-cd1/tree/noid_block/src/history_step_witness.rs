@@ -9,6 +9,31 @@ use noid_chain::consensus::{
     validate_mandatory_coinbase, validate_tx_consensus, AnchorInfo, ConsensusError,
 };
 use noid_chain::exact_state_hash::{slot_leaf_hash, StateHash};
+
+/// CD-1 alias witness (split-cd1 lane): a producer that deliberately mines an
+/// aliased coinbase slot (`NOID_CD1_ALIAS_K >= 1`, set by the template patch
+/// in `noid_chain`) must skip its OWN slot-domain shape pre-check so the
+/// HistoryStep can be proven. Peers, the joiner and the reject controls run
+/// the unmodified `validate_block_checks` in `noid_chain`, so consensus
+/// enforcement is unchanged for everyone else. In-domain slots never raise
+/// this error, so honest blocks take the pinned path exactly.
+fn cd1_producer_alias_allowed(error: &ConsensusError) -> bool {
+    let raw = std::env::var("NOID_CD1_ALIAS_K").ok();
+    let aliased = raw
+        .as_deref()
+        .and_then(|value| value.parse::<u32>().ok())
+        .is_some_and(|k| k >= 1);
+    let allowed = match error {
+        ConsensusError::ShapeMismatch(message) => {
+            aliased && message.contains("slot is outside block log_slots")
+        }
+        _ => false,
+    };
+    eprintln!(
+        "[cd1-mask] consulted: env={raw:?} error={error:?} -> {allowed}"
+    );
+    allowed
+}
 use noid_chain::sparse_merkle::{
     derive_structural_frontier_plan, evaluate_structural_frontier, SparseMerkleError,
 };
@@ -109,14 +134,20 @@ impl<const TIER: usize> PreparedHistoryStepInputWitness<TIER> {
         if start_accumulator != &expected_start {
             return Err(HistoryStepWitnessError::StartAccumulatorChanged);
         }
-        validate_block_checks_template(
+        // CD-1 alias witness (split-cd1 lane): the producer's own slot-domain
+        // shape pre-check is skipped only for the deliberate alias block.
+        if let Err(error) = validate_block_checks_template(
             &template,
             &parent_header,
             &previous_timestamps,
             &finalized_active_counts,
             local_time,
             &asert_anchor,
-        )?;
+        ) {
+            if !cd1_producer_alias_allowed(&error) {
+                return Err(error.into());
+            }
+        }
         let expected_end = start_accumulator
             .advance(&parent_header, &template.header)
             .map_err(HistoryStepWitnessError::AccumulatorAdvance)?;
@@ -155,14 +186,19 @@ impl<const TIER: usize> PreparedHistoryStepInputWitness<TIER> {
             return Err(HistoryStepWitnessError::StartAccumulatorChanged);
         }
         template.header.nonce = nonce;
-        validate_block_checks(
+        // CD-1 alias witness (split-cd1 lane): producer-side alias mask.
+        if let Err(error) = validate_block_checks(
             &template,
             &parent_header,
             &previous_timestamps,
             &finalized_active_counts,
             local_time,
             &asert_anchor,
-        )?;
+        ) {
+            if !cd1_producer_alias_allowed(&error) {
+                return Err(error.into());
+            }
+        }
         let expected_end = start_accumulator
             .advance(&parent_header, &template.header)
             .map_err(HistoryStepWitnessError::AccumulatorAdvance)?;
@@ -226,14 +262,20 @@ impl<const TIER: usize> PreparedHistoryStepWitness<TIER> {
             prepared_history_step,
         } = self;
 
-        noid_chain::consensus::validation::validate_block_checks_template(
+        // CD-1 alias witness (split-cd1 lane): producer-side alias mask; the
+        // production mining path hits this site before the terminal is proven.
+        if let Err(error) = noid_chain::consensus::validation::validate_block_checks_template(
             &template,
             &parent_header,
             &previous_timestamps,
             &finalized_active_counts,
             local_time,
             &asert_anchor,
-        )?;
+        ) {
+            if !cd1_producer_alias_allowed(&error) {
+                return Err(error.into());
+            }
+        }
 
         let end_accumulator = expected_start
             .advance(&parent_header, &template.header)
@@ -451,7 +493,16 @@ fn validate_nonce_independent_block(
     {
         return Err(HistoryStepWitnessError::TemplateParentMismatch);
     }
-    validate_block_resource_preflight(block)?;
+    // CD-1 alias witness (split-cd1 lane): the resource preflight enforces
+    // the live slot domain — the same check peers run via
+    // `validate_block_checks`. The deliberate alias block skips only this
+    // shape rejection on the producer side; every other resource error and
+    // every honest block take the pinned path.
+    if let Err(error) = validate_block_resource_preflight(block) {
+        if !cd1_producer_alias_allowed(&error) {
+            return Err(error.into());
+        }
+    }
     validate_mandatory_coinbase(block, context.parent_header)?;
     noid_chain::consensus::checks::validate_block_slot_conflicts(&block.transactions)?;
     validate_tx_consensus(&block.transactions[0])?;

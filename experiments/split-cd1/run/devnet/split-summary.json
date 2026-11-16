@@ -1,0 +1,66 @@
+{
+  "binaries": {
+    "node": "/Users/ember/dev/parano1d-break/experiments/devnet-chaos/bin/parano1d"
+  },
+  "ports": {
+    "p2p_base": 21120,
+    "rpc_base": 21121
+  },
+  "s_h": {
+    "height": 7,
+    "tip": "5f6966f30f8b631d818a5678b8271564fe10c6eab19c54cd2a0b2ffdab6bdf2b"
+  },
+  "s_f": {
+    "height": 24,
+    "tip": "e7132819a4ba5fd14a7d825b5633b72bb5e6d827f2d54ec32a40524ff201f82f"
+  },
+  "a_after_first_sync": {
+    "height": 7,
+    "tip": "5f6966f30f8b631d818a5678b8271564fe10c6eab19c54cd2a0b2ffdab6bdf2b"
+  },
+  "a_after_fork_exposure": {
+    "height": 7,
+    "tip": "5f6966f30f8b631d818a5678b8271564fe10c6eab19c54cd2a0b2ffdab6bdf2b",
+    "reject_lines": [
+      "\u001b[2m07:13:59\u001b[0m \u001b[31mERROR\u001b[0m reorg: failed to apply block \u001b[3mheight\u001b[0m\u001b[2m=\u001b[0m6 \u001b[3merr\u001b[0m\u001b[2m=\u001b[0mConsensus(ShapeMismatch(\"live output slot is outside block log_slots\"))",
+      "\u001b[2m07:13:59\u001b[0m \u001b[33m WARN\u001b[0m exact suffix rejected before canonical selection completed \u001b[3mcompleted.plan_id\u001b[0m\u001b[2m=\u001b[0mPlanId([177, 17, 155, 74, 18, 62, 156, 247, 68, 93, 41, 165, 153, 161, 225, 53, 45, 253, 106, 213, 58, 60, 80, 188, 7, 93, 226, 23, 48, 21, 134, 63]) \u001b[3mtarget_height\u001b[0m\u001b[2m=\u001b[0m24 \u001b[3mterminal_rejected\u001b[0m\u001b[2m=\u001b[0mfalse \u001b[3mrejected_sources\u001b[0m\u001b[2m=\u001b[0m1 \u001b[3mnewly_rejected\u001b[0m\u001b[2m=\u001b[0m1 \u001b[3merror\u001b[0m\u001b[2m=\u001b[0mapply atomic exact reorg suffix: consensus: ShapeMismatch: live output slot is outside block log_slots"
+    ]
+  },
+  "b": {
+    "height": 24,
+    "tip": "e7132819a4ba5fd14a7d825b5633b72bb5e6d827f2d54ec32a40524ff201f82f",
+    "path_lines": [
+      "\u001b[2m07:15:59\u001b[0m \u001b[34mDEBUG\u001b[0m retired node notification for HistoryStep terminal race \u001b[3mtoken\u001b[0m\u001b[2m=\u001b[0m1 \u001b[3mrequests\u001b[0m\u001b[2m=\u001b[0m0",
+      "\u001b[2m07:15:59\u001b[0m \u001b[32m INFO\u001b[0m authenticated local snapshot segments reused before network transfer \u001b[3mboundary\u001b[0m\u001b[2m=\u001b[0m6 \u001b[3mreused_segments\u001b[0m\u001b[2m=\u001b[0m0 \u001b[3mreused_bytes\u001b[0m\u001b[2m=\u001b[0m0 \u001b[3mremaining_segments\u001b[0m\u001b[2m=\u001b[0m1 \u001b[3melapsed_ms\u001b[0m\u001b[2m=\u001b[0m0",
+      "\u001b[2m07:15:59\u001b[0m \u001b[34mDEBUG\u001b[0m snapshot segment queued for bounded authentication/staging \u001b[3mfrom\u001b[0m\u001b[2m=\u001b[0m12D3KooWGegfa8Un5RdZqTRqQCL9zvWBQuorb628wcHAoa5oVGVg \u001b[3msegment\u001b[0m\u001b[2m=\u001b[0m148",
+      "\u001b[2m07:15:59\u001b[0m \u001b[34mDEBUG\u001b[0m snapshot segment authenticated and sealed to disk \u001b[3mfrom\u001b[0m\u001b[2m=\u001b[0m12D3KooWGegfa8Un5RdZqTRqQCL9zvWBQuorb628wcHAoa5oVGVg \u001b[3msegment\u001b[0m\u001b[2m=\u001b[0m148 \u001b[3mremaining\u001b[0m\u001b[2m=\u001b[0m0",
+      "\u001b[2m07:15:59\u001b[0m \u001b[32m INFO\u001b[0m snapshot State finalized at its exact boundary \u001b[3mboundary\u001b[0m\u001b[2m=\u001b[0m6",
+      "\u001b[2m07:15:59\u001b[0m \u001b[32m INFO\u001b[0m snapshot boundary finalized \u2014 atomic State install running off event loop \u001b[3msource\u001b[0m\u001b[2m=\u001b[0m12D3KooWGegfa8Un5RdZqTRqQCL9zvWBQuorb628wcHAoa5oVGVg \u001b[3mtip\u001b[0m\u001b[2m=\u001b[0m6 \u001b[3msegments\u001b[0m\u001b[2m=\u001b[0m1",
+      "\u001b[2m07:15:59\u001b[0m \u001b[32m INFO\u001b[0m wallet active address reloaded \u001b[3mheight\u001b[0m\u001b[2m=\u001b[0m6 \u001b[3mactive_index\u001b[0m\u001b[2m=\u001b[0m0 \u001b[3mutxos\u001b[0m\u001b[2m=\u001b[0m0 \u001b[3mbalance\u001b[0m\u001b[2m=\u001b[0m0 \u001b[3mreason\u001b[0m\u001b[2m=\u001b[0m\"snapshot sync\"",
+      "\u001b[2m07:15:59\u001b[0m \u001b[32m INFO\u001b[0m snapshot boundary State installed \u001b[3msnapshot_height\u001b[0m\u001b[2m=\u001b[0m6 \u001b[3mapplied_height\u001b[0m\u001b[2m=\u001b[0m6 \u001b[3msegments\u001b[0m\u001b[2m=\u001b[0m1",
+      "\u001b[2m07:15:59\u001b[0m \u001b[32m INFO\u001b[0m snapshot sync phase measurement \u001b[3mphase\u001b[0m\u001b[2m=\u001b[0m\"header_disk_validation\" \u001b[3mscaling\u001b[0m\u001b[2m=\u001b[0m\"O(H)\" \u001b[3mcount\u001b[0m\u001b[2m=\u001b[0m6 \u001b[3mbytes\u001b[0m\u001b[2m=\u001b[0m1272 \u001b[3melapsed_ms\u001b[0m\u001b[2m=\u001b[0m18 \u001b[3mtiming_basis\u001b[0m\u001b[2m=\u001b[0m\"active_work\" \u001b[3moutcome\u001b[0m\u001b[2m=\u001b[0m\"accepted\"",
+      "\u001b[2m07:15:59\u001b[0m \u001b[32m INFO\u001b[0m snapshot sync phase measurement \u001b[3mphase\u001b[0m\u001b[2m=\u001b[0m\"snapshot_segment_stage_install\" \u001b[3mscaling\u001b[0m\u001b[2m=\u001b[0m\"O(state)\" \u001b[3mcount\u001b[0m\u001b[2m=\u001b[0m1 \u001b[3mbytes\u001b[0m\u001b[2m=\u001b[0m309 \u001b[3melapsed_ms\u001b[0m\u001b[2m=\u001b[0m31 \u001b[3mtiming_basis\u001b[0m\u001b[2m=\u001b[0m\"active_work\" \u001b[3moutcome\u001b[0m\u001b[2m=\u001b[0m\"accepted\"",
+      "\u001b[2m07:15:59\u001b[0m \u001b[32m INFO\u001b[0m snapshot State transfer and local reuse completed \u001b[3mphase\u001b[0m\u001b[2m=\u001b[0m\"snapshot_state_transfer\" \u001b[3melapsed_ms\u001b[0m\u001b[2m=\u001b[0m35 \u001b[3mtiming_basis\u001b[0m\u001b[2m=\u001b[0m\"wall\" \u001b[3mnetwork_requests\u001b[0m\u001b[2m=\u001b[0m1 \u001b[3mnetwork_segments\u001b[0m\u001b[2m=\u001b[0m1 \u001b[3mcanonical_download_bytes\u001b[0m\u001b[2m=\u001b[0m309 \u001b[3mwire_payload_bytes\u001b[0m\u001b[2m=\u001b[0m73 \u001b[3mv5_segments\u001b[0m\u001b[2m=\u001b[0m0 \u001b[3mv6_segments\u001b[0m\u001b[2m=\u001b[0m0 \u001b[3mv7_segments\u001b[0m\u001b[2m=\u001b[0m1 \u001b[3mcompressed_segments\u001b[0m\u001b[2m=\u001b[0m1 \u001b[3mreused_segments\u001b[0m\u001b[2m=\u001b[0m0 \u001b[3mreused_bytes\u001b[0m\u001b[2m=\u001b[0m0",
+      "\u001b[2m07:15:59\u001b[0m \u001b[32m INFO\u001b[0m snapshot sync phase measurement \u001b[3mphase\u001b[0m\u001b[2m=\u001b[0m\"retained_suffix_apply\" \u001b[3mscaling\u001b[0m\u001b[2m=\u001b[0m\"O(tail)\" \u001b[3mcount\u001b[0m\u001b[2m=\u001b[0m0 \u001b[3mbytes\u001b[0m\u001b[2m=\u001b[0m0 \u001b[3melapsed_ms\u001b[0m\u001b[2m=\u001b[0m0 \u001b[3mtiming_basis\u001b[0m\u001b[2m=\u001b[0m\"active_work\" \u001b[3moutcome\u001b[0m\u001b[2m=\u001b[0m\"accepted\"",
+      "\u001b[2m07:15:59\u001b[0m \u001b[32m INFO\u001b[0m snapshot installed \u2014 awaiting one authenticated HeaderDAG tail target \u001b[3mboundary_height\u001b[0m\u001b[2m=\u001b[0m6 \u001b[3mserving_limit\u001b[0m\u001b[2m=\u001b[0m48",
+      "\u001b[2m07:15:59\u001b[0m \u001b[32m INFO\u001b[0m snapshot install completed \u001b[3mheight\u001b[0m\u001b[2m=\u001b[0m6 \u001b[3mtail_blocks\u001b[0m\u001b[2m=\u001b[0m0 \u001b[3mobserver_peer\u001b[0m\u001b[2m=\u001b[0m12D3KooWGegfa8Un5RdZqTRqQCL9zvWBQuorb628wcHAoa5oVGVg",
+      "\u001b[2m07:15:59\u001b[0m \u001b[34mDEBUG\u001b[0m retired snapshot plan is ready for fresh manifest discovery",
+      "\u001b[2m07:15:59\u001b[0m \u001b[34mDEBUG\u001b[0m probing the complete bounded tail immediately after snapshot install \u001b[3mfrom_height\u001b[0m\u001b[2m=\u001b[0m6 \u001b[3mcount\u001b[0m\u001b[2m=\u001b[0m43 \u001b[3mdispatched\u001b[0m\u001b[2m=\u001b[0m1 \u001b[3mhighest_announced\u001b[0m\u001b[2m=\u001b[0m24",
+      "\u001b[2m07:15:59\u001b[0m \u001b[34mDEBUG\u001b[0m advanced snapshot transport generation \u001b[3mgeneration\u001b[0m\u001b[2m=\u001b[0m1",
+      "\u001b[2m07:15:59\u001b[0m \u001b[32m INFO\u001b[0m post-snapshot exact tail pinned to authenticated HeaderDAG target \u001b[3mboundary_height\u001b[0m\u001b[2m=\u001b[0m6 \u001b[3mtarget_height\u001b[0m\u001b[2m=\u001b[0m24",
+      "\u001b[2m07:15:59\u001b[0m \u001b[32m INFO\u001b[0m exact suffix terminal verified outside the chain writer \u001b[3mheight\u001b[0m\u001b[2m=\u001b[0m24 \u001b[3melapsed_ms\u001b[0m\u001b[2m=\u001b[0m193",
+      "\u001b[2m07:16:00\u001b[0m \u001b[34mDEBUG\u001b[0m retired post-snapshot exact-tail allowance at bootstrap completion \u001b[3mlocal_height\u001b[0m\u001b[2m=\u001b[0m24 \u001b[3mboundary_height\u001b[0m\u001b[2m=\u001b[0m6 \u001b[3mtarget_height\u001b[0m\u001b[2m=\u001b[0m24"
+    ]
+  },
+  "split": {
+    "observed": true,
+    "a": {
+      "height": 7,
+      "tip": "5f6966f30f8b631d818a5678b8271564fe10c6eab19c54cd2a0b2ffdab6bdf2b"
+    },
+    "b": {
+      "height": 24,
+      "tip": "e7132819a4ba5fd14a7d825b5633b72bb5e6d827f2d54ec32a40524ff201f82f"
+    }
+  }
+}

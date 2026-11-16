@@ -70,7 +70,7 @@ fn main() -> Result<()> {
                 "pinned control: ALIASED BLOCK REJECTED by the unmodified pinned tree: {text}"
             );
         }
-        Ok(()) => bail!("unmodified pinned tree accepted the aliased block"),
+        Ok(_) => bail!("unmodified pinned tree accepted the aliased block"),
     }
 
     // Honest twin on the same chain.

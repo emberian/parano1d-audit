@@ -1,0 +1,45 @@
+[start] s-h: pid=96667 log=s-h.log
+[start] s-f: pid=96856 log=s-f.log
+[evidence] S_H opened injected honest chain: height=7 tip=5f6966f30f8b631d818a5678b8271564fe10c6eab19c54cd2a0b2ffdab6bdf2b
+[evidence] S_F opened injected fork chain:   height=24 tip=e7132819a4ba5fd14a7d825b5633b72bb5e6d827f2d54ec32a40524ff201f82f
+[start] a: pid=97102 log=a.log
+[wait] A full-syncs the honest chain to 7 (timeout 600s)
+[ok] A full-syncs the honest chain to 7: True
+[evidence] A full-synced to 7 (tip 5f6966f30f8b631d818a5678b8271564fe10c6eab19c54cd2a0b2ffdab6bdf2b)
+[stop] a pid=97102
+[start] a: pid=97251 log=a.log
+[wait] A sees the fork tip and settles (90s)
+[evidence] A after fork exposure: height=7 tip=5f6966f30f8b631d818a5678b8271564fe10c6eab19c54cd2a0b2ffdab6bdf2b
+[a-reject] [2m07:13:59[0m [31mERROR[0m reorg: failed to apply block [3mheight[0m[2m=[0m6 [3merr[0m[2m=[0mConsensus(ShapeMismatch("live output slot is outside block log_slots"))
+[a-reject] [2m07:13:59[0m [33m WARN[0m exact suffix rejected before canonical selection completed [3mcompleted.plan_id[0m[2m=[0mPlanId([177, 17, 155, 74, 18, 62, 156, 247, 68, 93, 41, 165, 153, 161, 225, 53, 45, 253, 106, 213, 58, 60, 80, 188, 7, 93, 226, 23, 48, 21, 134, 63]) [3mtarget_height[0m[2m=[0m24 [3mterminal_rejected[0m[2m=[0mfalse [3mrejected_sources[0m[2m=[0m1 [3mnewly_rejected[0m[2m=[0m1 [3merror[0m[2m=[0mapply atomic exact reorg suffix: consensus: ShapeMismatch: live output slot is outside block log_slots
+[start] b: pid=99261 log=b.log
+[wait] B snapshot-installs and suffix-syncs the fork to 24 (timeout 1800s)
+[ok] B snapshot-installs and suffix-syncs the fork to 24: True
+[evidence] B at 24 (tip e7132819a4ba5fd14a7d825b5633b72bb5e6d827f2d54ec32a40524ff201f82f)
+[b-path] [2m07:15:59[0m [34mDEBUG[0m retired node notification for HistoryStep terminal race [3mtoken[0m[2m=[0m1 [3mrequests[0m[2m=[0m0
+[b-path] [2m07:15:59[0m [32m INFO[0m authenticated local snapshot segments reused before network transfer [3mboundary[0m[2m=[0m6 [3mreused_segments[0m[2m=[0m0 [3mreused_bytes[0m[2m=[0m0 [3mremaining_segments[0m[2m=[0m1 [3melapsed_ms[0m[2m=[0m0
+[b-path] [2m07:15:59[0m [34mDEBUG[0m snapshot segment queued for bounded authentication/staging [3mfrom[0m[2m=[0m12D3KooWGegfa8Un5RdZqTRqQCL9zvWBQuorb628wcHAoa5oVGVg [3msegment[0m[2m=[0m148
+[b-path] [2m07:15:59[0m [34mDEBUG[0m snapshot segment authenticated and sealed to disk [3mfrom[0m[2m=[0m12D3KooWGegfa8Un5RdZqTRqQCL9zvWBQuorb628wcHAoa5oVGVg [3msegment[0m[2m=[0m148 [3mremaining[0m[2m=[0m0
+[b-path] [2m07:15:59[0m [32m INFO[0m snapshot State finalized at its exact boundary [3mboundary[0m[2m=[0m6
+[b-path] [2m07:15:59[0m [32m INFO[0m snapshot boundary finalized — atomic State install running off event loop [3msource[0m[2m=[0m12D3KooWGegfa8Un5RdZqTRqQCL9zvWBQuorb628wcHAoa5oVGVg [3mtip[0m[2m=[0m6 [3msegments[0m[2m=[0m1
+[b-path] [2m07:15:59[0m [32m INFO[0m wallet active address reloaded [3mheight[0m[2m=[0m6 [3mactive_index[0m[2m=[0m0 [3mutxos[0m[2m=[0m0 [3mbalance[0m[2m=[0m0 [3mreason[0m[2m=[0m"snapshot sync"
+[b-path] [2m07:15:59[0m [32m INFO[0m snapshot boundary State installed [3msnapshot_height[0m[2m=[0m6 [3mapplied_height[0m[2m=[0m6 [3msegments[0m[2m=[0m1
+[b-path] [2m07:15:59[0m [32m INFO[0m snapshot sync phase measurement [3mphase[0m[2m=[0m"header_disk_validation" [3mscaling[0m[2m=[0m"O(H)" [3mcount[0m[2m=[0m6 [3mbytes[0m[2m=[0m1272 [3melapsed_ms[0m[2m=[0m18 [3mtiming_basis[0m[2m=[0m"active_work" [3moutcome[0m[2m=[0m"accepted"
+[b-path] [2m07:15:59[0m [32m INFO[0m snapshot sync phase measurement [3mphase[0m[2m=[0m"snapshot_segment_stage_install" [3mscaling[0m[2m=[0m"O(state)" [3mcount[0m[2m=[0m1 [3mbytes[0m[2m=[0m309 [3melapsed_ms[0m[2m=[0m31 [3mtiming_basis[0m[2m=[0m"active_work" [3moutcome[0m[2m=[0m"accepted"
+[b-path] [2m07:15:59[0m [32m INFO[0m snapshot State transfer and local reuse completed [3mphase[0m[2m=[0m"snapshot_state_transfer" [3melapsed_ms[0m[2m=[0m35 [3mtiming_basis[0m[2m=[0m"wall" [3mnetwork_requests[0m[2m=[0m1 [3mnetwork_segments[0m[2m=[0m1 [3mcanonical_download_bytes[0m[2m=[0m309 [3mwire_payload_bytes[0m[2m=[0m73 [3mv5_segments[0m[2m=[0m0 [3mv6_segments[0m[2m=[0m0 [3mv7_segments[0m[2m=[0m1 [3mcompressed_segments[0m[2m=[0m1 [3mreused_segments[0m[2m=[0m0 [3mreused_bytes[0m[2m=[0m0
+[b-path] [2m07:15:59[0m [32m INFO[0m snapshot sync phase measurement [3mphase[0m[2m=[0m"retained_suffix_apply" [3mscaling[0m[2m=[0m"O(tail)" [3mcount[0m[2m=[0m0 [3mbytes[0m[2m=[0m0 [3melapsed_ms[0m[2m=[0m0 [3mtiming_basis[0m[2m=[0m"active_work" [3moutcome[0m[2m=[0m"accepted"
+[b-path] [2m07:15:59[0m [32m INFO[0m snapshot installed — awaiting one authenticated HeaderDAG tail target [3mboundary_height[0m[2m=[0m6 [3mserving_limit[0m[2m=[0m48
+[b-path] [2m07:15:59[0m [32m INFO[0m snapshot install completed [3mheight[0m[2m=[0m6 [3mtail_blocks[0m[2m=[0m0 [3mobserver_peer[0m[2m=[0m12D3KooWGegfa8Un5RdZqTRqQCL9zvWBQuorb628wcHAoa5oVGVg
+[b-path] [2m07:15:59[0m [34mDEBUG[0m retired snapshot plan is ready for fresh manifest discovery
+[b-path] [2m07:15:59[0m [34mDEBUG[0m probing the complete bounded tail immediately after snapshot install [3mfrom_height[0m[2m=[0m6 [3mcount[0m[2m=[0m43 [3mdispatched[0m[2m=[0m1 [3mhighest_announced[0m[2m=[0m24
+[b-path] [2m07:15:59[0m [34mDEBUG[0m advanced snapshot transport generation [3mgeneration[0m[2m=[0m1
+[b-path] [2m07:15:59[0m [32m INFO[0m post-snapshot exact tail pinned to authenticated HeaderDAG target [3mboundary_height[0m[2m=[0m6 [3mtarget_height[0m[2m=[0m24
+[b-path] [2m07:15:59[0m [32m INFO[0m exact suffix terminal verified outside the chain writer [3mheight[0m[2m=[0m24 [3melapsed_ms[0m[2m=[0m193
+[b-path] [2m07:16:00[0m [34mDEBUG[0m retired post-snapshot exact-tail allowance at bootstrap completion [3mlocal_height[0m[2m=[0m24 [3mboundary_height[0m[2m=[0m6 [3mtarget_height[0m[2m=[0m24
+[result] A at 7 (5f6966f30f8b631d...) vs B at 24 (e7132819a4ba5fd1...): SPLIT OBSERVED
+[evidence] summary written to /Users/ember/dev/parano1d-break/experiments/split-cd1/run/devnet/split-summary.json
+[stop] a pid=97251
+[stop] b pid=99261
+[stop] s-h pid=96667
+[stop] s-f pid=96856
+[done] all nodes stopped by PID

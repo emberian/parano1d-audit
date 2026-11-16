@@ -1,0 +1,16 @@
+{
+  "alias_k": 1,
+  "aliased_leaf": 9751421,
+  "aliased_state_root": "10244a8437a90abc8969c3b857421d435a4a9642d38a5487a4bd38b4b43650d9",
+  "aliased_wire_slot": 26528637,
+  "fork_base_height": 5,
+  "fork_tip_height": 24,
+  "honest_tip_height": 7,
+  "honest_twin_slot": 9751421,
+  "joiner_boundary_height": 6,
+  "log_slots": 24,
+  "pinned_commit": "52938433a30b185ab007afaa15166a632cf2e82e",
+  "sequential_rejection": "ShapeMismatch(live output slot is outside block log_slots)",
+  "terminal_accepted_by_production_verifier": true,
+  "twin_state_root": "10244a8437a90abc8969c3b857421d435a4a9642d38a5487a4bd38b4b43650d9"
+}

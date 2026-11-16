@@ -38,12 +38,12 @@
 //!   wires + 1 pin.
 
 use crate::challenger::{
-    Challenger, FS_KIND_SCALAR, FS_KIND_SLICE, FS_KIND_WIDE_SCALAR, FS_KIND_WIDE_SLICE,
-    FS_OP_BYTES, FS_OP_DOMAIN, FS_OP_LABEL, FS_OP_OBSERVE, FS_OP_POW, FS_OP_SQUEEZE,
-    FsLaneChallenger, fs_c1_lane_iv_flat, fs_lane_iv_flat, fs_op_lane, fs_pack_bytes_lanes,
-    fs_pad_lane_flat,
+    fs_c1_lane_iv_flat, fs_lane_iv_flat, fs_op_lane, fs_pack_bytes_lanes, fs_pad_lane_flat,
+    Challenger, FsLaneChallenger, FS_KIND_SCALAR, FS_KIND_SLICE, FS_KIND_WIDE_SCALAR,
+    FS_KIND_WIDE_SLICE, FS_OP_BYTES, FS_OP_DOMAIN, FS_OP_LABEL, FS_OP_OBSERVE, FS_OP_POW,
+    FS_OP_SQUEEZE,
 };
-use crate::deep_chain::schedule::{DuplexLayout, LaneSource, flat_of_tower_u128};
+use crate::deep_chain::schedule::{flat_of_tower_u128, DuplexLayout, LaneSource};
 use crate::field::{F128, F256};
 use crate::field_r1cs::{FieldR1cs, SparseFieldMatrix};
 use noid_core::hardware::tower_to_flat_u128;
@@ -2729,12 +2729,10 @@ mod tests {
 
         // A wrong-builder attempt consumes the linear token; the owner can no
         // longer finish, rather than gaining a retryable arbitrary patch.
-        assert!(
-            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                owner.build_witness_only()
-            }))
-            .is_err()
-        );
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            owner.build_witness_only()
+        }))
+        .is_err());
         assert_eq!(wire.0, 1);
     }
 
@@ -2768,12 +2766,10 @@ mod tests {
         let mut builder = FieldR1csBuilder::new_witness_only();
         let (wire, slot) = builder.alloc_deferred_f128(F128::ZERO);
         let expression = LinExpr::from_wire(wire);
-        assert!(
-            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                builder.mul(&expression, &LinExpr::constant(F128::ONE));
-            }))
-            .is_err()
-        );
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            builder.mul(&expression, &LinExpr::constant(F128::ONE));
+        }))
+        .is_err());
         builder
             .seal_deferred_f128(slot, F128::ONE)
             .expect("deferred owner remains sealable after dependency rejection");
@@ -2787,12 +2783,10 @@ mod tests {
         let mut builder = FieldR1csBuilder::new_witness_only();
         let (wire, slot) = builder.alloc_deferred_f128(F128::ZERO);
         let expression = LinExpr::from_wire(wire);
-        assert!(
-            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                builder.decompose_bits_le(&expression, 1);
-            }))
-            .is_err()
-        );
+        assert!(std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            builder.decompose_bits_le(&expression, 1);
+        }))
+        .is_err());
         builder
             .seal_deferred_f128(slot, F128::ONE)
             .expect("deferred owner remains sealable after dependency rejection");

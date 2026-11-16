@@ -12,8 +12,9 @@ use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    RaggedDescendingLayerStates, WALK_DEGREE, WalkError, flat_mds, flat_round_constant,
-    is_full_round, mul_pair, sbox7_affine_coeffs as base_sbox7_affine_coeffs,
+    flat_mds, flat_round_constant, is_full_round, mul_pair,
+    sbox7_affine_coeffs as base_sbox7_affine_coeffs, RaggedDescendingLayerStates, WalkError,
+    WALK_DEGREE,
 };
 
 const C1_RAGGED_WALK_DOMAIN: &[u8] = b"history-deep-chain-ragged-multi-walk-c1-v1";
@@ -683,12 +684,10 @@ pub fn prove_ragged_deep_chain_walk<C: Challenger>(
             width.trailing_zeros() as usize
         })
         .collect::<Vec<_>>();
-    assert!(
-        output_groups
-            .iter()
-            .zip(&w_logs)
-            .all(|(group, &w_log)| group.point.len() == w_log)
-    );
+    assert!(output_groups
+        .iter()
+        .zip(&w_logs)
+        .all(|(group, &w_log)| group.point.len() == w_log));
     let max_w_log = *w_logs.iter().max().expect("one C1 walk child");
 
     let timing = std::env::var_os("NOIDH_C1_DEEP_CHAIN_TIMING").is_some();

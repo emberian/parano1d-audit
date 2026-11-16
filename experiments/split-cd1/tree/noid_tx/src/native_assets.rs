@@ -9,8 +9,8 @@ pub mod launch;
 pub mod market;
 pub mod nft_market;
 pub mod profile;
-pub mod trade;
 pub mod transition;
+pub mod trade;
 pub mod wire;
 
 use noid_core::Block128;

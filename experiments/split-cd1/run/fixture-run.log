@@ -1,0 +1,38 @@
+split-cd1: genesis log_slots=24 state_root=5c7f3712611c836a2c6ab0448d32c271f04e3213560e8a5321331cd6a5c98492
+honest block 1 committed (coinbase slot 9699328) [38.274663087s elapsed]
+honest block 2 committed (coinbase slot 9719297) [47.19996964s elapsed]
+honest block 3 committed (coinbase slot 9763112) [57.202720113s elapsed]
+honest block 4 committed (coinbase slot 9730351) [64.588045289s elapsed]
+honest block 5 committed (coinbase slot 9760363) [71.858779747s elapsed]
+fork-chain seeded from the honest depth-5 prefix
+[cd1-mask] consulted: env=Some("1") error=ShapeMismatch("live output slot is outside block log_slots") -> true
+[cd1-mask] consulted: env=Some("1") error=ShapeMismatch("live output slot is outside block log_slots") -> true
+ALIASED fork block 6 committed in 8.019620498s
+aliased coinbase wire slot = 26528637 = leaf 9751421 + 1 * 2^24
+fork block 7 committed (coinbase slot 9701649) [87.383275185s elapsed]
+fork block 8 committed (coinbase slot 9752572) [96.920783921s elapsed]
+fork block 9 committed (coinbase slot 9757127) [106.239355881s elapsed]
+fork block 10 committed (coinbase slot 9741614) [115.686327853s elapsed]
+fork block 11 committed (coinbase slot 9757689) [125.023980077s elapsed]
+fork block 12 committed (coinbase slot 9745161) [135.281845933s elapsed]
+fork block 13 committed (coinbase slot 9755935) [145.28342096s elapsed]
+fork block 14 committed (coinbase slot 9755684) [156.320523599s elapsed]
+fork block 15 committed (coinbase slot 9708762) [166.584238189s elapsed]
+fork block 16 committed (coinbase slot 9724304) [176.476050791s elapsed]
+fork block 17 committed (coinbase slot 9723050) [184.852508343s elapsed]
+fork block 18 committed (coinbase slot 9757651) [193.664864681s elapsed]
+fork block 19 committed (coinbase slot 9756073) [205.116559295s elapsed]
+fork block 20 committed (coinbase slot 9757899) [215.490632892s elapsed]
+fork block 21 committed (coinbase slot 9706291) [224.595057962s elapsed]
+fork block 22 committed (coinbase slot 9744064) [236.434468081s elapsed]
+fork block 23 committed (coinbase slot 9754109) [247.662691148s elapsed]
+fork block 24 committed (coinbase slot 9707969) [257.435674493s elapsed]
+honest TWIN block 6 committed
+ALIAS CONFIRMED: wire slots 26528637 (aliased) and 9751421 (honest) produce the identical state root 10244a8437a90abc8969c3b857421d435a4a9642d38a5487a4bd38b4b43650d9
+honest block 7 committed; honest chain complete
+ALIASED TERMINAL ACCEPTED by production verify_terminal in 349.633838ms (release packs, 64/64/16)
+peer chain synced the honest prefix 1..=5 through the full inbound path
+ALIASED BLOCK REJECTED by sequential validate_block_checks: ShapeMismatch(live output slot is outside block log_slots)
+ALIASED BLOCK REJECTED by the full inbound peer path: Consensus(ShapeMismatch("live output slot is outside block log_slots"))
+control: honest TWIN ACCEPTED by the same peer chain that rejected the alias
+split-cd1 fixture COMPLETE; chains in /othersys/lanes/parano1d/split-cd1/run/honest-chain/ and /othersys/lanes/parano1d/split-cd1/run/fork-chain/, artifacts in /othersys/lanes/parano1d/split-cd1/run/artifacts
