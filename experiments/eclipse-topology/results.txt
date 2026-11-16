@@ -1,0 +1,94 @@
+eclipse-topology PoC — pinned noid_p2p @ 52938433
+gate: peer_diversity_vendored.rs (shasum 6c696510, == pinned peer_diversity.rs)
+------------------------------------------------------------------------------
+
+== SECTION A: pinned constants (A = asserted via compiled gate) ==
+A1 outbound /16 cap: 2 admitted, 3rd distinct peer in same /16 -> Err(OutboundGroupFull { group: Ipv4([11, 5]) }) [REAL]
+A2 constants: OUTBOUND_TARGET=8 per_/16=2 unselected_credit=4 inbound/IP=32 inbound/_/16=96 reserve=96+8
+A3 bootstrap: 4 DNS seeds under one apex, fanout=2, NO PeerID, NO checkpoint
+
+== SECTION B: attacker /16 groups needed to own the 8 outbound slots [REAL gate] ==
+B1 attacker /16 groups = 1: outbound slots won = 2/8  (partial)
+B2 attacker /16 groups = 2: outbound slots won = 4/8  (captures the >=4 locally-selected minimum)
+B3 attacker /16 groups = 3: outbound slots won = 6/8  (captures the >=4 locally-selected minimum)
+B4 attacker /16 groups = 4: outbound slots won = 8/8  (FULL outbound capture)
+B5 attacker /16 groups = 5: outbound slots won = 8/8  (FULL outbound capture)
+  -> each /16 yields 2 outbound; ceil(8/2)=4 groups for full, 2 groups for the 4-min.
+
+== SECTION C: inbound caps [REAL gate] ==
+C1 one public IP: admitted 32 inbound identities, cap = 32 [REAL]
+C2 one /16 (many IPs): admitted 96 inbound connections, cap = 96 [REAL]
+  -> to fill all 128 inbound sessions the attacker needs >=2 distinct /16 groups
+  -> but inbound buys at most 4 topology slots (network.rs:505); the
+     other >=4 of 8 must be the victim's own OUTBOUND dials -> inbound alone cannot eclipse.
+
+== SECTION D: fresh-node honest-escape probability [REAL gate inside a model pool] ==
+  Model: no peers.json; whole candidate pool comes from the DNS-seed Kademlia walk.
+  (a) Attacker CONTROLS the bootstrap (seed operator / DNS / the pool it returns):
+      honest_addrs = 0  -> escape probability = 0.000  [definitional: no honest addr exists]
+  (b) Seeds honest but attacker floods the DHT with G /16 groups; H honest addrs survive:
+      H=1 honest /16s, attacker G= 4 /16s: P(dial >=1 honest) = 0.458
+      H=1 honest /16s, attacker G=16 /16s: P(dial >=1 honest) = 0.082
+      H=1 honest /16s, attacker G=64 /16s: P(dial >=1 honest) = 0.022
+      H=2 honest /16s, attacker G= 4 /16s: P(dial >=1 honest) = 0.689
+      H=2 honest /16s, attacker G=16 /16s: P(dial >=1 honest) = 0.157
+      H=2 honest /16s, attacker G=64 /16s: P(dial >=1 honest) = 0.041
+      H=4 honest /16s, attacker G= 4 /16s: P(dial >=1 honest) = 0.883
+      H=4 honest /16s, attacker G=16 /16s: P(dial >=1 honest) = 0.295
+      H=4 honest /16s, attacker G=64 /16s: P(dial >=1 honest) = 0.079
+  -> With the honest seed reachable, a handful of honest addrs almost always escape:
+     the 2-per-/16 cap means the attacker cannot crowd out honest /16s from the dial set.
+  -> The dangerous case is (a): the four seeds ARE the only root of trust; owning them
+     (or the apex DNS) sets H=0 and escape collapses to zero for a NATed fresh node.
+
+== SECTION E: established-set stickiness [MODEL over cited network.rs logic] ==
+E topology_peers=6: ordinary_release_needed = false  (healthy set retained — NO rotation)
+E topology_peers=7: ordinary_release_needed = false  (healthy set retained — NO rotation)
+E topology_peers=8: ordinary_release_needed = false  (healthy set retained — NO rotation)
+E topology_peers=9: ordinary_release_needed = true  (prunes EXCESS above target)
+E topology_peers=10: ordinary_release_needed = true  (prunes EXCESS above target)
+  -> VERDICT: first-come-STICKY. A healthy 8-peer set is never rotated below target.
+     An eclipse established by winning the initial set (or by churn+replacement) persists
+     until the attacker's own peers disconnect. There is no escape via periodic re-dial.
+  -> Churn path: force an honest peer to drop (its connection closes) -> accelerate_discovery
+     (network.rs:1873) -> next 2s tick dials a REPLACEMENT from the candidate pool; if the
+     attacker owns the pool and the free /16 budget, the replacement is attacker. Repeat per
+     honest peer. No app-level score raises the honest peer's odds (no ban/score system).
+
+== SECTION F: chaos-per-box footprint (finding constants) ==
+  [      C17] mempool-pull byte-domain pin (serving starvation, ALL peers)
+            identities: 1 identity, 4 stalled pull streams (<=8/conn, 2 conn/id)
+            IPs: 1 IP
+            gate: request-response; rotate pulls <=30s; no acceptance impact
+  [      U21] gossip-window monopoly (silences tx+block gossip)   
+            identities: ~5 identities x 303KB undecodable, <8/IP so no colocation penalty
+            IPs: 1 IP
+            gate: gossip pre-decode byte window, global, shared w/ blocks
+  [      C22] admission-queue occupancy (62x CPU discount)        
+            identities: ~10 (code's 84ms budget) .. ~84 (this laptop) Push identities
+            IPs: 1 IP (<=32/id-per-IP) .. 3 IPs (84/32)
+            gate: MempoolRequest::Push, the one un-profile-gated arm; free libp2p keys
+  [ECL-fresh] eclipse a FRESH node (own all 8 outbound)           
+            identities: 8 attacker peer-ids (2 per /16)
+            IPs: 4 distinct /16 groups (+ control of the seed/DHT pool)
+            gate: first-come sticky; needs H=0 honest in candidate pool
+  [  ECL-est] eclipse an ESTABLISHED node (churn + replace)       
+            identities: 8 peer-ids for outbound (2/_/16) + inbound fill
+            IPs: >=4 /16 for outbound + >=2 /16 to flood 128 inbound
+            gate: sticky: must evict each honest peer AND win its replacement
+  [      C26] snapshot poisoning (needs fresh-or-eclipsed victim) 
+            identities: 1 serving identity (once victim is eclipsed/fresh)
+            IPs: 1 IP to serve + the ECL-fresh footprint to isolate
+            gate: fork-choice gate: victim must be fresh or eclipsed first
+
+  TIER SUMMARY (one box == one public IP):
+   1 box  : C17 serving starvation + U21 gossip silence + (hardware-permitting) C22 queue
+            occupancy — a single IP denies serving, gossip, and admission to one victim,
+            with ZERO ability to eclipse (needs 4 /16s). Availability DoS, no isolation.
+   2 boxes: + captures the 4-minimum locally-selected outbound (2 /16s x 2 peers) — HALF
+            eclipse; honest inbound/credit still leaks unless victim is NATed.
+   4 boxes: 4 distinct /16s -> full 8-outbound capture of a fresh/NATed victim -> stack C26
+            snapshot poisoning on the now-eclipsed victim -> permanent estrangement, and the
+            victim re-serves the poison (self-propagating). 4 boxes = isolation + poison.
+
+ALL SECTIONS COMPLETE
