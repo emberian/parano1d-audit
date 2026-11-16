@@ -12,14 +12,27 @@ isolation and most came out "Medium availability, no acceptance impact" or
 "local integrity." The *compositional* question — the one that matters — is not
 "do they run at the same time" (they do, and consensus survives that, see phase
 5) but **"does one finding remove the precondition-barrier of another?"** The
-answer is yes, and it reframes the severity: **the audit's one finalized-
-integrity break (C26 snapshot poisoning) is gated only by "the victim must be a
-fresh or eclipsed node that has not yet received the honest chain's work" — and
-C17, the zero-credential anonymous mempool pin, is precisely the tool that
-manufactures that precondition.** The availability findings are not a sideshow
-to the integrity findings; they are the *delivery mechanism* for the one that
-breaks finalized history. See **"Composition analysis"** below — that is the
-headline; the per-phase live reproductions are the evidence under it.
+answer is yes, and it reframes the severity **against one specific population:
+bootstrapping (fresh or rejoining) nodes.** The audit's one finalized-integrity
+break (C26 snapshot poisoning) is gated by fork choice — the poison manifest
+must out-work the victim's HeaderDAG. For a **fresh node that has a genesis-only
+DAG (no honest work yet)**, that bar is "out-work nothing," trivially met by a
+cheap floor-difficulty poison fork. For an **established node carrying the real
+honest chain**, the bar is "out-work the live network's accumulated proof-of-
+work," which on mainnet is **~912 GH/s of real hashpower** (see the network-
+status facts below) and is NOT cheap — fork choice protects it. So the boundary
+does **not** dissolve on mainnet; it holds for established nodes and falls for
+bootstrapping ones.
+
+The cheap, anonymous availability findings (**C17** mempool pin, **C22**
+admission occupancy, **U21** gossip-window monopoly, **C15** template burn) plus
+the **C27** four-DNS-seed bootstrap are therefore best understood as
+**eclipse-enablers for the permanent C26 break against bootstrapping nodes** —
+they manufacture and sustain the "fresh/eclipsed" condition that is the whole
+precondition. See **"Composition analysis"** below — that is the headline; the
+per-phase live reproductions are the evidence under it; and the live C17->C26
+chain (phase 8) demonstrates it end-to-end as a low-hashpower *mechanism* demo
+(explicitly NOT a claim about out-hashing the real 912 GH/s network).
 
 ## Topology
 
@@ -97,37 +110,53 @@ selection and commits finalized poison -> permanent estrangement, self-
 propagating. **Zero credentials start the chain; the payload is a finalized-
 integrity break, not availability.**
 
-### Why "PoW-bounded" is not the boundary here
+### Where the PoW barrier holds, and where it does not (corrected)
 
-The honest-boundary claim I kept repeating — "established nodes are safe because
-the poison fork must out-work the honest chain, PoW-bound" — is only a barrier if
-that PoW is *expensive relative to the damage*. It is not, on this target:
+An earlier draft of this file overreached — it claimed the PoW barrier
+"dissolves" and established nodes become reachable. That is **wrong**, and the
+network-status lane's hard data (`experiments/network-status/REPORT.md`,
+multi-source) is why. The live parano1d **mainnet is NOT early-stage**:
 
-- **Genesis-floor difficulty is `GENESIS_TARGET = 2^238`** → `2^256 / 2^238 =
-  2^18 ≈ 262,144` hashes per block. Measured on this lane's single laptop:
-  **761-1131 ms (mean 937 ms) of Poseidon2b grinding per block** at the floor. An
-  18-block finality window is therefore ~17 CPU-seconds on *one* commodity
-  machine; out-pacing a floor-pinned honest network for a finality window costs a
-  handful of laptops.
-- **ASERT halflife is 120 s** (`EPOCH_LENGTH 6 × BLOCK_TIME 20`), the shortest
-  practical — difficulty collapses toward the floor within minutes of any honest
-  hashpower dip, and the code comment says this is deliberate for a "young
-  network."
-- **Finality depth is 18 blocks** (6 minutes); the poison install finalizes at
-  commit.
-- **The target has no publicly visible live network, explorer, hashrate, or node
-  population** (searched; only an early release line and a one-contributor mobile
-  fork). The consensus parameters are explicitly tuned for the young/low-hashpower
-  regime.
+- **Height ~313,422, ~87 days old** (three independent node operators concur).
+- **Network rate ~912 GH/s** (4 concordant sources: noidexplorer 4 h avg 914,
+  gb-pool 912.3, luckypool-implied ~911, difficulty-derived 912) — physically a
+  few hundred GPUs.
+- **~2 producers make ~84% of blocks** (one solo whale ~49%, one pool ~38%);
+  **3,355 funded addresses**; a real **$3 M SafeTrade market** (NOID/USDT).
 
-In that regime, out-working the honest tip to poison even an *established* node
-is cheap — the "fresh-victims-only" boundary dissolves into "whoever can out-hash
-the current (low, floor-pinned) honest rate for a finality window," which on a
-nascent network is affordable. **PoW-boundedness bounds nothing when the PoW
-price is small next to permanently estranging a node as finalized history.** The
-honest statement is therefore not "consensus is safe"; it is "consensus safety
-here rests entirely on honest hashpower that is currently unmeasured and, by the
-parameters, assumed small."
+So the floor economics below apply to exactly two things, and **not** to
+established nodes:
+
+- **Genesis-floor difficulty `GENESIS_TARGET = 2^238`** → `2^18 ≈ 262,144`
+  hashes/block; measured here at **761-1131 ms (mean 937 ms) per block on one
+  laptop**. This is the cost to MINE a floor-difficulty poison fork.
+- **C26's difficulty-collapse trigger:** a far-future *parent* timestamp floors
+  descendant difficulty to `GENESIS_TARGET` instantly (ASERT 120 s halflife),
+  so the poison fork's blocks are cheap to produce regardless of the real
+  network's difficulty.
+
+Cheap-to-mine, though, is not the same as cheap-to-*win*. Fork choice
+(`validate_snapshot_install_selection`, `main.rs:287-301`) requires the poison
+manifest to out-work the victim's HeaderDAG:
+
+- **A FRESH node has a genesis-only DAG — zero honest work** — so the cheap floor
+  fork out-works "nothing." **Poisonable today** (this is C27's verdict (a): a
+  fresh node's first-peer set and first snapshot source are 100% the four DNS
+  seeds / whoever can reach it at t=0). The ~17 CPU-seconds / handful-of-laptops
+  figure is the cost to beat *a genesis-only DAG*, and only that.
+- **An ESTABLISHED node carries ~912 GH/s × 313k blocks of accumulated honest
+  work.** A floor-difficulty fork cannot out-work that — **fork choice protects
+  it.** Reaching an established node needs real majority hashrate (hundreds of
+  GPUs, not laptops), OR a sustained eclipse that first strips its honest chain,
+  OR the unsigned-release channel (C16). That is C27's verdict (b): "EXISTING
+  nodes: not by DNS alone." **The fresh-victims boundary does NOT dissolve on
+  mainnet.**
+
+The corrected one-line severity: **the cheap availability findings + C27 give a
+zero-to-low-cost, permanent, finalized-history poisoning of BOOTSTRAPPING
+(fresh/rejoining/eclipsed) nodes on the live network today; established nodes and
+already-finalized mainnet history remain protected by fork choice over real
+hashpower.** That is a real, serious finding — scoped correctly.
 
 ### How it scales with malicious-node count
 
@@ -144,57 +173,67 @@ parameters, assumed small."
   malicious serving node added is one more poison source it *can*. As the ratio
   of (pinned honest : available malicious) sources rises, the probability that a
   fresh/rejoining node commits poison during its eclipse window rises toward 1.
-- **The two reinforce.** C17 subtracts honest serving capacity (free, anonymous);
-  C26 adds malicious serving capacity (needs cheap PoW). Together they move the
-  bootstrap-source lottery from "mostly honest" to "mostly malicious" at a cost
-  dominated by hashpower that the parameters assume is scarce.
+- **The two reinforce — against bootstrapping nodes.** C17 subtracts the honest
+  serving capacity a *fresh/rejoining* node needs to reach honest history; C26 +
+  C27 supply the malicious source it falls to instead. Together they move the
+  bootstrap-source lottery from "mostly honest" to "mostly malicious." This does
+  **not** touch established nodes (they already hold the honest work); it decides
+  which chain a node adopts *before* it has any.
 
-### The convergent pattern: every availability finding erodes C26's one barrier
+### The convergent pattern: every availability finding erodes a bootstrapping node's reach to honest history
 
-The reason this is systemic and not a one-off chain: C26's sole gate is "out-work
-the honest chain," i.e. it is bounded by **honest hashpower and honest block
-propagation** — and *multiple independent findings each attack exactly that
-resource*:
+C26's gate for a *fresh* node is "out-work a genesis-only DAG," i.e. it is
+decided entirely by **which source the bootstrapping node reaches first**, not by
+hashpower (it has none to protect yet). Multiple independent findings each attack
+exactly that — a bootstrapping node's ability to reach and stay on an honest
+source:
 
-- **C17 (anonymous serving pin)** removes honest serving capacity, producing
-  fresh/eclipsed victims (the precondition) — demonstrated live (7.3).
+- **C27 (four unverified DNS seeds)** decides 100% of a fresh node's first-peer
+  set, with no PeerID verification — the first (and possibly permanent) snapshot
+  source is whoever the seeds point at.
+- **C17 (anonymous serving pin)** removes honest serving capacity so a
+  rejoining/eclipsed node cannot get the honest chain — demonstrated live (7.3:
+  a pinned honest relay held a joiner at height 0 for 20-30 s).
 - **U21 / C22 (gossip-window monopoly / admission occupancy)** throttle honest
-  block *and transaction* propagation; blocks that do not propagate are honest
-  work that does not count against the attacker's fork — lowering the out-work bar.
-- **C15 (invalid-PoW template burn)** halts honest *external* miners outright;
-  less honest hashpower is a lower bar still.
+  block/tx propagation reaching a syncing node.
+- **C15 (invalid-PoW template burn)** suppresses honest block production that a
+  syncing node would otherwise see.
 
-So the availability findings are not a separate, lesser category from the one
-integrity break — they are a toolkit for driving down the exact quantity
-(effective honest hashpower / propagation) that is the *only* thing standing
-between C26 and network-wide poisoning. On a network whose parameters already
-assume that quantity is small and whose floor difficulty is a ~1 s-per-block CPU
-job, that toolkit is cheap relative to the damage. **This is the composition the
-audit's per-finding severities (each "Medium availability") structurally hide.**
+For an **established** node none of these lowers the C26 bar — its protection is
+accumulated hashpower (912 GH/s), which these findings do not touch. So the
+systemic statement, correctly scoped: **the availability findings + C27 are a
+toolkit for controlling what a BOOTSTRAPPING node sees first and whether it can
+ever reach honest history — which is the whole of C26's precondition for that
+population.** This is the composition the per-finding "Medium availability"
+severities structurally hide — and it is real on the live network *against
+bootstrapping nodes*, while leaving finalized mainnet history and established
+nodes protected.
 
 ### What genuinely does NOT compose (kept honest)
 
 - The **primitive-collision findings (C1-C3, C21) hit the leaf wall** and do not
   feed the eclipse chain — different layer; the semantic verifiers recompute leaf
   hashes. The **cross-version cap route is CLOSED** over the wire (phase 4).
-- **Nodes that already hold the honest chain's work** still reject the poison
-  fork *at a given honest hashpower* — the composition's damage is bounded by how
-  much hashpower the attacker must out-run, which is the one real lever the
-  network has and the one number nobody has published.
-- **C15/C17 (two availability findings) reinforce but do not enable** — running
-  them together is parallelism, not composition.
+- **Nodes that already hold the honest chain's work reject the poison fork** —
+  and on mainnet that honest work is ~912 GH/s × 313k blocks, which a floor fork
+  cannot out-run. This is the hard boundary; the composition does not cross it.
+- **C15/C17 (two availability findings) reinforce but do not enable each other** —
+  running them together against the same victim is parallelism; each separately
+  enables C26 against bootstrapping nodes.
 
 ### Scale caveat (do not over-read the live numbers)
 
 Everything live here ran against a **3-4 node loopback devnet with 1-4
-aggressors** — that is a *mechanism* demonstration, not a network-scale one. The
-per-attacker-count table (phase 7.1) shows the domain-pin saturating at 2
-coordinated identities *against one victim*; the network-degradation-vs-M curve
-(how fast the honest serving layer falls as malicious nodes scale against the
-real N) is reasoned from the caps and costs above, not measured at scale. The
-real severity denominator — N honest nodes and their aggregate hashpower — is
-exactly the quantity the project does not publish, and it is what every number
-below should be read against.
+aggressors, at genesis-floor difficulty** — that is a *mechanism* demonstration,
+not a network-scale one, and specifically **not** a demonstration of out-hashing
+the real ~912 GH/s network. The per-attacker-count table (phase 7.1) shows the
+domain-pin saturating at 2 coordinated identities *against one victim*; the
+phase-8 live C17->C26 chain shows the poisoning *mechanism* against a fresh
+devnet node whose DAG is genesis-only — the exact population that is also
+vulnerable on mainnet. What is **not** shown, and is **not** claimed, is any
+poisoning of an established node or of finalized mainnet history: that needs real
+majority hashpower, which the live 912 GH/s makes expensive. Read every number
+below as "the mechanism, against a bootstrapping node, at floor difficulty."
 
 ## Findings composed (per phase)
 
@@ -460,6 +499,25 @@ coordination (and saturates at just 2 coordinated identities); admission
 pressure scales with aggregate rate regardless of spread; neither buys integrity;
 and eclipse of a fresh joiner needs more than pinning one upstream.
 
+### Phase 8 — the live C17 -> C26 chain, end to end (low-hashpower MECHANISM demo)
+
+This is the headline composition, demonstrated live against real nodes over real
+P2P — and framed honestly: it shows the poisoning **mechanism** on a small devnet
+at genesis-floor difficulty, against a fresh/eclipsed victim whose DAG is
+genesis-only. It is **NOT** a demonstration of out-hashing the real ~912 GH/s
+network; established nodes and finalized mainnet history stay protected by fork
+choice (that is the whole point of the "fresh-victims boundary" above).
+
+Setup: an honest devnet (n1 miner + n2 relay) is frozen at low work; a poison
+node (`bin/parano1d-poison`, consensus clock +10 years) mines a genesis fork
+whose headers carry far-future timestamps — real PoW, floored difficulty — that
+its own tip-only drift gate accepts but honest native admission rejects by rule;
+an anonymous `anon-mempool-pin` holds the honest relay's serving domain; and a
+fresh victim seeded to [pinned-honest-relay, poison] falls to the poison source.
+
+_(live result + collapse timeline filled from the run; see results.txt
+`PHASE 8` section.)_
+
 ## The collapse timeline, by vantage point
 
 From the composed run (phase 5), what each observer sees as the attacks land
@@ -504,16 +562,15 @@ claimed.** Stated honestly:
 - **No unauthorized spend, no minting, no theft, no owner-key recovery.** Every
   value amount stays root-authenticated; the collision findings hit the leaf wall
   and the cross-version cap route is closed (phase 4). This boundary held.
-- **BUT "no anonymous integrity impact" is WITHDRAWN as an unconditional claim.**
-  Via the composition above (C17 eclipse -> C26 poison), a zero-credential
-  anonymous peer *can* drive a fresh or rejoining node to commit finalized,
-  honest-rejecting history. What stops this from being network-wide is **honest
-  hashpower, not a code guardrail** — an *established* node rejects the poison
-  fork only while the attacker cannot out-work the honest chain, and the
-  parameters (2^18 floor, 120 s ASERT) put that bar low on a young network. So
-  the survival statement is conditional: *consensus survives to the extent that
-  honest hashpower exceeds what an attacker can muster for a finality window* —
-  and that quantity is unmeasured here.
+- **"No anonymous integrity impact" is re-scoped, NOT withdrawn wholesale.**
+  Against the **established network and finalized mainnet history it HOLDS** —
+  fork choice over ~912 GH/s of real work rejects any floor-difficulty poison
+  fork; no amount of free anonymous availability crosses that. Against
+  **bootstrapping (fresh/rejoining/eclipsed) nodes it does NOT hold**: a
+  zero-credential anonymous peer, via C17 eclipse + C26 + C27, can drive such a
+  node to commit finalized, honest-rejecting history (demonstrated as a
+  mechanism in phase 8). The line is the victim's accumulated honest work:
+  none (fresh) = vulnerable today; a real chain behind it = protected.
 - **Local-integrity findings are operator/attacker-local** (C20 supply counter,
   U19 tip) — real divergence, but requiring file access / bit rot, not remote.
 - **The tampered-build attack (phase 6) is a developer/build-chain attack**, not a
@@ -523,21 +580,23 @@ claimed.** Stated honestly:
   defense against a lying node).
 
 **Cheapest sustained degradation an anonymous peer can inflict — and it is the
-first stage of the eclipse chain, not a dead-end:** one TCP connection, a free
-libp2p identity, 4 × 12-byte mempool `Pull`s re-issued every <=24 s, never
-reading — holds a target node's entire 64 MiB outbound serving domain
-indefinitely for ~zero cost (phase 1, live: 14 × 11 MB stalled serves,
-control-plane tail 12×). Scaled to ~one identity per honest serving node (O(H)
-free identities, defeating the 32/IP diversity cap with a handful of IPs), it
-subtracts the honest serving layer — which is exactly what turns C26 from
-"needs a fresh/eclipsed victim" into "reachable against bootstrapping nodes."
+first stage of the eclipse chain against bootstrapping nodes, not a dead-end:**
+one TCP connection, a free libp2p identity, 4 × 12-byte mempool `Pull`s re-issued
+every <=24 s, never reading — holds a target node's entire 64 MiB outbound
+serving domain indefinitely for ~zero cost (phase 1, live: 14 × 11 MB stalled
+serves, control-plane tail 12×). Scaled to ~one identity per honest serving node
+(O(H) free identities, defeating the 32/IP diversity cap with a handful of IPs),
+it subtracts the honest serving layer that a *rejoining/eclipsed* node needs —
+which (with C27's four-DNS-seed first-peer control) is what makes C26 reachable
+against bootstrapping nodes. It does nothing to an established node's safety.
 
-**What minimum credentials buy *on top of* the free anonymous chain:** a mining
-token adds prepared-template destruction (external mining halts if consumption
-outpaces regeneration — and note that *reducing honest block production* also
-lowers the hashpower bar for the C26 step); an operator token adds per-call
-full-store receipt rescans and the wallet-mutex tail inflation (U18, [RV-T]).
-The integrity escalation, though, needs no credential at all — only cheap PoW.
+**What minimum credentials buy:** a mining token adds prepared-template
+destruction (external mining halts if consumption outpaces regeneration); an
+operator token adds per-call full-store receipt rescans and the wallet-mutex tail
+inflation (U18, [RV-T]). The bootstrapping-node integrity escalation needs no
+credential at all — only the ability to be the source a fresh node reaches, plus
+a cheap floor-difficulty poison fork; established-node poisoning needs real
+majority hashpower, which the 912 GH/s network makes expensive.
 
 ## PoC implementation and reproduction
 
@@ -587,6 +646,15 @@ choices):
 - `bin/parano1d-tampered` — a full `--release` node with one HistoryStep matrix
   coefficient flipped at production scale (the C16 substitution), embedded under
   the approved metadata identity because `build.rs` never hashes the matrix.
+- `bin/parano1d-poison` — a full `--release` node built from a copy of the pinned
+  tree (read-only checkout untouched) with one surgical change: `unix_now()` and
+  the built-in miner's template timestamp take an env-gated offset
+  (`NOID_POISON_CLOCK_OFFSET_SECS`, default 0 = pinned behaviour). Run with
+  `+10 years`, it mines a genesis fork whose headers carry far-future timestamps
+  that its OWN tip-only drift gate accepts (same shifted clock) and floor the
+  difficulty — simulating an attacker who simply chooses their block timestamps
+  (no protocol change needed; the timestamp is attacker-chosen data). Transport
+  clock (`SystemTime::now()` directly) is left real so it still serves peers.
 - `bin/parano1d-v21` — isolated-schedule build for phase 4 (Linux-only; see
   below).
 
@@ -597,10 +665,11 @@ cd /Users/ember/dev/parano1d-break/experiments/devnet-chaos
 # phases 0-5 on one persistent devnet (control, C17 pin, C20 tamper,
 # C15+C19 operator, U19 tip, composed). Fault-tolerant per phase.
 python3 scripts/run_all.py --phases 0,1,2,3,4.5,5 --mempool-intents 150 >> results.txt 2>&1
-# phase 6 (developer supply-chain) and phase 7 (multi-aggressor) are separate
-# because each drives the same devnet data dir (they cannot run concurrently):
-python3 scripts/phase6_supply_chain.py            >> results.txt 2>&1
-python3 scripts/phase7_multiaggressor.py          >> results.txt 2>&1
+# phases 6/7/8 are separate because each drives the same devnet data dir
+# (they cannot run concurrently):
+python3 scripts/phase6_supply_chain.py            >> results.txt 2>&1   # tampered build -> wallet
+python3 scripts/phase7_multiaggressor.py          >> results.txt 2>&1   # multi-aggressor table
+python3 scripts/phase8_live_c26.py                >> results.txt 2>&1   # live C17 -> C26 chain
 # phase 4 (cross-dialect mesh) needs a loopback-only Linux netns:
 bash   scripts/run_linux_builds.sh                # or build on an x86 Linux box
 bash   scripts/phase4_docker.sh                   # docker --network none

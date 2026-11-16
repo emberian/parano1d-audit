@@ -64,6 +64,47 @@ honest offer. Retry and provider rotation are present (`main.rs:8782-8807,
 demonstrated. Repeated false-work rounds against an honest provider are a
 useful separate availability experiment.
 
+### False-work offer: recovery bounds and repeatability
+
+The plausible cheap payload is a self-consistent, codec-valid manifest with
+inflated bridge work and a recomputed digest. The protocol verifier requires
+bridge work to exceed boundary work when a bridge is present, but does not
+establish that either number is earned by headers (`noid_p2p/src/protocol.rs:
+547-568`). The five-second comparator can select the false offer over an
+honest one. `prepare_snapshot_header_sync` opens the selected exact staging
+plan without first proving its headers (`noid_node/src/main.rs:3877-4000`).
+A false work claim eventually fails staged-header chainwork validation; a
+fabricated header range can fail earlier. Neither path installs unverified
+state.
+
+After an invalid exact header range, the pipeline tries alternate connected
+peers for **that exact range** (`main.rs:13040-13146,3501-3526`). An honest
+peer on a different fork cannot satisfy the attacker's exact target. The
+range's attempted-peer set can be reset after five seconds, at most three
+times (`main.rs:3529-3550`), then the plan is parked if sources remain
+exhausted. This error path does not add the source to the global
+`rejected_terminal_peers` set or ban it from later manifest rounds.
+
+The watchdog polls for providers at least five seconds apart, counting each
+round even if it dispatched zero requests (`main.rs:557-562,14666-14718`).
+It retires an exhausted plan only after **six provider rounds**, no active
+manifest requests, and **45 seconds since last progress** (`main.rs:
+14720-14745`). Thus roughly 45 seconds plus candidate selection and
+transport time is a source-level *lower bound* on one fully parked cycle,
+not a measured delay or an upper bound. Timeouts and reconnects can extend it.
+
+Immediate failover excludes the failed peer for that call and requests up to
+three others (`main.rs:8782-8807,970-1004`). With one bad and one responsive
+honest peer, that favors honest recovery after one cycle. The failed peer is
+not persistently banned from manifest rounds; retiring the plan clears
+snapshot-specific rejections (`main.rs:8720-8746`). With two or more
+coordinated bad identities, an excluded one may return in a later round and
+offer a new inflated manifest. Whether this sustains a user-visible sync
+stall alongside an honest peer is **unproved**: the independent native
+HeaderDAG/header path may progress concurrently and defeat the false offer
+at the install gate. A local run must measure HeaderDAG work alongside
+canonical height.
+
 **The C17 serving stall did not create a genesis-only DAG.** Its phase-7
 sampler recorded `getChainInfo.height`, the installed chain height
 (`devnet-chaos/scripts/phase7_multiaggressor.py:66-73`,

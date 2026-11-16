@@ -1,0 +1,9 @@
+pin=52938433a30b185ab007afaa15166a632cf2e82e
+production_context='ParanO(1)d master secret from canonical image pixels v1'
+documented_context='Parano1d master secret from canonical image pixels v1' (all three guides)
+fixture=32x32 RGBA, 256 distinct pixels
+shipped_master_secret=e8368dcb6f5973978e1f1f4846c0d772b6e263b45964bb5cdd231357842b1860
+documented_master_secret=ab92d4fec0e1c8727db250729e11a0c35af9923b6cde8d54efe46703a1a4f2d6
+shipped_address=o186k54fnkd0ssd25pd7yhgzgtnewe9rvj857vrl3lks2kgppavvgq2ymvua
+documented_address=o1uqppny90hhl7e5gyvnxgh2dj60gddehxr7l97ue04au60qfszxdsmk8x3t
+RESULT: identical image pixels produce different spending keys and addresses when implemented from the published guide.

@@ -1,0 +1,19 @@
+[package]
+name = "noid-header-probe"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+anyhow = "1"
+futures = "0.3"
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["compat"] }
+libp2p-noise = "=0.46.1"
+libp2p-core = "=0.43.2"
+libp2p-identity = { version = "=0.2.14", features = ["rand"] }
+yamux = "=0.13.10"
+
+[profile.release]
+lto = false
+codegen-units = 16

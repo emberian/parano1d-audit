@@ -499,3 +499,10 @@ PHASE7 OK
 [stop] n3-syncer pid=40630
 [stop] n2-relay pid=40563
 [stop] n1-pool pid=40506
+
+===== PHASE 8 (live C17->C26 chain, low-hashpower mechanism demo) Sun Nov 15 18:25:47 PST 2026 =====
+
+=== PHASE 8: live C17 -> C26 chain (low-hashpower mechanism demo) ===
+[start] p8-n1: pid=96566 log=p8-n1.log
+[start] p8-n2: pid=96997 log=p8-n2.log
+[start] p8-w1: pid=97458 log=p8-w1.log

@@ -89,3 +89,43 @@ findings, but have not established that selective-selling scenario.”
 
 No public post or third-party message has been sent. Existing checkout changes,
 the earlier report, and the poison source tree were preserved.
+
+## Fresh Codex swarm, 2026-11-15
+
+The wider audit is active across eight independent questions. Each lane owns
+only its own `experiments/<lane>/` directory, uses the pinned checkout as a
+read-only target, and reports positive and negative results with concrete
+attacker powers. Heavy builds are coordinated with the existing phase-8 devnet
+run. Earlier reports are leads, not an upper bound on attack ideas.
+
+| Lane | Core question | Evidence needed |
+| --- | --- | --- |
+| `operator-exit` | Can someone obstruct holders' NOID transfers or deposits while retaining their own exit? | Two-holder asymmetric control and independent receiver, including honest-path escape. |
+| `snapshot-adversary` | Does C26/C27 survive the release verifier, candidate selection, retained HeaderDAG, and restart? | Valid terminal, controlled competing offers, persisted work/finality. |
+| `economic-state` | Can legal native token/DEX/NFT operations extract value, trap holdings, or create unremovable state? | Production transitions and costed user impact. |
+| `chain-malice` | Can malicious producers or partitions exploit reorg, finality, timing, or consensus transition? | Plausible attack cost and post-reconnection behavior. |
+| `wallet-boundary` | Can wallet, recovery, or node trust cause real loss or false payment acceptance? | Actual address/receiver outcome, not just displayed status. |
+| `network-abuse` | Are there resource or peer-control paths missed by the prior P2P/RPC lanes? | Wire-level cost, live local effect, and header-path controls. |
+| `proof-soundness` | Do deployed relations or verifiers admit unauthorized value or serious denial? | Exact pinned relation, witness and verifier path. |
+| `review-prior` | Which publication claims exceed the saved evidence? | Claim, counterevidence, and replacement wording. |
+
+Early leads, **not yet promoted to findings**: the wallet lane reports a
+photo-key recovery context mismatch between GUI code and guides; the economic
+lane is testing an unsolicited NFT with a maximal unlock height; the snapshot
+lane found the five-second candidate settlement and higher-chainwork preference
+omitted from C27's "first manifest wins" description. Each requires a local
+control and impact assessment.
+
+## Exchange boundary checked during takeover
+
+SafeTrade's [NOID listing](https://support.safetrade.com/hc/en-us/articles/48550294413581-Parano1d-NOID-has-been-listed-on-SafeTrade)
+and [market page](https://safetrade.com/markets/coin?tab=new_listings)
+confirm a live NOID/USDT market (search-indexed pages inspected 2026-11-15).
+Neither page establishes the chain confirmations SafeTrade requires for NOID,
+the behavior of its NOID deposit node during a partition, or any relationship
+between SafeTrade and the developer. Its [deposit guide](https://safetrade.com/help/faq/how-to-deposit)
+describes the exchange-account credit flow separately from an on-chain send.
+Therefore an accepted local `walletSend` txid is not a credited exchange
+balance; a holder who deposited earlier might still trade internally during
+a chain-side outage. The chain-malice lane is checking the precise 18-block
+reorg boundary before this can inform a deposit-risk claim.
