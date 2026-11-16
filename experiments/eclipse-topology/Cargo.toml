@@ -1,0 +1,19 @@
+[package]
+name = "eclipse-topology-poc"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# Drives the pinned noid_p2p peer-admission gate (peer_diversity.rs, vendored
+# byte-identical as src/peer_diversity_vendored.rs) and models the documented
+# topology controller (network.rs constants, cited inline). Loopback/synthetic
+# only; no external peers, no networking.
+
+[dependencies]
+libp2p = { version = "0.55", features = ["macros"] }
+rand = "0.8"
+
+[profile.release]
+debug = false
+
+[workspace]

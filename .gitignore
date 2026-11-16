@@ -11,3 +11,12 @@ experiments/external-consumers/repos/
 experiments/external-consumers/logs/
 experiments/network-status/*.html
 experiments/network-status/*.js
+
+# target checkout (read-only reference; reproducible from PROVENANCE.md pinned commit)
+parano1d/
+
+# devnet-chaos: 21GB of live build/runtime artifacts (force-add deliverables when it lands)
+experiments/devnet-chaos/
+
+# raw web-fetch evidence (summarized in REPORT.md)
+experiments/network-status/jetsam-*.md
