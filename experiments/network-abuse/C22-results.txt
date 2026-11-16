@@ -1,0 +1,27 @@
+Local copied funded n1-pool at 127.0.0.1:19890/19891. Target pinned release.
+Wallet had 604 UTXOs, balance 6597.685 NOID, height 150.
+
+walletSend A txid d02d0afe8089f5560bb09a427c8a09858175a9fdf04d618ff256f7e6a05b6654
+anonymous Pull A: count=1, first intent=90446 bytes
+restart: mempool size 0
+anonymous Push A with last authorization byte flipped: NMS3 empty ack;
+node log: CPU phase InboundVerify; P2P tx rejected ... authorization verify: AuthProof
+
+baseline A Push: ack 221.8 ms, mempool size1 at 262.8 ms (cold connection/run).
+First four-peer test erroneously used A as honest control on same input:
+four peers sent 40 invalid variants; only 19 reached AuthProof after A admitted.
+This run is invalid as an occupancy control and excluded from verdict.
+
+walletSend B txid 0937d6a8b1328654c95effd8a1a7b2f55b6c107e09cb0bd43e55526e5e8e1980
+two intents concurrently admitted to copied node's mempool; Pull:
+entry 0: A, 90446 B, sha256 d37d898046ca58aa5f21f76eaabdb5bd10ba4fff8d1d05e0320d74c6acbec15c
+entry 1: B, 90286 B, sha256 37184b0569d9d5992f379750d1a8964020f7b9e7e6417737b1f0ff9d410d9a67
+restart: mempool size 0
+separate-input bounded test: four peers each 10 Pushes of A with flipped auth
+offsets from end 1,2,3,4, 200 ms pacing, all peer processes exited 0.
+honest B Push during attack: ack 8.9 ms; mempool size1 at 48.8 ms.
+node log: 40 P2P tx rejected ... authorization verify: AuthProof;
+41 InboundVerify phase entries (40 invalid + honest B).
+restart: mempool size 0
+honest B alone: ack 6.1 ms; mempool size1 at 31.1 ms.
+node stopped by Ctrl-C; no listeners remained on 19890/19891.

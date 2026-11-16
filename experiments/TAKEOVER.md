@@ -121,8 +121,10 @@ The first pass produced bounded results:
   Official GUI recovery from the original photo still works. A separate
   local-RPC impostor test replaced the GUI backend's receive address with an
   attacker-owned one; the production wallet builder signed a synthetic payment
-  to it. No block was mined, and a remote P2P peer alone was not shown to
-  control the GUI's local RPC endpoint.
+  to it. A later control prebound the literal default port with `NOID_RPC`
+  unset and reproduced adoption by the shipped backend. No block was mined;
+  a still-running honest local node keeps its port, and a remote P2P peer
+  alone was not shown to control the GUI's RPC endpoint.
 - `economic-state` committed 248 unsolicited NFTs with maximum unlock height
   in an isolated v2.1 block for 0.8002 NOID. The victim's verified wallet
   pages returned them, and every attempted input was rejected as timelocked.
@@ -149,6 +151,10 @@ The first pass produced bounded results:
   window and an install-time HeaderDAG recheck, and left genuine release
   terminal acceptance unresolved. A false advertised-work offer may delay
   honest snapshot selection; sustained starvation is untested.
+- `release-chain` found C16 limited to custom legacy pack inputs: the
+  official v2.1 path retires those matrices and authenticates a transition
+  pack. The phase-6 substituted binary stalled at h144 against honest h149;
+  its GUI verified a genuine older receipt, not a forged payment.
 
 The paper has been rewritten and rendered as a six-page bounded argument.
 `FINDINGS.md`, the operator-power report, and the crypto, asset, availability,
@@ -163,7 +169,12 @@ GRAFTed into the mesh. The valid-spam lane measured a warm four-page storage sca
 of the 248 locked items at 10.06 ms median; RPC and GUI latency remain
 unmeasured. The phase-8 victim rejected the all-future poison tip and
 installed honest state; the real-terminal C26 middle-timestamp test remains
-open. Commit `0feaeec` accidentally captured files
+open. A separate real-wire proof control drove 40 anonymous pushes through
+`AuthProof` rejection while an honest nonconflicting intent was admitted
+([C22 live report](network-abuse/C22-LIVE.md)). A source review found a
+node-local dynamic-fee-floor latch under sustained valid mempool congestion;
+no selective-exit effect was run or demonstrated ([fee-floor report](fee-floor/REPORT.md)).
+Commit `0feaeec` accidentally captured files
 staged by multiple lanes in the shared Git index; later path-scoped commits
 recorded their completed results. No history was rewritten.
 
@@ -178,5 +189,6 @@ between SafeTrade and the developer. Its [deposit guide](https://safetrade.com/h
 describes the exchange-account credit flow separately from an on-chain send.
 Therefore an accepted local `walletSend` txid is not a credited exchange
 balance; a holder who deposited earlier might still trade internally during
-a chain-side outage. The chain-malice lane is checking the precise 18-block
-reorg boundary before this can inform a deposit-risk claim.
+a chain-side outage. The chain-malice lane confirmed that a heavier fork can
+replace an 18-block suffix, but the exchange's NOID credit threshold remains
+unknown.

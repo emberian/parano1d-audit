@@ -55,11 +55,24 @@ In a real P2P loopback control with eight Sybils connected first, the honest
 outbound peer did GRAFT and received all 12 pre-heartbeat test payloads in
 0–2 ms. Neither result is a measured sustained eclipse.
 
+A [real-wire proof-ingress control](experiments/network-abuse/C22-LIVE.md)
+delivered 40 invalid proof-shaped transactions to the release node's
+authorization verifier. A separate honest transaction was accepted during
+the burst. The earlier CPU asymmetry is reachable over P2P, but saturation
+and honest transaction loss remain unproved.
+
 The [producer resource analysis](experiments/pow-resource/README.md) shows
 that a miner can reclaim collection-creation fees through its coinbase, while
 continued growth still requires fresh funding slots, state-growth burn, and
 winning blocks. Its full-rate state-growth figures are bounds, not a mined
 full-block demonstration or current-network attack price.
+
+Two [source-only availability leads](experiments/new-avenues/REPORT.md) concern
+a valid-work header whose advertised objects are withheld, and repeated
+`Busy` replies that may keep a non-isolated miner waiting for those objects.
+No paused miner was observed. A separate [fee-floor review](experiments/fee-floor/REPORT.md)
+finds node-local relay-fee stickiness under sustained valid congestion, not
+a consensus or developer-only selling restriction.
 
 The consensus code permits replacing an 18-block suffix, while two protocol
 guides state a maximum of 17. A payment with exactly 18 confirmations is
@@ -74,10 +87,11 @@ implementation of the published recipe derives a different key. See
 [wallet review](experiments/wallet-boundary/README.md).
 
 The same wallet review shows a separate receive-address risk: an impostor
-controlling the GUI's local RPC can replace the address the receive card
-offers to a payer. A production wallet builder signed a synthetic payment
-to that substituted address. This requires control of the local node
-interface; a public-network peer alone has not been shown to gain it.
+prebound to the GUI's default loopback RPC port can replace the address the
+receive card offers to a payer. A production wallet builder signed a
+synthetic payment to that substituted address. The normal GUI starts a
+local node whose address answers derive from its wallet secret; a
+public-network peer alone has not been shown to replace them.
 
 A full local block test minted 248 unsolicited NFTs to a victim with a maximal
 unlock height. The victim's wallet query returned every item, but the
