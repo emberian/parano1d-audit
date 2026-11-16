@@ -183,42 +183,57 @@ Driver + spamtool run on hbox; PID files under the lane dir; stop by PID only.
 - Whether A's isolated re-mining keeps enough work parity (ASERT first-target
   easing) — poll work, add blocks as needed.
 
-## Final state at lane handoff (2026-11-16, wrap-up ordered mid-build)
+## Final state at lane handoff (2026-11-16, corrected after build failure)
 
-The lane was wrapped up by ember's order while the FIRST hbox release build was
-in flight. Nothing else is running; no devnet node was ever launched.
+The lane was wrapped up by ember's order. The first hbox release build was
+launched detached, ran ~10 min, and **FAILED**; nothing is running now on
+either machine; no devnet node was ever launched.
 
-**On hbox (ssh alias `hbox`), detached and MAY STILL BE RUNNING:**
-- Release node build: PID **3503349** in
-  `/othersys/lanes/parano1d/halt-reorg/build.pid`, log
-  `/othersys/lanes/parano1d/halt-reorg/logs/build-node.log` (it was compiling
-  libp2p/tokio deps at handoff; expect ~30-60 min total under swarm-build
-  SWARM_MEM_MAX=8G). Check: `ssh hbox 'tail -5 /othersys/lanes/parano1d/halt-reorg/logs/build-node.log; ls /othersys/lanes/parano1d/halt-reorg/bin'`.
-  Success line: `HALT_REORG_BUILD_DONE`; success artifacts:
-  `bin/parano1d`, `bin/parano1d-cli`, `bin/parano1d-miner` (Linux release,
-  early-finance patch, log_slots 24). If it died, rerun:
-  `ssh hbox 'cd /othersys/lanes/parano1d/halt-reorg && nohup setsid env SWARM_MEM_MAX=8G swarm-build bash scripts/build-node.sh > logs/build-node.log 2>&1 & echo $! > build.pid'`.
-  Stop it only by the PID in build.pid.
-- Tree on hbox: `/othersys/lanes/parano1d/halt-reorg/source/` (40 MB,
-  early-finance copy, verified `LOG_SLOTS_GENESIS: u32 = 24` at
-  params.rs:295, V2@10/V2.1@24 at lines 19/23). Packs:
-  `/othersys/lanes/parano1d/packs/` (v1 + v2 + v21 + retirement keys, shared).
-- If the build finished before you read this: verify the binaries exist and
-  `parano1d --version` answers, then go straight to "Current plan" step 1.
+**The blocker (verified twice — my hbox build AND the Mac's own
+shared-early-finance build, `experiments/shared-early-finance/logs/build.log`):
+`noid_node/build.rs:279` panics — "v2 artifact schedule differs from the
+executable profile": the v2 pack's runtime metadata embeds the STOCK schedule
+(`v1_1: Some(95125), v2: Some(V2Activation{height: 210537})`) while the
+early-finance tree's `ACTIVE_SCHEDULE` is v2@10. The stock shared packs on
+hbox (`/othersys/lanes/parano1d/packs/downloads/v2-pack/...`) CANNOT build
+this tree. Early-schedule packs (metadata regenerated for v2@10/v2.1@24) are
+the cross-lane prerequisite — halt-binder's final handoff names the same wall
+("live run awaits early-schedule packs"), and `shared-early-finance/bin/` is
+empty on the Mac for the same reason. When they land (expected under
+`/othersys/lanes/parano1d/packs/`), point `NOID_V2_PACK_DIR` /
+`NOID_V21_PACK_DIR` in `scripts/build-node.sh` at them and rerun; the build
+itself fails fast at the same assert if given wrong packs, so the assert doubles
+as the pack-schedule check.
+
+**On hbox (ssh alias `hbox`):**
+- Build log: `/othersys/lanes/parano1d/halt-reorg/logs/build-node.log`
+  (failure at line 435/462). Warm `target/` (705 MB of compiled deps) kept at
+  `/othersys/lanes/parano1d/halt-reorg/target` — the retry will be much
+  cheaper. Rerun command (note: write the PID file with an ABSOLUTE path —
+  the original launch one-liner wrote `build.pid` to the ssh login dir by
+  mistake, and that file is stale):
+  `ssh hbox 'cd /othersys/lanes/parano1d/halt-reorg && nohup setsid env SWARM_MEM_MAX=8G swarm-build bash scripts/build-node.sh > logs/build-node.log 2>&1 & echo $! > /othersys/lanes/parano1d/halt-reorg/build.pid'`
+  then poll `tail -5 .../logs/build-node.log` for `HALT_REORG_BUILD_DONE`
+  and `ls .../bin` (expected: `parano1d`, `parano1d-cli`, `parano1d-miner`).
+  Stop it only by the PID in that file.
+- Tree: `/othersys/lanes/parano1d/halt-reorg/source/` (40 MB, early-finance
+  copy, verified `LOG_SLOTS_GENESIS: u32 = 24` at params.rs:295, V2@10 /
+  V2.1@24 at lines 19/23).
 
 **On the Mac (tracked, committed):**
 - `experiments/halt-reorg/HANDOFF.md` (this file), `scripts/build-node.sh`
-  (the exact env recipe used), this REPORT placeholder is not yet written —
-  the lane's REPORT.md deliverable is still pending the run itself.
+  (the env recipe; pack dirs to be repointed at the early-schedule packs).
+  REPORT.md is still pending the run itself.
 - `experiments/halt-reorg/source/` — superseded m17 scaled-genesis reference
-  copy, KEEP OR DELETE at will (it is gitignored like all `source/` dirs; its
-  Mac `target/` debug artifacts are lane-local scratch, deletable).
+  copy, KEEP OR DELETE at will (gitignored; its Mac `target/` debug
+  artifacts are lane-local scratch, deletable).
 
-**First action for the next agent:** check the hbox build (commands above);
-once `bin/parano1d` exists, write the spamtool (fat PagedSpendIntent builder +
-`paranoid_submitTxIntent` submitter, recipe in "Established facts"), run the
-measure-first phase, and re-extrapolate the ~24.7k-block / ~8.6-day
-state-build before committing to it.
+**First action for the next agent:** confirm the early-schedule packs exist
+(e.g., ask the root / halt-binder lane, or try the rerun above — a fast
+build.rs:279 panic means "not yet"), then proceed to "Current plan" step 1:
+write the spamtool (fat PagedSpendIntent builder + `paranoid_submitTxIntent`
+submitter, recipe in "Established facts"), run the measure-first phase, and
+re-extrapolate the ~24.7k-block / ~8.6-day state-build before committing to it.
 
 ## Not yet done (beyond the build)
 
