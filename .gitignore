@@ -20,6 +20,8 @@ __pycache__/
 experiments/*/pinned/
 experiments/*/*-src/
 experiments/*/source/
+experiments/*/tree/
+experiments/*/tree-*/
 experiments/*/repos/
 experiments/*/downloads/
 experiments/*/packs/
@@ -29,6 +31,10 @@ experiments/*/bin/
 experiments/*/fixture/
 experiments/*/tmp/
 experiments/*/probes/
+
+# --- runtime state: PID files from the campaign's detached jobs (chaoslib and
+#     swarm conventions write one per process; never a deliverable). ---
+*.pid
 
 # --- raw web-reconnaissance fetches (HTML/JS pulled from explorers, pools, etc.) ---
 experiments/*/*.html
