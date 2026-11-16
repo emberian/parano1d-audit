@@ -1,0 +1,25 @@
+[package]
+name = "headerpin-tools"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+anyhow = "1"
+libmdbx = "0.6"
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["compat"] }
+futures = "0.3"
+libp2p-noise = "=0.46.1"
+libp2p-core = "=0.43.2"
+libp2p-identity = { version = "=0.2.14", features = ["rand"] }
+yamux = "=0.13.10"
+zstd = "0.13"
+noid_chain = { path = "/Users/ember/dev/parano1d-break/parano1d/noid_chain" }
+noid_poseidon2b = { path = "/Users/ember/dev/parano1d-break/parano1d/noid_poseidon2b" }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde_json = "1"
+
+[profile.release]
+lto = false
+codegen-units = 16
