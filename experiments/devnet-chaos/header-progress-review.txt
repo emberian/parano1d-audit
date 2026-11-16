@@ -1,0 +1,12 @@
+source: logs/n7s-a.log
+sha256: a0ae1e14f8b894a02b16c4d3421dbe8998c43f5713414335ee6b093b9a49806b
+L128: 01:39:17 DEBUG HeaderDAG-selected tip is discovering exact object providers our_height=0 target_height=24 dispatched=1
+L153: 01:39:18 DEBUG HeaderDAG-selected tip is discovering exact object providers our_height=0 target_height=49 dispatched=1
+L158: 01:39:19 DEBUG HeaderDAG-selected tip is discovering exact object providers our_height=0 target_height=74 dispatched=1
+L164: 01:39:21 DEBUG HeaderDAG-selected tip is discovering exact object providers our_height=0 target_height=99 dispatched=1
+L169: 01:39:22 DEBUG HeaderDAG-selected tip is discovering exact object providers our_height=0 target_height=124 dispatched=1
+L175: 01:39:24 DEBUG HeaderDAG-selected tip is discovering exact object providers our_height=0 target_height=149 dispatched=1
+L181: 01:39:25 DEBUG HeaderDAG-selected tip is discovering exact object providers our_height=0 target_height=150 dispatched=1
+VERDICT: installed height zero coexists with HeaderDAG-selected height 150.
+Phase 7.3 does not establish the claimed genesis-only HeaderDAG window.
+This is a saved-evidence check, not a new live reproduction.

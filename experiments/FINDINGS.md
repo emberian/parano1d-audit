@@ -1,5 +1,12 @@
 # parano1d adversarial audit — consolidated findings
 
+**Codex review, 2026-11-15:** read [TAKEOVER.md](TAKEOVER.md) before citing the
+C17/C26/C27 composition. The saved phase-7.3 log shows HeaderDAG-selected honest
+height 150 while installed state is still height zero. The claimed zero-honest-work
+window is therefore unsupported. The release-terminal/live poisoning chain remains
+unfinished; no developer-only selective-selling capability has been established.
+The current whitepaper PDF requires correction before publication.
+
 Target: "parano1d" L1 (`noid_*` crates) by @ignotus_nemo, pinned commit
 `52938433a30b185ab007afaa15166a632cf2e82e` (checkout at `/Users/ember/dev/parano1d-break/parano1d`,
 treated as read-only reference). Audit run: kimi swarm (`session_506c8a03`), 2026-11-15, 01:10-03:03;
