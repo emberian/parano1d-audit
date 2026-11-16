@@ -26,7 +26,9 @@ async fn request(mut stream: yamux::Stream, inventory: bool) -> Result<yamux::St
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
-    let addr = args.get(1).context("usage: noid-header-probe 127.0.0.1:PORT [read|park] [inventory=0|1] [streams]")?;
+    let addr = args
+        .get(1)
+        .context("usage: noid-header-probe 127.0.0.1:PORT [read|park] [inventory=0|1] [streams]")?;
     if !addr.starts_with("127.0.0.1:") {
         bail!("loopback only");
     }
@@ -39,13 +41,24 @@ async fn main() -> Result<()> {
     for index in 0..streams {
         let stream = poll_fn(|cx| connection.poll_new_outbound(cx)).await?;
         let issue = Box::pin(request(stream, inventory));
-        let stream = tokio::time::timeout(Duration::from_secs(10), transport::conn_aware(&mut connection, issue)).await???;
-        println!("issued {index} inventory={inventory} at_ms={}", started.elapsed().as_millis());
+        let stream = tokio::time::timeout(
+            Duration::from_secs(10),
+            transport::conn_aware(&mut connection, issue),
+        )
+        .await???;
+        println!(
+            "issued {index} inventory={inventory} at_ms={}",
+            started.elapsed().as_millis()
+        );
         pending.push(stream);
     }
     if mode == "park" {
         let pause = Box::pin(tokio::time::sleep(Duration::from_secs(12)));
-        tokio::time::timeout(Duration::from_secs(15), transport::conn_aware(&mut connection, pause)).await??;
+        tokio::time::timeout(
+            Duration::from_secs(15),
+            transport::conn_aware(&mut connection, pause),
+        )
+        .await??;
         println!("parked {streams} streams for 12s");
     } else if mode == "read" {
         for (index, mut stream) in pending.into_iter().enumerate() {
@@ -54,8 +67,17 @@ async fn main() -> Result<()> {
                 stream.read_to_end(&mut bytes).await?;
                 Result::<Vec<u8>>::Ok(bytes)
             });
-            let bytes = tokio::time::timeout(Duration::from_secs(15), transport::conn_aware(&mut connection, read)).await???;
-            println!("read {index} bytes={} elapsed_ms={} prefix={:02x?}", bytes.len(), started.elapsed().as_millis(), &bytes[..bytes.len().min(12)]);
+            let bytes = tokio::time::timeout(
+                Duration::from_secs(15),
+                transport::conn_aware(&mut connection, read),
+            )
+            .await???;
+            println!(
+                "read {index} bytes={} elapsed_ms={} prefix={:02x?}",
+                bytes.len(),
+                started.elapsed().as_millis(),
+                &bytes[..bytes.len().min(12)]
+            );
         }
     } else {
         bail!("unknown mode {mode}");

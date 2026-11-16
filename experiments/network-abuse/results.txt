@@ -1,0 +1,34 @@
+Local 150-block copied devnet store; loopback 127.0.0.1:19880; pinned release node.
+No network-profile exchange or RPC credential sent by the anonymous probe.
+
+Control, no inventory:
+issued 0 inventory=false at_ms=0
+read 0 bytes=17749 elapsed_ms=4 prefix=[4e, 48, 42, 35, 96, 00, 01, 00, 00, 00, 00, 00]
+
+Control, inventory (cold):
+issued 0 inventory=true at_ms=0
+read 0 bytes=18368 elapsed_ms=62 prefix=[4e, 48, 42, 35, 96, 00, 01, 00, 00, 00, 00, 00]
+
+Six alternating repeated overlapping requests, warm:
+repeat inventory response_bytes elapsed_ms
+0 0 17749 3
+0 1 18368 9
+1 0 17749 3
+1 1 18368 9
+2 0 17749 3
+2 1 18368 8
+3 0 17749 3
+3 1 18368 9
+4 0 17749 3
+4 1 18368 8
+5 0 17749 3
+5 1 18368 8
+
+Eight non-reading inventory requests were issued within 9 ms and parked
+12 seconds. Concurrent separate honest client response:
+issued 0 inventory=false at_ms=0
+read 0 bytes=17749 elapsed_ms=3 prefix=[4e, 48, 42, 35, 96, 00, 01, 00, 00, 00, 00, 00]
+
+One-identity 16-stream burst: connection closed after 12 issued requests;
+configured concurrency cap is eight active chain-sync streams per connection.
+No claim of 16 concurrently held streams.
