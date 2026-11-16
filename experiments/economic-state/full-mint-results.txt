@@ -1,0 +1,94 @@
+warning: associated function `try_from_locally_built_block` is never used
+  --> /Users/ember/dev/parano1d-break/parano1d/noid_chain/src/accepted_block_bundle.rs:73:19
+   |
+65 | impl AcceptedBlockBundle {
+   | ------------------------ associated function in this implementation
+...
+73 |     pub(crate) fn try_from_locally_built_block(
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `encode_body` is never used
+   --> /Users/ember/dev/parano1d-break/parano1d/noid_chain/src/block/payload.rs:297:15
+    |
+297 | pub(crate) fn encode_body<'a>(block_bytes: &'a [u8], openings: &[NativeOpening]) -> Cow<'a, [u8]> {
+    |               ^^^^^^^^^^^
+
+warning: `noid_chain` (lib) generated 2 warnings
+   Compiling creation-spam-audit v0.1.0 (/Users/ember/dev/parano1d-break/experiments/economic-state/tmp/full-mint)
+warning: constant `BATCH_ITEMS` is never used
+  --> src/main.rs:39:7
+   |
+39 | const BATCH_ITEMS: usize = 248; // native intents cap at 128 pages (header + 2 input pages + 125 output pages = 250 outputs: success...
+   |       ^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: fields `construction_us`, `apply_us`, `wire_bytes`, `successor_slot`, and `fund` are never read
+   --> src/main.rs:180:5
+    |
+179 | struct BatchResult {
+    |        ----------- fields in this struct
+180 |     construction_us: u128,
+    |     ^^^^^^^^^^^^^^^
+181 |     apply_us: u128,
+    |     ^^^^^^^^
+182 |     wire_bytes: usize,
+    |     ^^^^^^^^^^
+...
+185 |     successor_slot: u32,
+    |     ^^^^^^^^^^^^^^
+186 |     fund: Fund,
+    |     ^^^^
+
+warning: function `sparse_state_bytes` is never used
+   --> src/main.rs:273:4
+    |
+273 | fn sparse_state_bytes(state: &mut ChainState) -> (u64, usize) {
+    |    ^^^^^^^^^^^^^^^^^^
+
+warning: function `phase2_ratio` is never used
+   --> src/main.rs:384:4
+    |
+384 | fn phase2_ratio() {
+    |    ^^^^^^^^^^^^
+
+warning: `creation-spam-audit` (bin "creation-spam-audit") generated 4 warnings
+    Finished `release` profile [optimized] target(s) in 4.38s
+     Running `/Users/ember/dev/parano1d-break/target/release/creation-spam-audit`
+=== PHASE 1: creation-cost inventory (real fee model + real transitions) ===
+constants: MIN_FEE_BASE=5000 FEE_PER_INPUT=100 FEE_PER_OUTPUT=700 STATE_GROWTH_FEE_BASE=2500 (burned)
+fee_shape create_collection_min (1 in / 1 out, funding == fee): required=5800 burned=0 (base 5000 + in 100 + out 700 + growth 0)
+fee_shape mint_batch_248 (2 in / 250 out incl change): required=800200 burned=620000 (base 5000 + in 200 + out 175000 + growth 620000)
+fee_shape burn_1_item (2 in / 1 out change) victim cleanup: required=5900 burned=0 (base 5000 + in 200 + out 700 + growth 0)
+fee_shape burn_253_items (254 in / 1 out): required=31100 burned=0 (base 5000 + in 25400 + out 700 + growth 0)
+fee_shape plain_dust_output (1 in / 2 out): required=9000 burned=2500 (base 5000 + in 100 + out 1400 + growth 2500)
+pressure 10% (multiplier 1): mint_batch_248 required=800200 burned=620000
+pressure 49%: mint_batch_248 required=800200 burned=620000
+pressure 50% (multiplier 2): mint_batch_248 required=1420200 burned=1240000
+pressure 75% (multiplier 4): mint_batch_248 required=2660200 burned=2480000
+pressure 90% (multiplier 8): mint_batch_248 required=5140200 burned=4960000
+pressure 37.5% (immediately after expansion: multiplier 1 again): mint_batch_248 required=800200 burned=620000
+CONTROL collection maximum_items=u64::MAX accepted at minimum fee 5800 with ZERO burn; permanent slot 9699331, active_slot_count unchanged
+MAX-locked victim NFT minted into real ChainState; victim cannot spend at activation height
+CONTROL mint of 3 items owned by non-signing VICTIM accepted (fee 16200 burned 7500); tx authority was CREATOR, item owners are VICTIM
+launch_minimum_backing supply=1 min_backing=1 uNOID
+launch_minimum_backing supply=1000 min_backing=1 uNOID
+launch_minimum_backing supply=1000000 min_backing=1000 uNOID
+launch_minimum_backing supply=1000000000 min_backing=1000000 uNOID
+
+=== PHASE 3: real MDBX growth through the node-owned template + commit path ===
+CONTROL 24 empty coinbase blocks accepted (miner = attacker); tip height 24
+CONTROL attacker coinbase funding: slot=9699328 amount=45000000 creation_id=9223372036854775809
+CONTROL collection block committed at height 25; collection slot=9699353
+MEASURE mint block (248 victim-owned items): intent_construction=17484us template_build+materialize=119286us
+MEASURE MDBX dir bytes unchanged at 4210688 (logical writes 441 B/object absorbed by MDBX preallocated pages; row existence proven by the index queries below)
+MEASURE encoded_state_bytes (T_SEGMENTS sparse) 1309 -> 13759 (+12450: 49.8 B/slot)
+CONTROL victim wallet: 248 MAX-locked NFTs across 4 verified 64-item pages; every input rejected Timelock
+MEASURE victim native_owner_roots page: 248 roots in 1833us (owner index proves forced carriage)
+MEASURE asset index resolves serial 7 to a live root: true (14us)
+MEASURE victim get_verified_owner_page(limit 32): 0 utxos in 26us
+MEASURE victim get_verified_utxos_by_owner (unbounded): 0 utxos in 17us
+
+ALL PHASES COMPLETED

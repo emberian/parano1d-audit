@@ -44,6 +44,49 @@ new = """    let mint_slots = fresh_slots(&state, 5);
     println!("MAX-locked victim NFT minted into real ChainState; victim cannot spend at activation height");
     println!("""
 text = text.replace(old, new)
+old = """            metadata: [0xB1; 32],
+            serial,
+            unlock_height: 0,
+"""
+assert text.count(old) == 1
+text = text.replace(old, old.replace("unlock_height: 0", "unlock_height: u64::MAX"))
+old = """    let store = context.store.clone();
+    let started = Instant::now();
+    let roots = store
+"""
+assert text.count(old) == 1
+new = """    let store = context.store.clone();
+    let mut cursor = None;
+    let mut wallet_items = 0usize;
+    let mut wallet_pages = 0usize;
+    loop {
+        let page = store.native_wallet_page(address(VICTIM), cursor, 64)
+            .map_err(|e| format!("wallet page: {e}"))?;
+        wallet_pages += 1;
+        for item in &page.items {
+            assert_eq!(item.opening.unlock_height(), u64::MAX);
+            let spend = item.opening.check_input(
+                &TxInput {
+                    slot_index: item.carrier.slot_index,
+                    amount: item.carrier.amount,
+                    creation_id: item.carrier.creation_id,
+                },
+                Address(item.root),
+                context.tip_height(),
+            );
+            assert!(matches!(spend, Err(noid_tx::native_assets::NativeAssetError::Timelock)));
+        }
+        wallet_items += page.items.len();
+        cursor = page.next;
+        if cursor.is_none() { break; }
+    }
+    assert_eq!(wallet_items, 248);
+    assert_eq!(wallet_pages, 4);
+    println!("CONTROL victim wallet: {wallet_items} MAX-locked NFTs across {wallet_pages} verified 64-item pages; every input rejected Timelock");
+    let started = Instant::now();
+    let roots = store
+"""
+text = text.replace(old, new)
 old = """fn main() {
     phase1_inventory();
     phase2_ratio();
@@ -51,8 +94,6 @@ old = """fn main() {
 assert text.count(old) == 1
 text = text.replace(old, """fn main() {
     phase1_inventory();
-    return;
-    phase2_ratio();
     match phase3_mdbx() {""")
 (temporary / "src/main.rs").write_text(text)
 env = os.environ.copy()
@@ -61,4 +102,5 @@ subprocess.run(
     ["cargo", "run", "--release", "-j", "1", "--manifest-path", str(temporary / "Cargo.toml")],
     check=True,
     env=env,
+    cwd=temporary,
 )
