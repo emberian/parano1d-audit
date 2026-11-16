@@ -1,6 +1,6 @@
 # New availability avenue — source review only
 
-**Status (2026-11-15):** No mined-header or wire-level exploit run. An automatic cybersecurity review blocked a related local exploit test, so this lane stopped before executing its probe. The Rust probe in this directory was written but its build was interrupted; it produced no observation. This report is a hypothesis grounded in the pinned source, not a demonstrated mainnet or devnet incident.
+**Status (2026-11-15):** No mined-header or wire-level exploit run. An automatic cybersecurity review blocked a related local exploit test, so this lane stopped before executing its probe. A local, uncommitted Rust probe was written but its build was interrupted; it produced no observation. This report is a hypothesis grounded in the pinned source, not a demonstrated mainnet or devnet incident.
 
 ## A. A valid higher-work header can carry unverified object availability
 
