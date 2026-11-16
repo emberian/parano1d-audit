@@ -1,0 +1,3 @@
+signed_destination=o1uqppny90hhl7e5gyvnxgh2dj60gddehxr7l97ue04au60qfszxdsmk8x3t
+signed_amount=90 fee=5 auth=valid
+PASS: production wallet builder signs a payment to the substituted receive address
