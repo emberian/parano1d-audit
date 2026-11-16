@@ -22,9 +22,15 @@ A local test and live loopback run show that anonymous mempool pulls can hold th
 
 Other scoped resource findings: a header DAG can stall after about 1,024 valid proof-of-work headers (C10); an owner-slot RPC call scales with response size but is local or credential gated (C11); authenticated receipt paging rescans and verifies the entire store (C19); and a holder of the mining API token can destroy a prepared template with an invalid nonce (C15). The composed devnet continued to advance honest consensus while several liveness attacks ran. These are different attacker powers and should not be presented as one anonymous capability.
 
+A later [anonymous header-serving probe](network-abuse/README.md) reached the real wire path but found that eight parked responses on a 150-block fixture did not delay an honest client. Its larger synthetic 4,096-header fixture is a serving-resource test, not a consensus-valid chain. A separate [local sender/receiver test](operator-exit/REPORT.md) showed `walletSend` returning success with zero peers while the receiver had no transaction; connecting the nodes delivered the same txid. The GUI's “TRANSACTION SENT” label therefore describes local admission, not peer delivery or exchange credit.
+
 ### Node and wallet trust
 
 A local database edit can corrupt the compact-restart circulating-supply counter without changing the committed state root (C20). This requires file access, damaged storage, or a tampered backup. The GUI backend accepts node-supplied receipt verdicts and values that the view code labels authenticated or confirmed (C24). The cited test drove the backend and inspected view mappings; it did not launch the graphical process. A malicious node process can mislead its wallet, while a keyless loopback impostor cannot spend by itself. The newer [wallet boundary review](wallet-boundary/README.md) separately examines recovery documentation and receive-address substitution.
+
+The wallet review reproduced two distinct defects. An impostor controlling the GUI's **local RPC** can replace the receive address returned by the backend; the production wallet builder signed a synthetic payment to that substituted address. It did not mine the payment or show that a remote network peer can control the loopback service. Separately, the three photo-key guides publish a BLAKE3 context different from the one the shipped GUI uses. An independent implementation of the written recipe derives a different real wallet address; preserving the original photo and re-importing it with the official GUI still works.
+
+The [economic-state test](economic-state/REPORT.md) extended C25: a locally mined block assigned 248 NFTs with `unlock_height = u64::MAX` to a non-signing victim. Verified wallet pagination returned all 248; the input check rejected every spend as timelocked. The attacker paid 0.8002 NOID in that isolated v2.1 run. Native NOID was not frozen, and the stock GUI's performance with larger collections has not been measured.
 
 The standalone release builder omits payload authentication for the **legacy matrix** it embeds by default (C16). Version 2 and 2.1 packs have checks, and the scripted official publish path has compensating controls. Exploitation requires control of the build input or release channel; it is not a remote peer attack. Published checksums from the same release channel authenticate downloads against that channel, not the publisher's intentions.
 
@@ -52,6 +58,8 @@ C9 reuses a P2P profile identifier across incompatible isolated schedules; those
 | C17–C19, C22 | [`p2p-resources/`](p2p-resources/), [`devnet-chaos/`](devnet-chaos/), [`rpc-api/`](rpc-api/), [`tx-admission/`](tx-admission/) | Measured resource holds versus modeled saturation; credential gates vary. |
 | C20, C24–C25 | [`storage-reorg/`](storage-reorg/), [`wallet-vs-node/`](wallet-vs-node/), [`creation-spam/`](creation-spam/) | Local DB control, node trust, and unsolicited asset state. |
 | C26–C27 | [`malicious-node/`](malicious-node/), [`snapshot-adversary/`](snapshot-adversary/), [`operator-power/`](operator-power/) | Direct staging differential; live release poisoning unproved. |
+| New wallet/exit controls | [`wallet-boundary/`](wallet-boundary/), [`operator-exit/`](operator-exit/) | Local RPC receive substitution, photo-key interoperability, and local-send acknowledgment; no exchange credit or remote node takeover. |
+| New valid-state and header controls | [`economic-state/`](economic-state/), [`network-abuse/`](network-abuse/) | Timelocked unsolicited NFTs accepted in an isolated block; anonymous header serving did not stall the 150-block honest control. |
 
 The remaining sections retain measurement details and historical lane notes. The scoped findings above and linked primary outputs govern any claim that the older notes state more strongly.
 
