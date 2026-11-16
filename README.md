@@ -67,8 +67,11 @@ stock-GUI slowdown from larger collections has not been measured.
 No experiment has yet shown a developer-only ability to sell NOID while
 preventing other holders from selling. The audit is testing routes through
 transaction propagation, wallet display, block inclusion, and exchange
-deposit credit. A local `walletSend` success is not an exchange deposit, and
-an exchange balance already credited can trade without a new chain transfer.
+deposit credit. In a [two-node local test](experiments/operator-exit/REPORT.md),
+`walletSend` returned success with zero peers; the independent receiver saw
+no transaction until the nodes connected. Local admission is not an exchange
+deposit. An exchange balance already credited can trade without a new chain
+transfer.
 
 ## How to read a claim
 
