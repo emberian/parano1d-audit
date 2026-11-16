@@ -1,5 +1,16 @@
 # halt-binder HANDOFF
 
+**Final state (lane wrapped 2026-11-15):** source recon complete and
+committed (`1771dc8` on dev, unsigned); no processes running (both build
+attempts exited on their own — the second failed at the pack-schedule
+assert; the node/worker were never started). The live run awaits a working
+early-finance binary whose packs match its fork schedule; the root's
+`experiments/shared-early-finance/` build is in progress and will hit the
+same wall (build.rs:268-272 / v21 activation assert / origin pin) unless
+it generates isolated-schedule packs. First action for the next agent is in
+§7.
+
+
 ## 1) Mission
 
 Determine whether a stock release parano1d daemon can hit the financial
