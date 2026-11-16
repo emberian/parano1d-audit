@@ -1,10 +1,22 @@
-# Sequencing and ordering audit: the stack-wide map
+# Who chooses transaction order
 
 Source: `/Users/ember/dev/parano1d-break/parano1d` at `52938433a30b185ab007afaa15166a632cf2e82e`.
 
-All created files are confined to this directory. Every experiment calls production code from the pinned crates (`noid_chain`, `noid_tx`): the mempool fee index, the real block-template builder, real state application, the trade `funding_priority` lottery, the NFT `payer_priority` lottery, `ListingBatch`/`ListingSettlement`, `SequencingPlan`, and the deterministic fee model. No node, peer, miner, worker, or RPC server was started.
+The protocol checks whether a proposed block is valid; it does not require a
+producer to include pending transactions or to use the default template's
+order. Before block construction, each node admits conflicting spends
+first-come, and its builder applies several different selection rules. An
+ordinary payment can raise its fee. Financial native operations have an exact
+fee, while trade and NFT races use public hash priorities that favor people
+who can pre-position many eligible inputs. These are ordering powers, not
+evidence that one party currently controls the winning miners.
 
-## 1. The ordering map
+The tests call production code in `noid_chain` and `noid_tx` for mempool
+selection, templates, state application, priorities, and fees. No running
+miner, node, RPC service, or peer was driven. The detailed map below gives
+the rule and its source for each stage.
+
+## Ordering from peer delivery to finality
 
 | # | Layer | Rule (pinned code) | Who influences it | How |
 |---|---|---|---|---|
@@ -20,48 +32,72 @@ All created files are confined to this directory. Every experiment calls product
 Who owns each canonical race by default:
 
 - **Double spend of one UTXO**: the PoW winner's mempool state. Per-node first-come with no replacement (confirmed by ledger-fairness §3/§4); nothing binds a miner to any inclusion policy; finality depth 18 bounds cross-fork acceptance. A same-slot conflict cannot coexist in one block, so ordering decides nothing here — *inclusion* does.
-- **Two trades claiming the same price move**: the larger UTXO inventory, by count, at ~9,000 μNOID per persistent ticket (Section 2, SEQ-1).
-- **Two claims on one fixed-price NFT**: the larger pre-funded address inventory (SEQ-1); the builder's height choice multiplies grind coverage (D2).
-- **Congested financial-native inclusion**: whoever grinds the smallest txid — free, offline (SEQ-2).
+- **Two trades claiming the same price move**: more eligible UTXOs raise the
+  chance of drawing an early priority; each persistent ticket costs about
+  9,000 μNOID to create (SEQ-1).
+- **Two claims on one fixed-price NFT**: more pre-funded payer addresses raise
+  the chance of winning the round's priority (SEQ-1).
+- **Congested financial-native inclusion**: for equal-fee, equal-shape intents,
+  a smaller txid wins the tie in the default template (SEQ-2).
 - **Inclusion within a block interval**: whoever reached the winning builder's mempool before its template build; mid-interval arrivals cannot jump at any fee (SEQ-3).
 
-## 2. Findings
+## Measured and source-backed consequences
 
-### SEQ-1 — Priority across the native trading stack is a UTXO-count lottery: dust-weighted, one-time cost, capacity-capturing
+### SEQ-1. Each eligible input buys another priority draw
 
-**Severity: Medium (conditional on v2.1 native activation, mainnet height 279,370). Preconditions: pre-positioned UTXOs/address funding, and arrival at the block-winning builder before its template build (BLOCK_TIME = 20 s).**
+This requires pre-positioned UTXOs or funded addresses and delivery to the
+winning builder before its template is built. Native operations were enabled
+at mainnet height 279,370. The v2 target interval is 30 seconds; the timing
+window depends on when the producer builds a template, not a guaranteed
+20-second interval.
 
 Trade execution order and NFT fixed-price winner selection both reduce to `min` over i.i.d. hash draws whose inputs are entirely public: `H(parent_id, asset, creation_id, slot_index)` for trades (`noid_tx/src/native_assets/trade.rs:231-264`), `H(round, payer)` for NFT listings (`noid_market.rs:361-366`). An attacker who holds K UTXOs (NFT: K funded addresses) computes all K priorities offline the moment the parent (or listing round) is known and submits only the best draw; against M single-draw competitors they win the first position with probability K/(K+M). The PoC measured, with the production functions: 0.672 vs 0.667 at K=8, M=4 over 2,000 random parents (trades), and 0.733 vs 0.750 at K=12, M=4 over 400 rounds (NFT).
 
-Three properties make this a market rather than a lottery tax:
+Three properties determine the cost and reach:
 
 1. **Count-weighted, not value-weighted** — the priority digest hashes `(creation_id, slot_index)` only, never the amount. The PoC asserts the minimum viable anchor (amount = gross+fee) produces the identical priority as a 10^12-μNOID whale at the same slot.
 2. **One-time, persistent cost** — a ticket is a dust UTXO: the real `fee_breakdown(1→2 outputs, 0 occupancy)` gives base 5,000 + io 1,500 + state-growth 2,500 = **9,000 μNOID**, paid once, and the UTXO keeps drawing every future block until spent. Marginal cost per block: zero.
 3. **Capacity capture** — when demand exceeds the per-market batch cap (MAX_SEQUENTIAL_TRADES = 64; MAX_ROUND_REQUESTS = 16 per listing round) the builder admits in priority order (`trades.rs:424-442`), so K ≥ cap plus small digests excludes victims entirely for that block. The PoC asserts the exact 64/65 boundary (`SequencingError::Bounds`) and that one UTXO cannot buy two draws in a batch (`DuplicateFunding`).
 
-Countermeasure asymmetry: a victim can only respond by holding their own inventory — the protocol offers no fee- or value-based path to priority inside these batches (contrast ordinary spends, layer 3).
+More eligible inventory improves a participant's chance. Batch caps can keep
+other requests out of a particular block, but the builder still chooses
+which valid batch to publish; the PoC does not demonstrate sustained
+censorship by an ordinary participant.
 
-### SEQ-2 — Financial natives have no fee lever: pinned fees make their ordering a free offline txid grind
+### SEQ-2. Exact fees leave txid as a tie-break
 
-**Severity: Medium for native-asset liveness/fairness under congestion (v2.1-conditional). Preconditions: page/financial budget saturation, i.e. more pending natives than the producer's class budget admits.**
+The effect requires more eligible transactions than a producer's page or
+financial budget admits. It concerns the default builder's choices, not
+consensus validity.
 
-Financial native intents must pay exactly the parent-derived minimum — `facts.fee != minimum` is rejected at mempool admission (`noid_mempool/src/native.rs:162-166`) and `context.fee != fee` at consensus (`noid_chain/src/block/native_assets/financial.rs`); both lines are asserted verbatim in the pinned sources by `build.rs`. Consequently: (a) any ordinary spend paying 1 μNOID more displaces every financial native from a saturated template, and no native can respond; (b) among equal-shape financial natives the mempool `FeeKey` and the template comparator both reduce to ascending `logical_txid` — and a txid is a body hash the attacker constructs. The PoC shows a one-slot truncation between two pinned-fee entries keeps the smaller txid, and that beating a specific victim's txid costs a **median of 2 body hashes** (mean 7.5, 200 races) by varying one output-owner field. Grinding is free, offline, and unlimited — unlike SEQ-1 there is no capital ticket at all.
+Financial native intents must pay the exact parent-derived minimum:
+`facts.fee != minimum` fails mempool admission
+(`noid_mempool/src/native.rs:162-166`), and `context.fee != fee` fails
+consensus (`noid_chain/src/block/native_assets/financial.rs`). Under a
+saturated template, they cannot bid above that amount. Among equal-shape
+native intents, the default builder breaks fee ties by ascending
+`logical_txid`. The PoC truncates two such entries to one slot and retains
+the smaller txid. Varying an output-owner field beat one fixed victim txid in
+a median of two body hashes over 200 trials (mean 7.5). This is a cheap
+default-template advantage; it does not force a malicious builder to obey
+that comparator.
 
-### SEQ-3 — Inclusion freezes at template build: arrival timing beats fee within a block interval
+### SEQ-3. A populated template does not refresh for late transactions
 
-**Severity: Low-Medium (fairness/liveness policy of the default miner; not a consensus violation).**
+This is a default-miner policy, checked in source rather than by running a
+miner.
 
 The miner's event loop refreshes a template on `TxAdmitted` or heartbeat **only while `user_pages == 0`** (`noid_miner/src/miner.rs:857-875`; both guards asserted by `build.rs`). Once a template contains any user page, later admissions — any fee, any priority — wait for the next block; only a new tip rebuilds. Two consequences: (i) fee priority is decided at build time, so the practical race for block N+1 is "be in the mempool before the winning builder processes tip N," a latency race; (ii) combined with C15 (invalid PoW consumes the only prepared template), a mining-credential holder can repeatedly burn prepared templates, forcing rebuilds whose inclusion set re-freezes at times the attacker influences — a churn lever adjacent to censorship, at the already-reported cost profile.
 
-### SEQ-4 — Builder discretion is total and reaches future priority entropy (structural, informational)
+### SEQ-4. The builder chooses valid membership and order
 
 `validate_block_consensus` checks resources, coinbase value, fee floors, slot conflicts, and state/tx roots — never order or inclusion maximality (absence asserted by `build.rs`). The default sort (contract-first, desc fee, asc txid) is a node policy, not a protocol rule. Additionally, creation ids are `alloc_counter+1` assigned in application order: the builder chooses which colliding outputs receive which creation ids, i.e. directly assigns the future `funding_priority` entropy (SEQ-1) of every output in its blocks — there is no directional bias available (the digest is a hash), but the assignment is discretionary, and the PoC shows reversed application order produces a different, equally constructible state root. Timestamp discretion exists within (MTP, now+120 s] but nothing in the native-asset logic reads timestamps (grep: zero reads); the real time-discretion surface is the inclusion *height*: round ids bind height (`launch.rs:294-313`), so a builder shifts which pre-ground purchase requests are even eligible (PoC: a request bound to round(h) is rejected at h+1), and can push registrations toward expiry windows.
 
-### SEQ-5 — Same-anchor replay × ordering (integration with finding C6; scoped, no new PoC)
+### SEQ-5. Fork replay follows fork choice
 
 C6 established one tx + authorization can be valid on two same-anchor forks. Ordering interaction: within a fork, order is committed (tx_root/state_root) but unconstrained; across same-anchor forks the same spend can confirm on both, and which spend of a conflicted UTXO survives is purely the work race (layer 7), decided up to 18 blocks late. Downstream consumer indexes that treat <finality confirmations as settled observe whichever fork their node currently prefers — a per-fork, non-monotonic history until finality. No additional mechanism was found that lets admission order (layer 2) leak into fork resolution.
 
-## 3. Negative and control results
+## Controls and rejected hypotheses
 
 - Mempool selection is descending fee_rate, ascending txid: verified against the real `Mempool` (fee-distinct and fee-tied fixtures).
 - The real template builder orders 40,000 before 9,000 and reproduces its own state root under sequential application; reversed user order yields a *different* state root — creation ids are position-derived (order is consensus-tracked, not consensus-constrained; `compute_tx_root` agrees with the template's root on the original order).
@@ -76,7 +112,7 @@ C6 established one tx + authorization can be valid on two same-anchor forks. Ord
 - Financial fee pinning holds on both sides of admission (mempool equality and consensus equality lines asserted verbatim in the pinned sources).
 - The miner's two `user_pages == 0` refresh guards exist verbatim at the pin (asserted in `build.rs`); no runtime miner was driven.
 
-## 4. PoC implementation and reproduction
+## Reproduce the local tests
 
 `build.rs` first verifies the checkout is at the pin and asserts every ordering fact used above exists verbatim in `git show` output (fee keys, template comparator, absence of ordering rules in `validate_block_consensus`, miner refresh guards, financial fee pinning, `TRORD_21`/`NMPRIOR1` domains and their bound inputs, batch/execution sorts). `src/main.rs` then runs the controls, the two lottery measurements, the capacity/duplicate boundary checks, the NFT ground-payer race, the height-binding check, and the txid grind measurement, all against production code paths.
 
@@ -107,7 +143,7 @@ txid grind vs a fixed victim: median 2 body hashes (mean 7.51) over 200 races
 ALL ASSERTIONS PASSED
 ```
 
-## 5. Assurance limits
+## Limits
 
 - Library-level only: no node, mempool service, P2P peer, miner runtime, or RPC server was run. The miner refresh guards (SEQ-3) and the financial fee-pin lines (SEQ-2) are verified as verbatim pinned-source facts, not by driving the runtime paths.
 - The builder's greedy trade-assembly loop (`assemble` in `noid_miner/src/template/trades.rs`) was read and its ranking line pinned, but not executed; in-batch order claims rest on the production `SequencingPlan` the builder itself calls. The B25/B255 class-budget interaction was not exercised.

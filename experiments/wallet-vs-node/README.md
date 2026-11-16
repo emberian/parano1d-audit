@@ -1,14 +1,27 @@
-# Wallet-vs-node trust-boundary audit
+# What the GUI trusts from its node
 
 Source: `/Users/ember/dev/parano1d-break/parano1d` at `52938433a30b185ab007afaa15166a632cf2e82e`.
 
-All created files are confined to this directory. The harness drives the REAL GUI backend (`noid_gui::backend::Backend`, constructed exactly as `main.rs` constructs it via `from_env()`) against a scripted impostor node answering every `paranoid_*` JSON-RPC call with attacker-chosen JSON over loopback HTTP. No live network, no real keys, loopback only. The wallet-safety lane audited the wallet against the honest pipeline; this lane asks what a malicious or corrupted node (including the storage lane's C20 zombie node) does to the user through the interfaces the wallet actually trusts.
+The test drives the production GUI backend (`noid_gui::backend::Backend`,
+constructed with `from_env()`) against a scripted loopback JSON-RPC server.
+The server chooses its answers; the test uses synthetic data and no live
+network. This isolates the question: what does the client verify when its node
+is dishonest? The iced GUI itself was not run. The findings below identify
+backend values and the view code that would render them.
 
-Copy fidelity: `gui-noid_gui/` is byte-identical to the pinned `noid_gui` crate except one added file `src/lib.rs` (module declarations mirroring `src/main.rs`, so the binary crate can also build as a library; verified with `diff -r`, only `Only in gui-noid_gui/src: lib.rs`). `noid_tx`, `noid_core`, `noid_poseidon2b` are symlinks into the read-only pinned tree. `Cargo.toml` (workspace root) mirrors the pinned root's `[workspace.package]`/`[workspace.dependencies]` verbatim. The only code written by this lane is `harness/tests/deceive.rs` (the impostor server + scenarios).
+The copied GUI crate differs from the pinned crate only by `src/lib.rs`,
+which exposes its existing modules to the harness. The other dependencies
+refer to the pinned checkout. The test logic lives in
+`harness/tests/deceive.rs`; reproduction details appear below.
 
 ## The trust boundary
 
-Everything the wallet displays, records, or decides on is one loopback HTTP POST away (`noid_gui/src/backend.rs:1371-1407`; URL from `NOID_RPC` or `http://127.0.0.1:9601`, `backend.rs:49,1592`). One `snapshot()` call consumes 12 distinct RPC methods (measured: S0); the full scenario suite exercised 22. The GUI has no dependency on `noid_chain`, `noid_fri`, `noid_pruv`, or any verifier: no header hash check, no PoW check, no state-root check, no Merkle check, no signature check ever runs client-side.
+The GUI backend reads wallet and chain state from a local HTTP endpoint:
+`NOID_RPC` or `http://127.0.0.1:9601` (`backend.rs:49,1371-1407,1592`). A
+single `snapshot()` calls 12 RPC methods; the tests exercised 22 in total.
+The GUI crate has no chain or proof verifier dependency. It parses and checks
+some local inputs, but it does not verify headers, work, state roots, receipt
+Merkle paths, or owner proofs returned by the node.
 
 | What the wallet consumes | RPC method(s) | Who computes it | Client-side verification | Deception demonstrated |
 |---|---|---|---|---|
@@ -23,55 +36,85 @@ Everything the wallet displays, records, or decides on is one loopback HTTP POST
 
 ## Findings
 
-### W1: the entire user-facing wallet is node-attested; phantom payments and authenticated receipts are indistinguishable from real ones
+### W1: node answers become payment and receipt status
 
-**Severity: High (user-decision impact: believing they were paid, releasing goods; precondition: malicious/corrupted node or loopback impostor, see W3).**
-
-Every layer a user would use to corroborate a payment is answered by the same node. Demonstrated end-to-end through the real backend (S1+S2):
+If a malicious service answers the GUI's RPC calls, the backend accepts its
+balance, transaction and receipt fields. A user could act on a false payment
+display. The tests demonstrate this at the backend boundary; no user or
+exchange was deceived. Scenarios S1 and S2 establish the data flow:
 
 1. `walletGetBalance` reports `pending_incoming`/balance; the address card renders "INCOMING 12.500000" (`present.rs:528-530`) and the send form offers it as spendable (`present.rs:1852-1855,1974-1980`).
-2. The explorer "corroboration" (`backend.rs:1174-1210`) chains `validateAddress` -> `getSlotsByOwner` -> `getRecentTransactions`; the same impostor serves "RECEIVED 12.5 NOID" (`view/explorer.rs:440`) and the fabricated txid resolves as an included block transaction via `getTx` (`backend.rs:1246-1267`).
-3. The receipt detail — the flow explicitly built for independent verification — exports node-stored bytes (`walletExportReceipt`) and asks the node to verify them (`verifyReceipt`), where BOTH the Merkle-inclusion math and the canonicality lookup run server-side (`server.rs:2454-2486`). The GUI renders the node's `merkle_valid/canonical/confirmed` booleans as "AUTHENTICATED PAYMENT ... CONFIRMED" (`view/proofs.rs:620-700`). The harness returned all-true with an attacker-chosen summary (fee, height, outputs incl. a 999 NOID output to the attacker) for 256 bytes of `deadbeef`.
+2. The explorer path (`backend.rs:1174-1210`) calls `validateAddress`,
+   `getSlotsByOwner`, and `getRecentTransactions` on the same service. The
+   impostor supplied a receipt of 12.5 NOID and an included transaction for
+   its fabricated txid (`view/explorer.rs:440`; `backend.rs:1246-1267`).
+3. The backend exports receipt bytes through `walletExportReceipt` and asks
+   the node to verify them through `verifyReceipt`. Merkle and canonicality
+   checks run on the server (`server.rs:2454-2486`). The view maps the returned
+   booleans to “AUTHENTICATED PAYMENT” and “CONFIRMED”
+   (`view/proofs.rs:620-700`). The impostor returned `true` for those fields
+   and an invented summary for 256 bytes of `deadbeef`.
 
-There is no second source: wallet history itself is produced by the node-side scanner from the node's own accepted blocks (`scanner.rs:162-276`; pending sends confirmed by txid match only, `scanner.rs:184-193,236-247`), persisted in the node's data dir, and served back by the same RPC.
+The wallet history comes from the node's own scanner and storage
+(`scanner.rs:162-276`). The explorer and receipt views do not provide an
+independent corroborating source.
 
-### W2: the send pipeline executes node-side; under a malicious node the success screen is a work of fiction (escalation of wallet-safety Finding 1)
+### W2: sending and the success response are node-side
 
-**Severity: High when the malicious node holds `wallet.key` (real recipient/amount substitution, actually spendable); Medium for a keyless impostor (fake success, induced decisions).**
+`paranoid_walletSend` builds and proves the payment in the node process
+(`server.rs:1108-1160`), which holds `wallet.key`. The GUI sends the recipient
+and amount in plaintext. In S3 the impostor returned a fabricated txid and a
+2 NOID fee for a 5 NOID request. The backend accepted those response fields;
+the view code would show “TRANSACTION SENT” with the requested recipient,
+fabricated txid, and returned fee (`present.rs:2035-2046`). AUTO fee selection
+also comes from the node, after the user's request.
 
-The wallet-safety lane proved no downstream check can detect a builder divergence and rated it Low because the pinned builder passes the request through. Under this lane's threat model the builder IS the attacker: `paranoid_walletSend` builds, proves, and signs node-side (`server.rs:1108-1160`; the GUI never holds spend keys — `wallet.key` is read by the node daemon). The harness (S3) shows the client side of that: the impostor returned a fabricated txid and a 2 NOID fee for a 5 NOID payment; the real backend returned `PaymentSubmission { recipient: <request>, txid: <fabricated>, fee: 2 NOID }` and the success screen renders "TRANSACTION SENT" + the request recipient + node txid + node fee (`present.rs:2035-2046`). The node also sees the plaintext request (recipient, amount) — the wallet has no privacy from its own node. Fee steering rides the same seam: AUTO mode lets the node pick any fee and the client displays it after the fact, uncapped.
+This proves a keyless impostor can report false success. It does not prove
+that impostor can spend funds. A compromised key-holding node could submit a
+different valid payment, but this lane did not execute that variant.
 
-### W3: whoever answers on the RPC port is the wallet's node
+### W3: the backend accepts any responding loopback service
 
-**Severity: Medium (enabler; local code execution by any user pre-binding 127.0.0.1:9601, or a node that dies and is replaced; impostor deceives but cannot spend — it never sees `wallet.key`).**
-
-Two adoption paths, both demonstrated against real supervision code:
+An attacker who can run a process on the user's machine can bind the default
+RPC port before the node, or answer after the node dies. The harness exercised
+both adoption paths against the production supervisor:
 
 - `ensure_running` pings first and returns `Ok` if anything answers — the GUI never spawns its node at all (`backend.rs:727-730`). Loopback RPC needs no credential (loopback peers are `RpcAccess::Local`, per the wallet-safety lane's RPC review).
 - If the GUI's own node binary dies at startup (crash, corrupted storage), `wait_until_ready` checks the ping BEFORE the child each iteration; an impostor that starts answering makes the GUI go ONLINE with a dead owned child (`backend.rs:1476-1499`). S6(b) proves it: the GUI ran its node binary (a script that exits 7), the child died, and `ensure_running` + full `snapshot()` succeeded against the impostor.
 
-No node identity pin, version handshake, or auth exists on the GUI->node boundary. The "SPENDING SECRET / LOCAL" and "Your secret stays on this device" send-form assurances (`present.rs:1895,1915`) remain true — but they are about the key, not about the answers.
+The GUI does not pin the node identity or authenticate this local endpoint.
+The key still remains with the node; the keyless impostor can deceive the GUI
+but cannot authorize an on-chain spend from that fact alone.
 
-### W4: suppression is silent
+### W4: a false zero balance looks ordinary
 
-**Severity: Medium (extortion/confusion; no direct theft).** A healthy chain at height 4324 with `walletGetBalance=0`, no UTXOs, no receipts renders as a calm, successful, empty wallet (S4). Nothing client-side can distinguish "no funds" from "funds hidden".
+A service reporting height 4324, zero balance, no UTXOs and no receipts made
+the backend produce an ordinary empty-wallet state (S4). The GUI has no second
+source with which to distinguish that answer from hidden funds.
 
-### W5: chain-status indicators are decorative
+### W5: chain status repeats the node's claims
 
-**Severity: Low.** `terminal_verified: true` is hardcoded with a comment acknowledging it means "the node accepted the tip" (`backend.rs:1083-1086`); `synced`, height, and the displayed state root are node fields (S5: fake tip 999999 with attacker state root renders as SYNCED + TERMINAL VERIFIED).
+`terminal_verified: true` is hardcoded in the backend, where a comment says it
+means the node accepted its tip (`backend.rs:1083-1086`). The `synced`, height,
+and state-root fields come from the node. S5 supplied a fabricated tip at
+999999, which the model marked synced and terminal-verified.
 
-### W6: truncated peer rendering invites lookalike counterparties
+### W6: receipt counterparties are abbreviated
 
-**Severity: Low (rendering-level).** Receipt rows render the node-chosen `peer_address` truncated to first 13 + last 7 characters (`view/proofs.rs:1014-1019`); a lookalike sharing those windows renders identically (S7). The send-success screen shows the full request recipient, and the send path performs no local address validation at all (only non-empty, `app.rs:1141-1145`; `validateAddress` is RPC, used by explorer search).
+Receipt rows show the first 13 and last 7 characters of the node-supplied
+`peer_address` (`view/proofs.rs:1014-1019`). Two addresses sharing those
+windows look identical there (S7). The send-success view shows the full
+requested address. Local send validation checks that it is nonempty;
+`validateAddress` is an RPC used by explorer search (`app.rs:1141-1145`).
 
-## Negative and control results (what the wallet DOES do itself)
+## Controls and limits
 
-- **Control (S0):** an honest-shaped answer set flows through the real backend unchanged — the impostor speaks the actual wire format (12 methods in one `snapshot()`), so the deceptions are not protocol-shape artifacts.
+- **Control (S0):** an honest-shaped answer set flows through the real backend unchanged. The impostor speaks the expected wire format for all 12 methods in one `snapshot()`.
 - **Local input parsing:** amounts and explicit fees are parsed and bounded client-side (`parse_noid_amount`/`parse_optional_noid_fee`, `app.rs:1146-1159`); the empty-recipient check is local.
-- **Conditional UTXO snapshots:** the revision discipline in `wallet_utxos` (`backend.rs:1344-1369`) prevents stale-response races — an anti-liveness hardening, not an anti-node control (an impostor simply sends full snapshots).
-- **Native-asset submit binding:** `finish_submit` compares the node's submission against the reviewed preview (`noid_gui/src/assets/operations.rs:539-552`). This is a real client-side consistency gate — but the preview is also node-computed (`walletPreviewNative`, `backend/native.rs:66-77`), so it detects a divergent builder, not a malicious node.
-- **Key hygiene (from the wallet-safety lane, unchanged):** the secret never transits RPC; the GUI's send path holds no spend key; the impostor in W3 therefore cannot spend, only deceive.
-- **Server-side gates still exist** (`server.rs:1164-1167` fee/counts gate; GKR authorization binds outputs) — same-trust controls that constrain an honest builder, not the client's attacker model here.
+- **Conditional UTXO snapshots:** revision checks in `wallet_utxos` (`backend.rs:1344-1369`) prevent stale-response races. An impostor can still send a complete false snapshot.
+- **Native-asset submit binding:** `finish_submit` compares the submission with the reviewed preview (`noid_gui/src/assets/operations.rs:539-552`). The node also computes that preview (`backend/native.rs:66-77`), so the check detects a divergent response, not jointly false answers.
+- **Key hygiene:** the secret does not transit this RPC. A keyless loopback impostor cannot spend by answering wallet queries.
+- **Server-side gates:** the honest node still checks fees and counts (`server.rs:1164-1167`), and authorization binds outputs. Those gates protect its own construction path; they do not authenticate the GUI's RPC endpoint.
 
 ## PoC implementation and reproduction
 
@@ -86,7 +129,9 @@ cargo fmt --check
 cargo test --test deceive -- --nocapture 2>&1 | tee results.txt
 ```
 
-Final output includes:
+The saved test output includes the following labels. “GUI shows” in these
+labels means the backend produced fields used by the cited view code; the
+iced renderer was not executed.
 
 ```text
 PASS [S1-phantom-payment] GUI shows INCOMING 12.500000 NOID that never existed
@@ -102,9 +147,16 @@ ALL 15 CHECKS PASSED
 
 ## Assurance limits
 
-- No iced rendering was executed; assertions are made on the exact model values the view layer renders, with the render sites cited. `short_address` (5 lines, private) was re-implemented verbatim for S7. No GUI process, dialog, or clipboard was driven.
-- The impostor stubs the HTTP surface; it demonstrates the absence of client-side verification, not a specific server compromise vector. Realistic triggers are a compromised node binary, the storage lane's C20 corrupted-storage node, or the W3 loopback impostor (which requires local code execution by any local user, and yields deception without key theft).
-- W2's key-holding variant (a malicious node genuinely building a divergent payment) was not executed against a live wallet; the wallet-safety lane already proved the builder can emit fee/count-preserving divergent intents that pass every downstream check, and S3 proves the client accepts any result.
+- No iced rendering was executed. Assertions cover the exact backend model
+  values used by the cited view code. `short_address` was reproduced for S7.
+  No GUI process, dialog, or clipboard was driven.
+- The scripted HTTP server proves what the client accepts, not that a remote
+  network peer can impersonate the local node. W3 requires local process
+  execution or a compromised node binary. C20 is a distinct local-storage
+  corruption scenario.
+- A key-holding malicious node building a divergent payment was not executed
+  here. The wallet-safety lane studied that separate condition; S3 establishes
+  only client acceptance of an arbitrary reported result.
 - Plain NOID payments only; the native-asset and trade surfaces were read (holdings, preview/submit binding) but not exercised beyond the plan review.
 - macOS only; the impostor-adoption race is deterministic in the harness (scripted failure ordering), while in the wild it depends on the impostor answering before the child-exit check.
-- No upstream source was edited and no fix was applied. The pinned tree was only read; pre-existing working-tree modifications there were left untouched.
+- The pinned source was read without editing it.

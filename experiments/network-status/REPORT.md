@@ -1,48 +1,26 @@
-# parano1d / NOID live network status — snapshot 2026-11-16 (~00:05–00:35 UTC)
+# NOID network and market: a dated observation
 
-Passive, read-only recon (public explorers, pool APIs, aggregators, DNS, one JSON-RPC
-read endpoint, web search, twitter-archive SQL). No node sync, no p2p connections, no
-transactions, no contact with anyone. Every number carries its source; unknowns are
-marked. Raw fetches are in this directory (`*.json`, `*.html`, `*.js`).
+This report records public data fetched 2026-11-16, 00:05–00:35 UTC. Sources
+were explorer and pool APIs, aggregators, DNS, one public RPC endpoint, and
+archived social posts. Raw responses are retained in this directory. The
+figures describe that observation window; they are not current network facts.
 
-*(Recovered from the lane's transcript by the root after the lane could not write files
-and then could not resume on Opus — the lane's GLM transcript contains `mcp_tool_use`
-blocks the Anthropic API rejects. Content is the lane's own verbatim report.)*
+Three public services reported NOID near height 313,400, with roughly
+30-second blocks. In a 200-block sample, two coinbase addresses received
+83.5% of blocks; one is plausibly a shared pool. This is production
+concentration, not proof that one person controls both miners. Explorers
+reported 3,355 funded addresses and 89,445 live UTXOs. SafeTrade was the only
+NOID/USDT venue found by two market aggregators; its quoted price was near
+$0.24, with roughly $70,000–$77,000 in reported daily volume. The roughly
+$3 million capitalization is supply multiplied by a thin-market price, not
+an amount that could necessarily be sold at that price.
 
-Coordinator datapoint (operator-power lane, received mid-run) is folded into §1 and §2.
-
-## One-line answers
-
-1. **LIVENESS — LIVE.** Height **313,405 → 313,422 during the 7-minute observation
-   window** (≈25 s/block; 24 h avg 30.1 s vs 30 s target); genesis 2026-08-21T16:00:00Z
-   (block 0 ts 1787328000), difficulty **44 bits** (target `0x0051341a…`, scalar
-   2.737e13), network rate **~0.9 "TH/s"** (4 concordant sources, unit caveat below).
-2. **WHO SECURES IT — ~2 producers make ~84% of blocks right now.** Last 200 blocks:
-   solo `o189lhaayz…` **49.0%** + LuckyPool payout addr `o1sk6hjgw…` **34.5%** (=
-   luckypool.io, 47 miners / 600 workers / 350.8 GH/s ≈ 38% of network); gb-pool
-   (noid.pool.army) 1 miner, 7 blocks ever; AriaPool PAUSED since Oct 18; parano1d-pool.fun
-   serves a *different/smaller chain* (see §2); all-time 122 coinbase addrs, top-9 = 87%.
-3. **WHO USES IT — a few thousand small users.** **3,355 funded addresses**, 89,445
-   live UTXOs, **3,920 tx/24 h of which ~1,000–1,340 non-coinbase**; top-1 holder 26.8%
-   (behavior = exchange hot wallet, attribution unconfirmed), top-10 = 49.4%, top-100 =
-   84.7% of the 12.15M NOID circulating.
-4. **VALUE — REAL, thin, one venue.** NOID/USDT **on SafeTrade only** (the sole market
-   on Coinpaprika *and* CoinGecko): **$0.241–0.247**, **24 h volume $70–77 K**,
-   **market cap $2.9–3.0 M** (CoinGecko $2,998,315), ATH $0.50 (CG, Oct 25) / $0.637
-   (paprika, Oct 20), −37% over 30 d. On-chain native DEX/TVL is tiny: **48,962 NOID
-   (≈$12 K) locked** across pools/curves/token-backing; DEX 24 h vol 11,817 NOID (≈$2.9 K).
-5. **THE FORK (Jetsam, JTM) — live chain, zero market.** Height **54,273** (own RPC
-   `rpc.jetsamchain.com`, 41 peers), genesis 2026-09-03, ~189 s blocks vs 180 s target,
-   difficulty 27 bits TowerWalk; recent 150 blocks: top miner **42%**, #2 20.7%;
-   **no observable market** ("No trading data" on LiveCoinWatch; absent from
-   Coinpaprika/CoinGecko; bitcointalk ANN read 558 times, OP has 7 activity).
-6. **DEV FOOTPRINT — author owns the core, not the edges.** Author-controlled:
-   parano1d.org (+docs/lab/tradedata/noone subdomains), git.parano1d.org Forgejo
-   (9 repos, last push **today**), all four DNS seeds `mseed1..4.parano1d.org`
-   (which resolve to **Namecheap shared-web-hosting IPs** — see §6), and **10% of
-   every block subsidy** to two consensus-hardcoded dev funds (≈599,040 NOID ≈ $148 K
-   **each** received so far). Third-party: explorer, exchange listing, 2 live pools,
-   Android wallet, NFT/meme projects, trackers.
+The hashrate estimate near 0.9 trillion Poseidon2b evaluations per second is
+specific to this PoW. It does not convert to rented SHA-256 hashrate or a
+known GPU count. Neither block concentration nor shared infrastructure
+establishes the developer's mining power. Four default DNS seed names share
+one domain, but this survey did not connect to their P2P ports or identify
+who operates their endpoints.
 
 ---
 
@@ -59,27 +37,21 @@ Coordinator datapoint (operator-power lane, received mid-run) is folded into §1
 | Orphans | 4,079 all-time (1.30%) | noidexplorer `/api/v1/stats` |
 | Consensus | protocol v2 active since block 210,537; native (token/DEX) since 279,370; next subsidy step at 1,261,737 | noidexplorer `/api/v1/economics` |
 
-**Hashrate class & formula:** H ≈ D/t = 2.737e13 / 30 s ≈ **9.1e11 ≈ 0.9 T-units/s**,
-i.e. three orders below a single modern SHA-256 ASIC farm and ~9 orders below BTC;
-PoW is Poseidon2b-based (GPU/CPU, per AriaPool/bytwork), so the ecosystem's "H/s" is
-its own share-space unit, not a directly rentable commodity hashrate — treat
-"sub-TH/s-class, a few hundred GPUs" as the physical scale. The operator-power lane's
-noid-wallet checkpoint (block 274,821, 745 GH/s, Nov 2) sits on the same growth curve
-(745 → ~912 GH/s over 14 days, +22%); it corroborates rather than contradicts the
-explorers.
+**Hashrate estimate:** H ≈ D/t = 2.737e13 / 30 s ≈ **9.1e11
+Poseidon2b evaluations/s**. This uses observed difficulty and the target block
+time; it does not measure mining hardware. The third-party wallet's Nov 2
+checkpoint reports a compatible earlier estimate of 745 GH/s.
 
-**Height-number reconciliation (coordinator's question):** noidexplorer, gb-pool and
-luckypool — three operators that do not share a node — all report ~313.4K *now*, and
-the wallet checkpoint (274,821 @ Nov 2) extrapolates at 30 s/block to ≈313–315K today.
-So **every piece of public tooling tracks one chain at 313K**. parano1d-pool.fun's
-~56.5K tip is 257K blocks away — not this network. Its own numbers are also internally
+**Height discrepancy:** noidexplorer, gb-pool and luckypool all reported
+~313.4K in this window, and
+the wallet checkpoint (274,821 @ Nov 2) extrapolates at 30 s/block to
+≈313–315K at the time of this survey.
+Those sources agree on a chain near 313K. parano1d-pool.fun's reported
+~56.5K tip is 257K blocks away. Its own numbers are also internally
 consistent with a different network: 5.87 GH/s claiming 12/60 blocks implies a network
-of ≈29 GH/s, 31x smaller than NOID mainnet's ~912 GH/s (on mainnet that claim is
-arithmetically impossible). Verdict: parano1d-pool.fun serves/mines some other chain
-(private testnet or its own fork) or reports stale/wrong data; it returns HTTP 503
-(census at 00:30Z) so this cannot be resolved further passively. What matters for
-value-at-risk: the valued chain (SafeTrade listing, $3 M cap) is unambiguously the
-313K chain.
+of ≈29 GH/s, 31 times below the mainnet estimate. The service may be on
+another chain or may simply report stale or incorrect data. It returned HTTP
+503 at 00:30 UTC, so its actual chain was not established.
 
 ## 2. Who secures it (block production)
 
@@ -97,18 +69,17 @@ value-at-risk: the valued chain (SafeTrade listing, $3 M cap) is unambiguously t
 - **AriaPool (pool.ariabrain.com/noid.html): "PAUSED since 18 October 2026"**,
   balances paid out (page text).
 - **parano1d-pool.fun:** HTTP 503 (00:30Z); per §1 its self-reports describe a
-  different/smaller chain — treat as not securing mainnet today.
+  incompatible height; its contribution to this chain was unverified.
 - **peakpool:** software, not a service — `peakminer/peakpool` GitHub Stratum-V2
   **solo**-mining deployment; `peakpool.xyz` is a **parked domain** ("lander" redirect).
 - **All-time (noidexplorer `/api/v1/miners`, 313,411 blocks):** 122 coinbase addresses;
   top-9 = 87.4%; no address > 16.2%. Current concentration is much higher than the
   all-time picture.
 
-**Concentration verdict:** effectively **two producers** — one solo whale (49%) and one
-pool aggregating 47 miners (34.5%) — plus a long tail. A 51% attack needs the solo whale
-plus either the pool or ~2% more hashrate; at the ecosystem's own unit pricing
-(~$0.049 profit/ MH/s-day, luckypool) the network's *economic* security budget is
-trivially small.
+The 200-block window was concentrated: one coinbase address received 49%,
+another 34.5%. The second plausibly belongs to a pool with many miners. We
+cannot infer developer control or the cost of obtaining majority hashrate
+from these payout addresses and pool estimates alone.
 
 ## 3. Who uses it
 
@@ -143,16 +114,16 @@ MiningChamp. Active shill/holder community on X ($noid, @parano1dscan, @noidium,
   exchange, NOID/USDT pair." No DEX/OTC/XT/telegram market found. SafeTrade direct API
   is Cloudflare-403 to curl; aggregator data is concordant across paprika/CG/explorer.
 - **Price:** $0.2412 (paprika + explorer ticker, 00:10Z) / $0.2472 (CoinGecko) /
-  $0.244 (hashrate.no widget).
+  $0.244 (hashrate.no widget). These are dated quotes.
 - **Market cap:** CoinGecko **$2,998,315** (circ 12.13M) / FDV $3,003,880. Supply has
   no hard cap (permanent 1 NOID/block tail), so FDV grows with the tail.
 - **Volume:** $69.6 K (SafeTrade page) / $75.0 K (CG) / $77.2 K (paprika) per 24 h.
 - **History:** listed since ~mid-Sept 2026 at ~$0.0025 (explorer premium/price/history);
-  ran to ATH $0.6374 on 2026-10-20 (paprika) / $0.4995 on 2026-10-25 (CG); now −37%
+  ran to ATH $0.6374 on 2026-10-20 (paprika) / $0.4995 on 2026-10-25 (CG); at observation −37%
   (30 d), −50% from ATH. A ~$3 M cap coin doing ~$75 K/day volume on one small CEX
-  with 26.8% of supply sitting in one (likely exchange) wallet: **real but thin and
-  fragile** — the market could be exited or exhausted quickly; a disclosure that moves
-  price by X% moves at most ~$3 M × X% of paper value.
+  with 26.8% of supply sitting in one address whose exchange attribution is
+  unverified. Reported volume is not order-book depth or sale capacity; market
+  capitalization cannot bound actual holder losses.
 - Dev-fund value: cumulative **599,040 NOID ≈ $148 K to each of two funds** (O(1)
   Network Fund + ParanO(1)d Lab, consensus-mandated 5% each of subsidy for 3 years;
   `/api/v1/economics` + `development_allocation.rs`); both funds spend down regularly
@@ -175,7 +146,8 @@ all-time sample (121 headers) top 35.5%. Pools: none — solo CPU/GPU mining
 markets table, price/mcap/volume all "-"; absent from Coinpaprika and CoinGecko.
 Community: bitcointalk ANN read 558 times, OP "jetsamofficiel" (Newbie, activity 7);
 Discord/Telegram exist (unmeasured); repo last push 2026-10-30 (2 weeks stale).
-**Value-at-risk on JTM: mining-electricity and sentiment only — no market.**
+No JTM market was found in the sources checked; that is not proof that private
+trades or unindexed venues do not exist.
 
 ## 6. Developer footprint (author = @ignotus_nemo / "Paranoid Zero")
 
@@ -201,31 +173,25 @@ Author-controlled touchpoints:
 - Promotion: ethresear.ch t/25730, Zenodo 23778742, active X account announcing the
   web wallet/launchpad/DEX/NFT suite (Nov 4 launch post).
 
-Third-party touchpoints (NOT author-run): noidexplorer.org (community, sells its own
+Apparently separate services (ownership was not independently audited): noidexplorer.org (community, sells its own
 USD-priced services), SafeTrade listing, luckypool.io, gb-pool (gustlborg), AriaPool
 (paused), noid-wallet/noidusa.com (@Solid_Primal/@0xdavee_), noidz.xyz, ONEFEST,
 @parano1dscan/@noidium, bytwork/hashrate.no/MiningChamp coverage, the mining community
 on X, and — per the audit's external-consumers lane — the entire Jetsam fork.
-**Fraction:** the *core* (code, docs, seeds, release channel, 10% emission) is 100%
-author-controlled; the *economy* (explorer, exchange, pools, wallet, NFT/meme layer)
-is majority third-party. The author is infrastructure monopoly + treasury recipient,
-not the whole network.
+The source and release channel, public site and seed DNS names, and two
+consensus-designated development payments are associated with the author.
+The explorer, exchange, mining pools, Android wallet, and several applications
+are separately operated or attributed to other parties. This does not settle
+who controls the live seed endpoints or major miners.
 
-## VALUE-AT-RISK VERDICT
+## Limits for risk assessment
 
-**(a) A live network with real users and real money — small-cap and thin, but
-unambiguously past the testnet-with-a-ticker line.** Concretely: ~$3 M paper value
-(12.15M NOID × $0.24) with ~$70–77 K/day real volume on exactly one small CEX, held by
-3,355 funded addresses; ~$12 K of on-chain DeFi/NFT value; ~$296 K already accrued to
-author-side dev funds; and real third-party work at risk (explorer with paid services,
-an Android wallet, two live pools, a NFT/meme community). What it is NOT: it is not
-deep — one venue, top holder 26.8%, two producers make 84% of blocks, 30-day trend
-−37% — so a hostile disclosure could plausibly zero most of the $3 M paper value, but
-that $3 M is the ceiling of direct financial harm (plus lost work and trust). The
-Jetsam fork changes the calculus only qualitatively: same inherited code, real miners,
-**no market at all** — its value-at-risk is sweat equity, not money.
+NOID had a live chain, third-party software, and a quoted SafeTrade market in
+this observation window. This makes user-facing failures consequential. The
+$3 million quote is a market-cap calculation, not liquid value or a cap on
+losses. We did not measure exchange order-book depth, the number of distinct
+people behind funded addresses, or the developer's mining power.
 
-Unknowns kept unknown: whether the DNS seeds actually bootstrap (no p2p contact);
-SafeTrade hot-wallet attribution of the top holder (behavioral inference only);
-last-week social sentiment (archive ends 2026-11-09); what chain parano1d-pool.fun
-actually serves (503).
+The seed endpoints' actual P2P service, the largest address's exchange
+attribution, SafeTrade's deposit rules, recent social activity after the
+archive cutoff, and the chain served by parano1d-pool.fun remain unknown.
